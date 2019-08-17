@@ -1,0 +1,8 @@
+function factorielle(n:= int):= int
+  if n <= 1 then
+    factorielle := 1
+  else
+    factorielle := n*factorielle(n - 1)
+
+writeln('Hello World')
+readln
