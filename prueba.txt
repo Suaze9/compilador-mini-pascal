@@ -6,3 +6,7 @@ function factorielle(n:= int):= int
 
 writeln('Hello World')
 readln
+{hgjgk
+
+lkñ}
+qse1234daqe

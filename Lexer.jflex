@@ -1,14 +1,23 @@
 %%
 %unicode
 %int
+%line
+%column
 %caseless
 %standalone
 %class lexer
-%state NOMBRE
-%state NOMSAL
-%state NOMFECH
 
-comentario = "{"[{}]*"}"
+%state COMMENT
+%state TEXT
+
+%{
+  public static String texto = "";
+%}
+
+comentarioIn = \{
+comentarioOut = \}
+
+comillas= \'
 
 int = [iI][nN][tT]
 char = [cC][hH][aH][rR]
@@ -44,9 +53,11 @@ letra = [a-zA-Z_]
 
 %%
 <YYINITIAL>{
-            {comentario}                                  {}
+            {comentarioIn}                                {yybegin(COMMENT);}
             
             {espacios}                                    {}
+
+            {comillas}                                    {yybegin(TEXT);}
             
             {function}                                    {System.out.println("<FUNCTION>");}
             
@@ -76,5 +87,17 @@ letra = [a-zA-Z_]
             
             {coma}                                        {System.out.println("<COMA>");}
             
-            .            {}
+            .                                             {System.out.println("Unrecognized token: " + yytext() + " at line " + yyline + " column " + yycolumn);}
+}
+
+<COMMENT>{
+            {comentarioOut}                               {yybegin(YYINITIAL);}
+            .                                             {}
+}
+
+<TEXT>{
+            {comillas}                                    { System.out.println("<TEXT, \'" + texto + "\'>");
+                                                            texto = "";
+                                                            yybegin(YYINITIAL);}
+            .                                             {texto += yytext();}
 }

@@ -754,7 +754,7 @@ class lexer {
             // fall through
           case 42: break;
           case 16: 
-            { System.out.println("<TEXT, \'" + texto + "\'>");
+            { System.out.println("<TEXT, \"" + texto + "\">");
                                                             texto = "";
                                                             yybegin(YYINITIAL);
             } 
