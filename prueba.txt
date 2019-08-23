@@ -4,8 +4,8 @@ function factorielle(n:= int):= int
   else
     factorielle := n*factorielle(n - 1)
 
-writeln('Hello World')
-readln
+write('Hello World')
+read
 {hgjgk
 
 lkñ}
