@@ -1,11 +1,140 @@
 import java_cup.runtime.*;
 
-terminal String NUM;
-terminal MAS, PUNTCOMA, POR, NUMX, IGUAL;
-non terminal noTerminal P;
-non terminal Double S;
-non terminal Integer V;
+terminal String TEXT;
+terminal FUNCTION, PROGRAM, BEGIN, END, FOR,
+        WHILE, REPEAT, IF, ELSE, TRUE,
+        FALSE, PARIZQ, PARDER, READ, WRITE,
+        PARDER, OPSUM, OPMULT, OPAO, OPREL, ASSIG,
+        INT, CHAR, BOOLEAN, RECORD, NUMS,
+        ID, COMA, TEXT;
+        
+non terminal Integer expr, math, rel, sum, mult, num, bool, boolmath;
 
+math ::=    sum:s {:
+                RESULT = s.val;
+            :};
+
+sum ::= sum:s OPSUM:o mult:m {:
+            switch((String)o){
+                case "+":{
+                    RESULT = s.val + m.val;
+                    break;
+                }
+                case "-":{
+                    RESULT = s.val - m.val;
+                    break;
+                }
+                default:{
+                    ///////////////////////////////////
+                    break;
+                }
+            }
+        :}
+    |   mult:m {:
+            RESULT = m.val;
+        :};
+
+
+mult ::=    mult:m OPMULT:o num:n {:
+                switch((String)o){
+                    case "*":{
+                        RESULT = m.val * n.val;
+                        break;
+                    }
+                    case "/":
+                    case "div":{
+                        RESULT = new Integer((int)(m.val / n.val));
+                        break;
+                    }
+                    case "mod":{
+                        RESULT = m.val % n.val;
+                        break;
+                    }
+                    default:{
+                        ///////////////////////////////////////////////////////
+                        break;
+                    }
+                }
+            :};
+
+num ::= NUMS:n {:
+                RESULT = New Integer((String) n);
+            :}
+        |   PARIZQ math:m PARDER {:
+                RESULT = m.val;
+            :};
+
+rel ::= rel:r OPAO:o bool:b {:
+                //<>|=|>|<|>=|<=|[aA][nN][dD]|[oO][rR]|[nN][oO][tT]
+                switch((String)o){
+                    case "and":{
+                        RESULT = r.val && b.val;
+                        break;
+                    }
+                    case "or":{
+                        RESULT = r.val || b.val;
+                        break;
+                    }
+                }
+            :}
+        |   bool:b {:
+                RESULT = b.val;
+            :}
+
+bool ::=    TRUE {:
+                RESULT = true;
+            :}
+        |   FALSE {:
+                RESULT = false;
+            :}
+        |   ID:i {:
+                ///////////////////////////////////////////////////////////////////////
+            :}
+        |   NOT bool:b {:
+                RESULT = !b.val;
+            :}
+        |   PARIZQ rel:r PARDER {:
+                RESULT = r.val;
+            :}
+        |   boolmath:b {:
+                RESULT = b.val;
+            :};
+
+boolmath ::=    boolmath:b OPREL:o math:m{:
+                    switch((String)o){
+                        case "<>":{
+                            RESULT = b.val != m.val;
+                            break;
+                        }
+                        case "=":{
+                            RESULT = b.val == m.val;
+                            break;
+                        }
+                        case "<":{
+                            RESULT = b.val < m.val;
+                            break;
+                        }
+                        case ">":{
+                            RESULT = b.val > m.val;
+                            break;
+                        }
+                        case ">=":{
+                            RESULT = b.val >= m.val;
+                            break;
+                        }
+                        case "<=":{
+                            RESULT = b.val <= m.val;
+                            break;
+                        }
+                        default:{
+                            //////////////////////////////////////////////////////////////////
+                            break;
+                        }
+                    }
+                :}
+            |   math:m {:
+                    RESULT = m.val;
+                :}
 
 S ::= P:p {:
 		RESULT = p.val;
