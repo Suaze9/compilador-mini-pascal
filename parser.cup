@@ -1,0 +1,24 @@
+import java_cup.runtime.*;
+
+terminal String NUM;
+terminal MAS, PUNTCOMA, POR, NUMX, IGUAL;
+non terminal noTerminal P;
+non terminal Double S;
+non terminal Integer V;
+
+
+S ::= P:p {:
+		RESULT = p.val;
+		System.out.println("El numero es: " + RESULT);
+	:};
+
+P ::= P:p MAS NUM:n1 NUMX NUM:n2 {:
+		RESULT = new noTerminal (p.val + new Integer(n1) * Math.pow(v.intValue(), new Integer(n2)), p.x)
+	:}
+	| V:v PUNTCOMA NUM:n1 NUMX NUM:n2 {:
+		RESULT = new noTerminal(new Integer(n1) * Math.pow(v.intValue(), new Integer(n2)), v.intValue());
+	:};
+	
+V ::= NUMX IGUAL NUM:n {:
+		RESULT = new Integer(n);
+	:};
