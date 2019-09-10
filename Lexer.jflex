@@ -1,10 +1,18 @@
+import java_cup.runtime.*;
+import java.io.Reader;
+
+import java_cup.runtime.Symbol;
+import java_cup.runtime.ComplexSymbolFactory;
+import java_cup.runtime.ComplexSymbolFactory.Location;
+
 %%
 %unicode
 %int
 %line
 %column
 %caseless
-%standalone
+%cup
+
 %class lexer
 
 %state COMMENT
@@ -19,7 +27,8 @@ comentarioOut = \}
 
 comillas= \'
 
-int = [iI][nN][tT]
+
+int = [iI][nN][tT][eE][gG][eE][rR]
 char = [cC][hH][aH][rR]
 boolean = [bB][oO][oO][lL][eE][aA][nN]
 record = [rR][eE][cC][oO][rR][dD]
@@ -27,7 +36,11 @@ record = [rR][eE][cC][oO][rR][dD]
 read = [rR][eE][aA][dD]
 write = [wW][rR][iI][tT][eE]
 
+program = [pP][rR][oO][gG][rR][aA][mM]
 function = [fF][uU][nN][cC][tT][iI][oO][nN]
+
+begin = [bB][eE][gG][iI][nN]
+end = [eE][nN][dD]
 
 while = [wW][hH][iI][lL][eE]
 for = [fF][oO][rR]
@@ -37,14 +50,15 @@ else = [eE][lL][sS][eE]
 parIzq = "("
 parDer = ")"
 
-espacios = [ \n\t]+
 
-id = {letra}({letra}|{num})*
+espacios = [ \n\t]+
 
 opsum = [+-]
 opmult = [*\/]|[dD][iI][vV]|[mM][oO][dD]
 oprel = <>|=|>|<|>=|<=|[aA][nN][dD]|[oO][rR]|[nN][oO][tT]
 assig = :=
+
+id = {letra}({letra}|{num})*
 
 num = [0-9]
 nums = {num}+
@@ -59,40 +73,46 @@ letra = [a-zA-Z_]
   {comentarioIn}  {yybegin(COMMENT);}            
   {espacios}      {}
   {comillas}      {yybegin(TEXT);}            
-  {function}      {System.out.println("<FUNCTION>");}            
-  {while}         {System.out.println("<WHILE>");}
-  {for}           {System.out.println("<FOR>");}
-  {repeat}        {System.out.println("<REPEAT>");}
-  {if}            {System.out.println("<IF>");}
-  {else}          {System.out.println("<ELSE>");}
-  {parIzq}        {System.out.println("<PARIZQ>");}
-  {parDer}        {System.out.println("<PARDER>");}
-  {read}          {System.out.println("<READ>");}
-  {write}         {System.out.println("<WRITE>");}            
-  {parDer}        {System.out.println("<PARDER>");}            
-  {opsum}         {System.out.println("<OPSUM, \"" + yytext() + "\" >");}
-  {opmult}        {System.out.println("<OPMULT, \"" + yytext() + "\" >");}
-  {oprel}         {System.out.println("<OPREL, \"" + yytext() + "\" >");}
-  {assig}         {System.out.println("<ASSIG>");}            
-  {int}           {System.out.println("<INT>");}
-  {char}          {System.out.println("<CHAR>");}
-  {boolean}       {System.out.println("<BOOLEAN>");}
-  {record}        {System.out.println("<RECORD>");}            
-  {nums}          {System.out.println("<NUMS>");}            
-  {id}            {System.out.println("<ID, \"" + yytext() + "\" >");}            
-  {coma}          {System.out.println("<COMA>");}            
+  {function}      {return symbol("FUNCTION", sym.FUNCTION);}
+  {program}       {return symbol("PROGRAM", sym.PROGRAM);}       
+  {begin}         {return symbol("BEGIN", sym.BEGIN);}       
+  {end}           {return symbol("END", sym.END);}       
+  {for}           {return symbol("FOR", sym.FOR);}
+  {while}         {return symbol("WHILE", sym.WHILE);}
+  {repeat}        {return symbol("REPEAT", sym.REPEAT);}
+  {if}            {return symbol("IF", sym.IF);}
+  {else}          {return symbol("ELSE", sym.ELSE);}
+  {parIzq}        {return symbol("PARIZQ", sym.PARIZQ);}
+  {parDer}        {return symbol("PARDER", sym.PARDER);}
+  {read}          {return symbol("READ", sym.READ);}
+  {write}         {return symbol("WRITE", sym.WRITE);}            
+  {parDer}        {return symbol("PARDER", sym.PARDER);}            
+  {opsum}         {return symbol("OPSUM", sym.OPSUM, yytext());}
+  {opmult}        {return symbol("OPMULT", sym.OPMULT, yytext());}
+  {oprel}         {return symbol("OPREL", sym.OPREL, yytext());}
+  {assig}         {return symbol("ASSIG", sym.ASSIG);}            
+  {int}           {return symbol("INT", sym.INT);}
+  {char}          {return symbol("CHAR", sym.CHAR);}
+  {boolean}       {return symbol("BOOLEAN", sym.BOOLEAN);}
+  {record}        {return symbol("RECORD", sym.RECORD);}            
+  {nums}          {return symbol("NUMS", sym.NUMS);}            
+  {id}            {return symbol("ID", sym.ID, yytext());}            
+  {coma}          {return symbol("COMA", sym.COMA);}            
   .               {System.out.println("Unrecognized token: " + yytext() + " at line " + yyline + " column " + yycolumn);}
 }
 
 <COMMENT>{
-  {comentarioOut} {yybegin(YYINITIAL);}
-  .               {}
+  {comentarioOut} { texto = "";
+                    yybegin(YYINITIAL);
+                    return symbol("COMMENT", sym.COMMENT, texto);
+                  }
+  .               {texto += yytext();}
 }
 
 <TEXT>{
-  {comillas}  { System.out.println("<TEXT, \'" + texto + "\'>");
-                texto = "";
+  {comillas}  { texto = "";
                 yybegin(YYINITIAL);
+                return symbol("TEXT", sym.TEXT, texto);
               }
   .           {texto += yytext();}
 }
