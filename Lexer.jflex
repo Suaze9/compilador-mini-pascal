@@ -19,7 +19,7 @@ comentarioOut = \}
 
 comillas= \'
 
-int = [iI][nN][tT]
+int = [iI][nN][tT][eE][gG][eE][rR]
 char = [cC][hH][aH][rR]
 boolean = [bB][oO][oO][lL][eE][aA][nN]
 record = [rR][eE][cC][oO][rR][dD]
