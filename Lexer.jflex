@@ -22,12 +22,12 @@ import java_cup.runtime.ComplexSymbolFactory.Location;
   public static String texto = "";
   
   private Symbol symbol(String name, int sym) {
-		//System.out.println("name: " + name + " sym: " + sym);
+		System.out.println("name: " + name + " sym: " + sym);
 		return new Symbol(sym, yyline, yycolumn);
 	}
 
 	private Symbol symbol(String name, int sym, Object val) {
-		//System.out.println("name: " + name + " sym: " + sym + " val: " + val);
+		System.out.println("name: " + name + " sym: " + sym + " val: " + val);
 		return new Symbol(sym, yyline, yycolumn, val);
 	}
 %}
@@ -102,7 +102,7 @@ letra = [a-zA-Z_]
   {parDer}        {return symbol("PARDER", sym.PARDER);}
   {read}          {return symbol("READ", sym.READ);}
   {write}         {return symbol("WRITE", sym.WRITE);}            
-  {parDer}        {return symbol("PARDER", sym.PARDER);}            
+  //{parDer}        {return symbol("PARDER", sym.PARDER);}            
   {opsum}         {return symbol("OPSUM", sym.OPSUM, yytext().toLowerCase());}
   {opmult}        {return symbol("OPMULT", sym.OPMULT, yytext().toLowerCase());}
   {opao}          {return symbol("OPAO", sym.OPAO, yytext().toLowerCase());}
@@ -113,7 +113,7 @@ letra = [a-zA-Z_]
   {char}          {return symbol("CHAR", sym.CHAR);}
   {boolean}       {return symbol("BOOLEAN", sym.BOOLEAN);}
   {record}        {return symbol("RECORD", sym.RECORD);}            
-  {nums}          {return symbol("NUMS", sym.NUMS);}            
+  {nums}          {return symbol("NUMS", sym.NUMS, yytext().toLowerCase());}            
   {id}            {return symbol("ID", sym.ID, yytext().toLowerCase());}            
   {coma}          {return symbol("COMA", sym.COMA);}            
   .               {System.out.println("Unrecognized token: " + yytext() + " at line " + yyline + " column " + yycolumn);}
