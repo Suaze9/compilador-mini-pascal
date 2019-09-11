@@ -8,11 +8,22 @@ terminal FUNCTION, PROGRAM, BEGIN, END, FOR,
     INT, CHAR, BOOLEAN, RECORD,
     ID, COMA, NOT;
         
-non terminal Integer expr, math, sum, mult, num;
+non terminal Expression expr;
+non terminal Integer math, sum, mult, num;
 non terminal Boolean bool, boolmath, rel;
 
+expr ::= math:m {:
+    System.out.println("Math is int: " + m.intValue());
+    RESULT = new Expression(m.intValue());
+:}
+| rel:r{:
+    System.out.println("Rel is boolean: " + r.booleanValue());
+    RESULT = new Expression(r.booleanValue());
+
+:};
+
 math ::= sum:s {:
-    System.out.print("puto el que lo lea :v: " + s.intValue());
+    System.out.println("puto el que lo lea :v: " + s.intValue());
     RESULT = s.intValue();
 :};
 
