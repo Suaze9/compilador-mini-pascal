@@ -69,7 +69,7 @@ opsum = [+-]
 opmult = [*\/]|[dD][iI][vV]|[mM][oO][dD]
 opao = [aA][nN][dD]|[oO][rR]
 oprel = <>|=|>|<|>=|<=
-not = !|[nN][oO][tT]
+not = ("!"|[nN][oO][tT])
 assig = :=
 
 id = {letra}({letra}|{num})*
@@ -97,7 +97,7 @@ letra = [a-zA-Z_]
   {if}            {return symbol("IF", sym.IF);}
   {else}          {return symbol("ELSE", sym.ELSE);}
   {true}          {return symbol("TRUE", sym.TRUE);}
-  {fasle}         {return symbol("FALSE", sym.FALSE);}
+  {false}         {return symbol("FALSE", sym.FALSE);}
   {parIzq}        {return symbol("PARIZQ", sym.PARIZQ);}
   {parDer}        {return symbol("PARDER", sym.PARDER);}
   {read}          {return symbol("READ", sym.READ);}
