@@ -6,37 +6,42 @@
 /** CUP generated class containing symbol constants. */
 public class sym {
   /* terminals */
-  public static final int READ = 16;
-  public static final int NUMS = 3;
-  public static final int ELSE = 12;
-  public static final int INT = 24;
-  public static final int CHAR = 25;
-  public static final int WHILE = 9;
-  public static final int NOT = 30;
-  public static final int END = 7;
-  public static final int PARIZQ = 15;
-  public static final int PARDER = 18;
   public static final int FUNCTION = 4;
-  public static final int TRUE = 13;
-  public static final int IF = 11;
-  public static final int ID = 28;
-  public static final int WRITE = 17;
-  public static final int PROGRAM = 5;
-  public static final int OPAO = 21;
-  public static final int OPMULT = 20;
-  public static final int BEGIN = 6;
-  public static final int BOOLEAN = 26;
-  public static final int COMA = 29;
+  public static final int OPSUM = 20;
+  public static final int CHAR = 27;
+  public static final int ASSIG = 25;
+  public static final int NUMS = 3;
+  public static final int REPEAT = 11;
+  public static final int INT = 26;
+  public static final int FOR = 9;
+  public static final int WRITE = 18;
+  public static final int NOT = 35;
+  public static final int RECORD = 29;
+  public static final int BEGIN = 7;
+  public static final int OPREL = 24;
+  public static final int UNTIL = 32;
+  public static final int IF = 12;
+  public static final int ID = 33;
   public static final int EOF = 0;
-  public static final int RECORD = 27;
-  public static final int FALSE = 14;
-  public static final int ASSIG = 23;
+  public static final int BOOLEAN = 28;
+  public static final int PARIZQ = 16;
+  public static final int OPAND = 22;
+  public static final int TRUE = 14;
+  public static final int OPOR = 23;
   public static final int error = 1;
+  public static final int PROGRAM = 5;
+  public static final int COMA = 34;
+  public static final int ELSE = 13;
+  public static final int READ = 17;
+  public static final int TO = 31;
+  public static final int WHILE = 10;
+  public static final int THEN = 30;
+  public static final int END = 8;
   public static final int TEXT = 2;
-  public static final int OPSUM = 19;
-  public static final int FOR = 8;
-  public static final int OPREL = 22;
-  public static final int REPEAT = 10;
+  public static final int FALSE = 15;
+  public static final int PARDER = 19;
+  public static final int OPMULT = 21;
+  public static final int DO = 6;
   public static final String[] terminalNames = new String[] {
   "EOF",
   "error",
@@ -44,6 +49,7 @@ public class sym {
   "NUMS",
   "FUNCTION",
   "PROGRAM",
+  "DO",
   "BEGIN",
   "END",
   "FOR",
@@ -59,13 +65,17 @@ public class sym {
   "PARDER",
   "OPSUM",
   "OPMULT",
-  "OPAO",
+  "OPAND",
+  "OPOR",
   "OPREL",
   "ASSIG",
   "INT",
   "CHAR",
   "BOOLEAN",
   "RECORD",
+  "THEN",
+  "TO",
+  "UNTIL",
   "ID",
   "COMA",
   "NOT"

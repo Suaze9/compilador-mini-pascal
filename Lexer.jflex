@@ -48,6 +48,7 @@ write = [wW][rR][iI][tT][eE]
 program = [pP][rR][oO][gG][rR][aA][mM]
 function = [fF][uU][nN][cC][tT][iI][oO][nN]
 
+do = [dD][oO]
 begin = [bB][eE][gG][iI][nN]
 end = [eE][nN][dD]
 
@@ -61,13 +62,16 @@ if = [iI][fF]
 else = [eE][lL][sS][eE] 
 parIzq = "("
 parDer = ")"
+then = [tT][hH][eE][nN]
+to = [tT][oO]
+until = [uU][nN][tT][iI][lL]
 
-
-espacios = [ \n\t]+
+espacios = [\ \n\r\t\f]+
 
 opsum = [+-]
 opmult = [*\/]|[dD][iI][vV]|[mM][oO][dD]
-opao = [aA][nN][dD]|[oO][rR]
+opand = [aA][nN][dD]
+opor = [oO][rR]
 oprel = <>|=|>|<|>=|<=
 not = ("!"|[nN][oO][tT])
 assig = :=
@@ -89,6 +93,7 @@ letra = [a-zA-Z_]
   {comillas}      {yybegin(TEXT);}            
   {function}      {return symbol("FUNCTION", sym.FUNCTION);}
   {program}       {return symbol("PROGRAM", sym.PROGRAM);}       
+  {do}            {return symbol("DO", sym.DO);}       
   {begin}         {return symbol("BEGIN", sym.BEGIN);}       
   {end}           {return symbol("END", sym.END);}       
   {for}           {return symbol("FOR", sym.FOR);}
@@ -100,12 +105,16 @@ letra = [a-zA-Z_]
   {false}         {return symbol("FALSE", sym.FALSE);}
   {parIzq}        {return symbol("PARIZQ", sym.PARIZQ);}
   {parDer}        {return symbol("PARDER", sym.PARDER);}
+  {then}          {return symbol("THEN", sym.THEN);}
+  {to}            {return symbol("TO", sym.TO);}
+  {until}         {return symbol("UNTIL", sym.UNTIL);}
   {read}          {return symbol("READ", sym.READ);}
   {write}         {return symbol("WRITE", sym.WRITE);}            
   //{parDer}        {return symbol("PARDER", sym.PARDER);}            
   {opsum}         {return symbol("OPSUM", sym.OPSUM, yytext().toLowerCase());}
   {opmult}        {return symbol("OPMULT", sym.OPMULT, yytext().toLowerCase());}
-  {opao}          {return symbol("OPAO", sym.OPAO, yytext().toLowerCase());}
+  {opand}         {return symbol("OPAND", sym.OPAND);}
+  {opor}          {return symbol("OPOR", sym.OPOR);}
   {oprel}         {return symbol("OPREL", sym.OPREL, yytext().toLowerCase());}
   {not}           {return symbol("NOT", sym.NOT);}
   {assig}         {return symbol("ASSIG", sym.ASSIG);}            

@@ -1,33 +1,70 @@
 import java_cup.runtime.*;
 
 terminal String TEXT, NUMS;
-terminal FUNCTION, PROGRAM, BEGIN, END, FOR,
+terminal FUNCTION, PROGRAM, DO, BEGIN, END, FOR,
     WHILE, REPEAT, IF, ELSE, TRUE,
     FALSE, PARIZQ, READ, WRITE,
-    PARDER, OPSUM, OPMULT, OPAO, OPREL, ASSIG,
-    INT, CHAR, BOOLEAN, RECORD,
-    ID, COMA, NOT;
+    PARDER, OPSUM, OPMULT, OPAND, OPOR, OPREL, ASSIG,
+    INT, CHAR, BOOLEAN, RECORD, THEN,
+    TO, UNTIL, ID, COMA, NOT;
         
-non terminal Expression expr;
-non terminal Integer math, sum, mult, num;
-non terminal Boolean bool, boolmath, rel;
+non terminal Integer math, sum, mult, num, mathpar;
+non terminal Boolean bool, boolmath, rel, booland, relpar, boolor;
+non terminal Object statement;
+non terminal Object statementlist;
+non terminal Object if;
+non terminal Object while;
+non terminal Object for;
+non terminal Object repeat;
+non terminal Object read;
+non terminal Object write;
+non terminal Object assig;
 
-expr ::= math:m {:
-    System.out.println("Math is int: " + m.intValue());
-    RESULT = new Expression(m.intValue());
-:}
-| rel:r{:
-    System.out.println("Rel is boolean: " + r.booleanValue());
-    RESULT = new Expression(r.booleanValue());
+S ::= statement:s{::};
 
-:};
+statement ::= BEGIN statementlist:sl END {::}
+| if:i {::}
+| while:w {::}
+| for:f {::}
+| repeat:r {::}
+| read:r {::}
+| write:w {::}
+| assig:a {::};
+
+statementlist ::= statementlist:sl statement:s {::}
+| {::};
+
+if ::= IF PARIZQ relpar THEN statement:s {::}
+| IF PARIZQ relpar THEN statement:si ELSE statement:se {::};
+
+while ::= WHILE PARIZQ relpar DO statement:s {::};
+
+////////////////////REVISAR FORRRRR POR EL IDDDDD////////////////////
+for ::= FOR ID:i ASSIG math:ma TO math:ml DO statement:s {::};
+
+repeat ::= REPEAT statement UNTIL PARIZQ relpar {::};
+
+////////////////////REVISAR READDDDD POR EL IDDDDD////////////////////
+read ::= READ PARIZQ ID:i PARDER {::};
+
+////////////////////REVISAR WRITEEEEE POR EL IDDDDD////////////////////
+write ::= WRITE PARIZQ ID:i PARDER {::}
+| WRITE PARIZQ ID:ii COMA ID:id PARDER {::};
+
+////////////////////REVISAR ASSIGGGGG  POR EL IDDDDD////////////////////
+assig ::= ID:i ASSIG math:m {::};
+
+relpar::= rel:r PARDER {::};
 
 math ::= sum:s {:
+    /*
     System.out.println("puto el que lo lea :v: " + s.intValue());
     RESULT = s.intValue();
+    */
 :};
 
 sum ::= sum:s OPSUM:o mult:m {:
+    /*
     switch((String)o){
         case "+":{
             RESULT = s.intValue() + m.intValue();
@@ -42,13 +79,14 @@ sum ::= sum:s OPSUM:o mult:m {:
             break;
         }
     }
+    */
 :} 
 | mult:m {:
-    RESULT = m.intValue();
+    //RESULT = m.intValue();
 :};
 
-
 mult ::= mult:m OPMULT:o num:n {:
+    /*
     switch((String)o){
         case "*":{
             RESULT = m.intValue() * n.intValue();
@@ -68,55 +106,64 @@ mult ::= mult:m OPMULT:o num:n {:
             break;
         }
     }
+    */
 :}
 | num:n {:
-    RESULT = n.intValue();
+    //RESULT = n.intValue();
 :};
 
 num ::= NUMS:n {:
-    System.out.println("N: " + (String)n);
-    RESULT = new Integer((String)n);
+    //System.out.println("N: " + (String)n);
+    //RESULT = new Integer((String)n);
 :}  
-| PARIZQ math:m PARDER {:
-    RESULT = m.intValue();
+| PARIZQ math:m PARDER
+{:
+    //RESULT = m.intValue();
+:}
+| ID:i {:
+    ///////////// ID ID ID ID ID ID ID ID ID ID ID ID ID ///////////
 :};
 
-rel ::= rel:r OPAO:o bool:b {:
+rel ::= boolor:b {:
+    //RESULT = b;
+:};
+
+boolor ::= boolor:r OPOR:o booland:b {:
     //<>|=|>|<|>=|<=|[aA][nN][dD]|[oO][rR]|[nN][oO][tT]
-    switch((String)o){
-        case "and":{
-            RESULT = new Boolean(r.booleanValue() && b.booleanValue());
-            break;
-        }
-        case "or":{
-            RESULT = new Boolean(r.booleanValue() || b.booleanValue());
-            break;
-        }
-    }
-:} | bool:b {:
-    RESULT = b.booleanValue();
+    //RESULT = new Boolean(r.booleanValue() || b.booleanValue());
+:}
+| booland:b {:
+    //RESULT = b.booleanValue();
+:};
+
+booland ::= booland:br OPAND bool:bl {:
+    //RESULT = new Boolean(br.booleanValue() && bl.booleanValue());
+:}
+| bool:b {:
+    //RESULT = b;
 :};
 
 bool ::= TRUE {:
-    RESULT = new Boolean(true);
+    //RESULT = new Boolean(true);
 :} 
 | FALSE {:
-    RESULT = new Boolean(false);
+    //RESULT = new Boolean(false);
 :}
 | ID:i {:
     ///////////////////////////////////////////////////////////////////////
 :}
 | NOT bool:b {:
-    RESULT = !b.booleanValue();
+    //RESULT = new Boolean(!b.booleanValue());
 :}
 | PARIZQ rel:r PARDER {:
-    RESULT = r.booleanValue();
+    //RESULT = r;
 :}
 | boolmath:b {:
-    RESULT = b.booleanValue();
+    //RESULT = b;
 :};
 
 boolmath ::= math:b OPREL:o math:m{:
+    /*
     switch((String)o){
         case "<>":{
             RESULT = new Boolean(b.intValue() != m.intValue());
@@ -147,6 +194,7 @@ boolmath ::= math:b OPREL:o math:m{:
             break;
         }
     }
+    */
 :};
 
 /*

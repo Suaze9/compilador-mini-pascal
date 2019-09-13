@@ -1,0 +1,9 @@
+begin 
+    ass := 5 
+    rePeat 
+        if (ass >= 0) then
+            ass := ass - 1
+        elSe
+            ass := ass
+    uNtIl ( ass < 0)
+end
