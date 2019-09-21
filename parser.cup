@@ -13,6 +13,7 @@ non terminal Boolean bool, boolmath, rel, booland, boolor;  //boolean operations
 non terminal Object statement;          //Statement
 non terminal Object statementlist;      //Statement List
 non terminal Object if;                 //If block
+non terminal Object ifun;               //If block unmatched
 non terminal Object while;              //While cycle
 non terminal Object for;                //For cycle
 non terminal Object repeat;             //repeat cycle
@@ -29,6 +30,9 @@ non terminal Object funccall;           //call a function
 non terminal Object params;             //function or procedure parameters
 non terminal Object attr;               //function or procedure attributes
 non terminal Object type;               //variable type declaration
+
+precedence nonassoc ELSE;
+precedence nonassoc IF; 
 
 program ::= PROGRAM ID:i decl:d funclist:fl BEGIN statementlist:sl END {::};
 
