@@ -1,7 +1,7 @@
 Mire prro, primero haga esto :v
 
 jflex Lexer.jflex
-java -classpath "asbolute path de tu java-cup-11b.jar";. java_cup.Main -excpect 1 < parser.cup
+java -classpath "asbolute path de tu java-cup-11b.jar";. java_cup.Main -expect 1 < parser.cup
 javac -classpath "asbolute path de tu java-cup-11b.jar";. Main.java y demás clases que ocupes
 java -classpath "absolute path de tu java-cup-11b.jar";. Main prueba.txt
 

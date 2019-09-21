@@ -1,60 +1,108 @@
 import java_cup.runtime.*;
 
-terminal String TEXT, NUMS;
-terminal FUNCTION, PROGRAM, DO, BEGIN, END, FOR,
+terminal String CONSTSTR, CONSTCHAR, NUMS;
+terminal PROGRAM, FUNCTION, PROCEDURE, DO, VAR, BEGIN, END, FOR,
     WHILE, REPEAT, IF, ELSE, TRUE,
     FALSE, PARIZQ, READ, WRITE,
     PARDER, OPSUM, OPMULT, OPAND, OPOR, OPREL, ASSIG,
-    INT, CHAR, BOOLEAN, RECORD, THEN,
+    COLON, INT, CHAR, BOOLEAN, RECORD, STRING, THEN,
     TO, UNTIL, ID, COMA, NOT;
         
-non terminal Integer math, sum, mult, num, mathpar;
-non terminal Boolean bool, boolmath, rel, booland, relpar, boolor;
-non terminal Object statement;
-non terminal Object statementlist;
-non terminal Object if;
-non terminal Object while;
-non terminal Object for;
-non terminal Object repeat;
-non terminal Object read;
-non terminal Object write;
-non terminal Object assig;
+non terminal Integer math, sum, mult, num, mathpar;                 //math operations
+non terminal Boolean bool, boolmath, rel, booland, boolor;  //boolean operations
+non terminal Object statement;          //Statement
+non terminal Object statementlist;      //Statement List
+non terminal Object if;                 //If block
+non terminal Object while;              //While cycle
+non terminal Object for;                //For cycle
+non terminal Object repeat;             //repeat cycle
+non terminal Object read;               //read function
+non terminal Object write;              //write function
+non terminal Object decl;               //variable declaration
+non terminal Object multdecl;           //multiple variable declaration
+non terminal Object assig;              //assign value to variable
+non terminal Object program;            //program start
+non terminal Object function;           //function declaration
+non terminal Object procedure;          //procedure declaration
+non terminal Object funclist;           //list of function and procedure declarations
+non terminal Object funccall;           //call a function
+non terminal Object params;             //function or procedure parameters
+non terminal Object attr;               //function or procedure attributes
+non terminal Object type;               //variable type declaration
 
-S ::= statement:s{::};
+program ::= PROGRAM ID:i decl:d funclist:fl BEGIN statementlist:sl END {::};
+
+funclist ::= function:f funclist:fl {::}
+    | procedure:p funclist:fl {::}
+    | {::};
+
+procedure ::= PROCEDURE ID:i PARIZQ params:p decl:d BEGIN statementlist:s END
+    | PROCEDURE ID:i PARIZQ PARDER COLON type:t decl:d BEGIN statementlist:s END {::}; 
+
+function ::= FUNCTION ID:i PARIZQ params:p COLON type:t decl:d BEGIN statementlist:s END
+    | FUNCTION ID:i PARIZQ PARDER COLON type:t decl:d BEGIN statementlist:s END {::};
+
+funccall ::= ID:i PARIZQ attr:at {::};
+
+attr ::= math:m COMA attr:a {::}
+    | rel:r COMA attr:a {::}
+    | CONSTCHAR:cc COMA attr:a {::}
+    | CONSTSTR:cc COMA attr:a {::}
+    | math:m PARDER {::}
+    | rel:r PARDER {::}
+    | CONSTCHAR:cc PARDER{::}
+    | CONSTSTR:cc PARDER{::};
+
+params ::= ID:i COMA params:p {::}
+    | ID:i COLON type:t COMA params:p {::}
+    | ID:i COLON type:t PARDER {::};
+
+type ::= INT {::}
+    | CHAR {::}
+    | BOOLEAN {::}
+    | RECORD {::}
+    | STRING {::};
 
 statement ::= BEGIN statementlist:sl END {::}
-| if:i {::}
-| while:w {::}
-| for:f {::}
-| repeat:r {::}
-| read:r {::}
-| write:w {::}
-| assig:a {::};
+    | if:i {::}
+    | while:w {::}
+    | for:f {::}
+    | repeat:r {::}
+    | read:r {::}
+    | write:w {::}
+    | assig:a {::};
 
 statementlist ::= statementlist:sl statement:s {::}
-| {::};
+    | {::};
 
-if ::= IF PARIZQ relpar THEN statement:s {::}
-| IF PARIZQ relpar THEN statement:si ELSE statement:se {::};
+if ::= IF rel:r THEN statement:s {::}
+    | IF rel:r THEN statement:si ELSE statement:se {::};
 
-while ::= WHILE PARIZQ relpar DO statement:s {::};
+while ::= WHILE rel:r DO statement:s {::};
 
-////////////////////REVISAR FORRRRR POR EL IDDDDD////////////////////
 for ::= FOR ID:i ASSIG math:ma TO math:ml DO statement:s {::};
 
-repeat ::= REPEAT statement UNTIL PARIZQ relpar {::};
+repeat ::= REPEAT statementlist UNTIL rel:r {::};
 
-////////////////////REVISAR READDDDD POR EL IDDDDD////////////////////
 read ::= READ PARIZQ ID:i PARDER {::};
 
-////////////////////REVISAR WRITEEEEE POR EL IDDDDD////////////////////
-write ::= WRITE PARIZQ ID:i PARDER {::}
-| WRITE PARIZQ ID:ii COMA ID:id PARDER {::};
+write ::= WRITE PARIZQ CONSTSTR:s PARDER {::}
+    | WRITE PARIZQ CONSTSTR:s COMA ID:id PARDER {::};
 
-////////////////////REVISAR ASSIGGGGG  POR EL IDDDDD////////////////////
-assig ::= ID:i ASSIG math:m {::};
+decl ::= VAR ID:i multdecl:m{::}
+    | {::};
 
-relpar::= rel:r PARDER {::};
+multdecl ::= COMA ID:i multdecl:m {::}
+    | COLON type:t {::};
+
+assig ::= ID:i COMA assig:a {::}
+    | ID:i ASSIG CONSTSTR:cs {::}
+    | ID:i ASSIG CONSTCHAR:cc {::}
+    | ID:i ASSIG math:m {::}
+    | ID:i ASSIG rel:r {::};
+
+mathpar::= math:m PARDER {::};
+
 
 math ::= sum:s {:
     /*
@@ -122,7 +170,8 @@ num ::= NUMS:n {:
 :}
 | ID:i {:
     ///////////// ID ID ID ID ID ID ID ID ID ID ID ID ID ///////////
-:};
+:}
+| funccall:fc {::};
 
 rel ::= boolor:b {:
     //RESULT = b;

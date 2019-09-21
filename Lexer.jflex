@@ -41,12 +41,17 @@ int = [iI][nN][tT][eE][gG][eE][rR]
 char = [cC][hH][aH][rR]
 boolean = [bB][oO][oO][lL][eE][aA][nN]
 record = [rR][eE][cC][oO][rR][dD]
+string = [sS][tT][rR][iI][nN][gG]
+
 
 read = [rR][eE][aA][dD]
 write = [wW][rR][iI][tT][eE]
 
 program = [pP][rR][oO][gG][rR][aA][mM]
 function = [fF][uU][nN][cC][tT][iI][oO][nN]
+procedure = [pP][rR][oO][cC][eE][dD][uU][rR][eE]
+
+var = [vV][aA][rR]
 
 do = [dD][oO]
 begin = [bB][eE][gG][iI][nN]
@@ -75,8 +80,11 @@ opor = [oO][rR]
 oprel = <>|=|>|<|>=|<=
 not = ("!"|[nN][oO][tT])
 assig = :=
+colon = :
 
 id = {letra}({letra}|{num})*
+
+constchar = {comillas}{letra}{comillas}
 
 num = [0-9]
 nums = {num}+
@@ -91,9 +99,11 @@ letra = [a-zA-Z_]
   {comentarioIn}  {yybegin(COMMENT);}            
   {espacios}      {}
   {comillas}      {yybegin(TEXT);}            
-  {function}      {return symbol("FUNCTION", sym.FUNCTION);}
   {program}       {return symbol("PROGRAM", sym.PROGRAM);}       
+  {function}      {return symbol("FUNCTION", sym.FUNCTION);}
+  {procedure}      {return symbol("PROCEDURE", sym.PROCEDURE);}
   {do}            {return symbol("DO", sym.DO);}       
+  {var}            {return symbol("VAR", sym.VAR);}
   {begin}         {return symbol("BEGIN", sym.BEGIN);}       
   {end}           {return symbol("END", sym.END);}       
   {for}           {return symbol("FOR", sym.FOR);}
@@ -118,25 +128,29 @@ letra = [a-zA-Z_]
   {oprel}         {return symbol("OPREL", sym.OPREL, yytext().toLowerCase());}
   {not}           {return symbol("NOT", sym.NOT);}
   {assig}         {return symbol("ASSIG", sym.ASSIG);}            
+  {colon}         {return symbol("COLON", sym.COLON);}
   {int}           {return symbol("INT", sym.INT);}
   {char}          {return symbol("CHAR", sym.CHAR);}
   {boolean}       {return symbol("BOOLEAN", sym.BOOLEAN);}
   {record}        {return symbol("RECORD", sym.RECORD);}            
+  {string}        {return symbol("STRING", sym.STRING);}            
   {nums}          {return symbol("NUMS", sym.NUMS, yytext().toLowerCase());}            
   {id}            {return symbol("ID", sym.ID, yytext().toLowerCase());}            
   {coma}          {return symbol("COMA", sym.COMA);}            
+  {constchar}     {return symbol("CONSTCHAR", sym.CONSTCHAR, yytext());}            
   .               {System.out.println("Unrecognized token: " + yytext() + " at line " + yyline + " column " + yycolumn);}
 }
 
 <COMMENT>{
   {comentarioOut} {yybegin(YYINITIAL);}
+  {espacios}      {}
   .               {}
 }
 
 <TEXT>{
   {comillas}  { texto = "";
                 yybegin(YYINITIAL);
-                return symbol("TEXT", sym.TEXT, texto);
+                return symbol("CONSTSTR", sym.CONSTSTR, texto);
               }
   .           {texto += yytext();}
 }
