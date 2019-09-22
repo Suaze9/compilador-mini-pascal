@@ -11,7 +11,7 @@ terminal PROGRAM, FUNCTION, PROCEDURE, DO, VAR, BEGIN, END, FOR,
 non terminal Object test;
 //non terminal Integer math, sum, mult, num, mathpar;                 //math operations ORIGINAL
 non terminal Object math, sum, num, mathpar;
-non terminal Object mult;         //Math multiplication operations, returns a MathMultNode for AST
+non terminal Object mult;         //Math multiplication operations
 non terminal Object bool, boolmath, rel, booland, boolor;  //boolean operations
 non terminal Object statement;          //Statement
 non terminal Object statementlist;      //Statement List
@@ -112,7 +112,7 @@ mathpar::= math:m PARDER {::};
 
 math ::= sum:s {:
     //////////////// RETORNAR s ////////////////
-    RESULT = s;
+    RESULT = new MathNode(s);
 :};
 
 sum ::= sum:s OPSUM:o mult:m {:
@@ -224,7 +224,7 @@ rel := Value | BoolNode | BoolMathNode | BoolAndNode | BoolOrNode
 
 
 rel ::= boolor:b {:
-    RESULT = b;
+    RESULT = new BoolNode(b);
     //RESULT = b;
 :};
 
@@ -262,12 +262,15 @@ bool ::= TRUE {:
     RESULT = new Value(b, true);
 :}
 | PARIZQ rel:r PARDER {:
+    RESULT = r;
     //RESULT = r;
 :}
 | boolmath:b {:
+    RESULT = b;
     //RESULT = b;
 :};
 
 boolmath ::= math:b OPREL:o math:m{:
+    RESULT = new BoolMathNode(b, (String)o, m);
     //<>|=|>|<|>=|<=
 :};

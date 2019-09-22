@@ -26,4 +26,34 @@ public class BoolNode{
       this.type = 0;
     }
   }
+
+  public String printNode(int depth){
+    System.out.println("This BoolNode holds: "); 
+    for (int i = 0; i <= depth; i++){
+      System.out.print("----");
+    }
+    
+    switch(this.type){
+        case VALUE:
+            ((Value)this.content).printNode(depth + 1);
+            break;
+        case BOOLOR:
+            ((BoolOrNode)this.content).printNode(depth + 1);
+            break;
+        case BOOLAND:
+            ((BoolAndNode)this.content).printNode(depth + 1);
+            break;
+        case BOOLMATH:
+            ((BoolMathNode)this.content).printNode(depth + 1);
+            break;
+        case BOOL:
+            ((BoolNode)this.content).printNode(depth + 1);
+            break;
+        default:
+            System.out.println("ERROR NODO IZQ de \"BoolNode\"");
+            break;
+    }
+    return "Ola";
+  }
+
 }

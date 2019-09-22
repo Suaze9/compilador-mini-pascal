@@ -55,20 +55,23 @@ public class BoolAndNode{
     for (int i = 0; i <= depth; i++){
       System.out.print("----");
     }
-    if(this.typeLeft == VALUE){
-      ((Value)this.leftChild).printNode(depth + 1);
-    }
-    else if(this.typeLeft == BOOLMATH){
-      ((BoolMathNode)this.leftChild).printNode(depth + 1);
-    }
-    else if(this.typeLeft == BOOLAND){
-      ((BoolAndNode)this.leftChild).printNode(depth + 1);
-    }
-    else if(this.typeLeft == BOOL){
-      ((BoolNode)this.leftChild).printNode(depth + 1);
-    }
-    else{
-      System.out.println("ERROR NODO IZQ de \"BoolAndNode\"");
+    
+    switch(this.typeLeft){
+        case VALUE:
+            ((Value)this.leftChild).printNode(depth + 1);
+            break;
+        case BOOLAND:
+            ((BoolAndNode)this.leftChild).printNode(depth + 1);
+            break;
+        case BOOLMATH:
+            ((BoolMathNode)this.leftChild).printNode(depth + 1);
+            break;
+        case BOOL:
+            ((BoolNode)this.leftChild).printNode(depth + 1);
+            break;
+        default:
+            System.out.println("ERROR NODO IZQ de \"BoolAndNode\"");
+            break;
     }
 
     for (int i = 0; i <= depth; i++){
@@ -76,23 +79,27 @@ public class BoolAndNode{
     }
     System.out.println(this.operator);
 
+
     for (int i = 0; i <= depth; i++){
       System.out.print("----");
     }
-    if(this.typeRight == VALUE){
-      ((Value)this.rightChild).printNode(depth + 1);
-    }
-    else if(this.typeRight == BOOLMATH){
-      ((BoolMathNode)this.rightChild).printNode(depth + 1);
-    }
-    else if(this.typeRight == BOOLAND){
-      ((BoolAndNode)this.rightChild).printNode(depth + 1);
-    }
-    else if(this.typeRight == BOOL){
-      ((BoolNode)this.rightChild).printNode(depth + 1);
-    }
-    else{
-      System.out.println("ERROR NODO DER de \"MathMult\"");
+    
+    switch(this.typeRight){
+        case VALUE:
+            ((Value)this.rightChild).printNode(depth + 1);
+            break;
+        case BOOLAND:
+            ((BoolAndNode)this.rightChild).printNode(depth + 1);
+            break;
+        case BOOLMATH:
+            ((BoolMathNode)this.rightChild).printNode(depth + 1);
+            break;
+        case BOOL:
+            ((BoolNode)this.rightChild).printNode(depth + 1);
+            break;
+        default:
+            System.out.println("ERROR NODO DER de \"BoolAndNode\"");
+            break;
     }
     return "Ola";
   }

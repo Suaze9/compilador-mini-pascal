@@ -58,7 +58,7 @@ public class BoolOrNode{
   }
 
   public String printNode(int depth){
-    System.out.println("This MathSum holds: "); 
+    System.out.println("This BoolOrNode holds: "); 
     for (int i = 0; i <= depth; i++){
       System.out.print("----");
     }
@@ -67,17 +67,20 @@ public class BoolOrNode{
         case VALUE:
             ((Value)this.leftChild).printNode(depth + 1);
             break;
-        case MATHNODE:
-            ((MathNode)this.leftChild).printNode(depth + 1);
+        case BOOLOR:
+            ((BoolOrNode)this.leftChild).printNode(depth + 1);
             break;
-        case MATHMULT:
-            ((MathMult)this.leftChild).printNode(depth + 1);
+        case BOOLAND:
+            ((BoolAndNode)this.leftChild).printNode(depth + 1);
             break;
-        case MATHSUM:
-            ((MathSum)this.leftChild).printNode(depth + 1);
+        case BOOLMATH:
+            ((BoolMathNode)this.leftChild).printNode(depth + 1);
+            break;
+        case BOOL:
+            ((BoolNode)this.leftChild).printNode(depth + 1);
             break;
         default:
-            System.out.println("ERROR NODO IZQ de \"MathSum\"");
+            System.out.println("ERROR NODO IZQ de \"BoolOrNode\"");
             break;
     }
 
@@ -95,17 +98,20 @@ public class BoolOrNode{
         case VALUE:
             ((Value)this.rightChild).printNode(depth + 1);
             break;
-        case MATHNODE:
-            ((MathNode)this.rightChild).printNode(depth + 1);
+        case BOOLOR:
+            ((BoolOrNode)this.rightChild).printNode(depth + 1);
             break;
-        case MATHMULT:
-            ((MathMult)this.rightChild).printNode(depth + 1);
+        case BOOLAND:
+            ((BoolAndNode)this.rightChild).printNode(depth + 1);
             break;
-        case MATHSUM:
-            ((MathSum)this.rightChild).printNode(depth + 1);
+        case BOOLMATH:
+            ((BoolMathNode)this.rightChild).printNode(depth + 1);
+            break;
+        case BOOL:
+            ((BoolNode)this.rightChild).printNode(depth + 1);
             break;
         default:
-            System.out.println("ERROR NODO DER de \"MathSum\"");
+            System.out.println("ERROR NODO DER de \"BoolOrNode\"");
             break;
     }
     return "Ola";
