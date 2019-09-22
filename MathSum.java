@@ -3,6 +3,7 @@ public class MathSum{
   final int VALUE = 1;
   final int MATHNODE = 2;
   final int MATHMULT = 3;
+  final int MATHSUM = 4;
 
   Object leftChild;
   String operator;
@@ -24,6 +25,9 @@ public class MathSum{
     else if (leftChild instanceof MathMult){
       this.typeLeft = MATHMULT;
     }
+    else if (leftChild instanceof MathSum){
+      this.typeLeft = MATHSUM;
+    }
     else{
       System.out.println("TIPO NO VALIDO ENTREGADO AL HIJO IZQ DE  NODO \"MathSum\"!!! ");
       this.typeLeft = 0;
@@ -38,8 +42,11 @@ public class MathSum{
     else if (rightChild instanceof MathMult){
       this.typeRight = MATHMULT;
     }
+    else if (rightChild instanceof MathSum){
+      this.typeRight = MATHSUM;
+    }
     else{
-      System.out.println("TIPO NO VALIDO ENTREGADO AL HIJO IZQ DE  NODO \"MathSum\"!!! ");
+      System.out.println("TIPO NO VALIDO ENTREGADO AL HIJO DER DE  NODO \"MathSum\"!!! ");
       this.typeRight = 0;
     }
 
@@ -50,33 +57,51 @@ public class MathSum{
     for (int i = 0; i <= depth; i++){
       System.out.print("----");
     }
-    if(this.typeLeft == VALUE){
-      ((Value)this.leftChild).printNode(depth + 1);
-    }
-    else if(this.typeLeft == MATHMULT){
-      ((MathMult)this.leftChild).printNode(depth + 1);
-    }else if(this.typeLeft == MATHNODE){
-      ((MathMult)this.leftChild).printNode(depth + 1);
-    }
-    else{
-      System.out.println("ERROR NODO IZQ de \"MathMult\"");
+    
+    switch(this.typeLeft){
+        case VALUE:
+            ((Value)this.leftChild).printNode(depth + 1);
+            break;
+        case MATHNODE:
+            ((MathNode)this.leftChild).printNode(depth + 1);
+            break;
+        case MATHMULT:
+            ((MathMult)this.leftChild).printNode(depth + 1);
+            break;
+        case MATHSUM:
+            ((MathSum)this.leftChild).printNode(depth + 1);
+            break;
+        default:
+            System.out.println("ERROR NODO IZQ de \"MathSum\"");
+            break;
     }
 
     for (int i = 0; i <= depth; i++){
       System.out.print("----");
     }
     System.out.println(this.operator);
+
+
     for (int i = 0; i <= depth; i++){
       System.out.print("----");
     }
-    if(this.typeRight == VALUE){
-      ((Value)this.rightChild).printNode(depth + 1);
-    }
-    else if(this.typeRight == MathMult){
-      ((MathMult)this.rightChild).printNode(depth + 1);
-    }
-    else{
-      System.out.println("ERROR NODO DER de \"MathMult\"");
+    
+    switch(this.typeRight){
+        case VALUE:
+            ((Value)this.rightChild).printNode(depth + 1);
+            break;
+        case MATHNODE:
+            ((MathNode)this.rightChild).printNode(depth + 1);
+            break;
+        case MATHMULT:
+            ((MathMult)this.rightChild).printNode(depth + 1);
+            break;
+        case MATHSUM:
+            ((MathSum)this.rightChild).printNode(depth + 1);
+            break;
+        default:
+            System.out.println("ERROR NODO DER de \"MathSum\"");
+            break;
     }
     return "Ola";
   }

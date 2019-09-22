@@ -2,6 +2,7 @@ public class MathMult{
 
   final int VALUE = 1;
   final int MATHNODE = 2;
+  final int MATHMULT = 3;
 
   Object leftChild;
   String operator;
@@ -22,6 +23,9 @@ public class MathMult{
     else if (leftChild instanceof MathNode){
       this.typeLeft = MATHNODE;
     }
+    else if (leftChild instanceof MathMult){
+      this.typeLeft = MATHMULT;
+    }
     else{
       System.out.println("TIPO NO VALIDO ENTREGADO AL HIJO IZQ DE  NODO \"MathMult\"!!! ");
       this.typeLeft = 0;
@@ -33,9 +37,12 @@ public class MathMult{
     else if (rightChild instanceof MathNode){
       this.typeRight = MATHNODE;
     }
+    else if (rightChild instanceof MathMult){
+      this.typeRight = MATHMULT;
+    }
     else{
       System.out.println("TIPO NO VALIDO ENTREGADO AL HIJO DER DE  NODO \"MathMult\"!!! ");
-      this.typeRigth = 0;
+      this.typeRight = 0;
     }
 
   }
@@ -45,31 +52,44 @@ public class MathMult{
     for (int i = 0; i <= depth; i++){
       System.out.print("----");
     }
-    if(this.typeLeft == VALUE){
-      ((Value)this.leftChild).printNode(depth + 1);
-    }
-    else if(this.typeLeft == MATHNODE){
-      ((MathMult)this.leftChild).printNode(depth + 1);
-    }
-    else{
-      System.out.println("ERROR NODO IZQ de \"MathMult\"");
+
+    switch(this.typeLeft){
+      case VALUE:
+          ((Value)this.leftChild).printNode(depth + 1);
+        break;
+      case MATHNODE:
+          ((MathNode)this.leftChild).printNode(depth + 1);
+        break;
+      case MATHMULT:
+          ((MathMult)this.leftChild).printNode(depth + 1);
+        break;
+      default:
+        System.out.println("ERROR NODO IZQ de \"MathMult\"");
+        break;
     }
 
     for (int i = 0; i <= depth; i++){
       System.out.print("----");
     }
     System.out.println(this.operator);
+
     for (int i = 0; i <= depth; i++){
       System.out.print("----");
     }
-    if(this.typeRight == VALUE){
-      ((Value)this.rightChild).printNode(depth + 1);
-    }
-    else if(this.typeRight == MATHNODE){
-      ((MathMult)this.rightChild).printNode(depth + 1);
-    }
-    else{
-      System.out.println("ERROR NODO DER de \"MathMult\"");
+
+    switch(this.typeRight){
+      case VALUE:
+        ((Value)this.rightChild).printNode(depth + 1);
+        break;
+      case MATHNODE:
+        ((MathNode)this.rightChild).printNode(depth + 1);
+        break;
+      case MATHMULT:
+        ((MathMult)this.rightChild).printNode(depth + 1);
+        break;
+      default:
+        System.out.println("ERROR NODO DER de \"MathMult\"");
+        break;
     }
     return "Ola";
   }

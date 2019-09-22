@@ -10,9 +10,9 @@ terminal PROGRAM, FUNCTION, PROCEDURE, DO, VAR, BEGIN, END, FOR,
         
 non terminal Object test;
 //non terminal Integer math, sum, mult, num, mathpar;                 //math operations ORIGINAL
-non terminal Integer math, sum, num, mathpar;
-non terminal MathMultNode mult;         //Math multiplication operations, returns a MathMultNode for AST
-non terminal Boolean bool, boolmath, rel, booland, boolor;  //boolean operations
+non terminal Object math, sum, num, mathpar;
+non terminal Object mult;         //Math multiplication operations, returns a MathMultNode for AST
+non terminal Object bool, boolmath, rel, booland, boolor;  //boolean operations
 non terminal Object statement;          //Statement
 non terminal Object statementlist;      //Statement List
 non terminal Object if;                 //If block
@@ -34,8 +34,8 @@ non terminal Object attr;               //function or procedure attributes
 non terminal Object type;               //variable type declaration
 
 test ::= mult: m {:
-    m.printNode(1);
-    RESULT = m;
+    //m.printNode(1);
+    //RESULT = m;
 :};
 
 program ::= PROGRAM ID:i decl:d funclist:fl BEGIN statementlist:sl END {::};
@@ -112,38 +112,37 @@ mathpar::= math:m PARDER {::};
 
 math ::= sum:s {:
     //////////////// RETORNAR s ////////////////
-    /*
-    RESULT = s.intValue();
-    */
+    RESULT = s;
 :};
 
 sum ::= sum:s OPSUM:o mult:m {:
     //////////////// RETORNAR NUEO NODO MathSum (s, o, m) ////////////////
+    RESULT = new MathSum(s, (String)o, m);
 :} 
 | mult:m {:
     //////////////// RETORNAR m ////////////////
-    RESULT = new MathSumNode(m);
-    //RESULT = m.intValue();
+    RESULT = m;
 :};
 
 /*
 
 Value
     Obj num, bool, funccal, Id
+    boolean not
 
 num := Value | MathNode
 
 MathMult
-    Obj Value, MathNode
+    Obj Value, MathNode, MathMult
     op
-    Obj Value, MathNode
+    Obj Value, MathNode, MathMult
 
 mult := Value | MathNode | MathMult
 
 MathSum
-    Obj Value, MathNode, MathMult
+    Obj Value, MathNode, MathMult, MathSum
     op
-    Obj Value, MathNode, MathMult
+    Obj Value, MathNode, MathMult, MathSum
 
 sum := Value | MathNode | MathMult | MathSum
 
@@ -158,7 +157,7 @@ math := Value | MathNode | MathMult | MathSum
 mult ::= mult:m OPMULT:o num:n {:
     //////////////// RETORNAR UN NUEVO NODO MathMultNode (m, o, n); ////////////////
     //MathMultNode number = new MathMultNode(n.intValue(),2); 
-    RESULT = new MathMultNode(m,(String)o,number);
+    RESULT = new MathMult(m,(String)o,n);
 
 :}
 | num:n {:
@@ -189,68 +188,78 @@ num ::= NUMS:n {:
 
 /*
 
-
-bool := owo
-
 BoolMathNode
-    Object MathNode
+    Object Value, MathNode, MathMult, MathSum
     String oprel
-    Object MathNode
-
+    Object Value, MathNode, MathMult, MathSum
+    
 boolmath::= BoolMathNode
 
-BoolOrNode
-    Object Value, BoolOrNode, BoolAndNode
-    String operator
-    Object Value, BoolOrNode, BoolAndNode
+Value
+    Obj num, bool, funccal, Id
+    boolean not
 
-boolor:= Value | BoolOrNode | BoolAndNode
+bool := Value | BoolNode | BoolMathNode
 
 BoolAndNode
-    Object  Value, BoolOrNode, BoolAndNode
+    Object  Value, BoolNode, BoolMathNode, BoolAndNode
     String operator
-    Object  Value, BoolOrNode, BoolAndNode
+    Object  Value, BoolNode, BoolMathNode, BoolAndNode
 
-booland:= Value | BoolOrNode | BoolAndNode
+booland := Value | BoolNode | BoolMathNode | BoolAndNode
 
+BoolOrNode
+    Object Value, BoolNode, BoolMathNode, BoolAndNode, BoolOrNode
+    String operator
+    Object Value, BoolNode, BoolMathNode, BoolAndNode, BoolOrNode
 
+boolor := Value | BoolNode | BoolMathNode | BoolAndNode | BoolOrNode
 
+BoolNode
+    Object Value, BoolNode, BoolMathNode, BoolAndNode, BoolOrNode
 
+rel := Value | BoolNode | BoolMathNode | BoolAndNode | BoolOrNode
 
 */
 
 
 rel ::= boolor:b {:
+    RESULT = b;
     //RESULT = b;
 :};
 
 boolor ::= boolor:r OPOR:o booland:b {:
+    RESULT = new BoolOrNode(r,(String)o,b);
     //[oO][rR]
     //RESULT = new Boolean(r.booleanValue() || b.booleanValue());
 :}
 | booland:b {:
+    RESULT = b;
     //RESULT = b.booleanValue();
 :};
 
-booland ::= booland:br OPAND bool:bl {:
+booland ::= booland:br OPAND:o bool:bl {:
+    RESULT = new BoolAndNode(br,(String)o, bl);
     //[aA][nN][dD]
     //RESULT = new Boolean(br.booleanValue() && bl.booleanValue());
 :}
 | bool:b {:
+    RESULT = b;
     //RESULT = b;
 :};
 
 bool ::= TRUE {:
-    //RESULT = new Boolean(true);
+    RESULT = new Boolean(true);
 :} 
 | FALSE {:
-    //RESULT = new Boolean(false);
+    RESULT = new Boolean(false);
 :}
 | ID:i {:
+    RESULT = (String)i;
     ///////////////////////////////////////////////////////////////////////
 :}
 | NOT bool:b {:
-    //RESULT = new Boolean(!b.booleanValue());
+    RESULT = new Value(b, true);
 :}
 | PARIZQ rel:r PARDER {:
     //RESULT = r;
