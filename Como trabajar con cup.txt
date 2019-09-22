@@ -2,7 +2,14 @@ Mire prro, primero haga esto :v
 
 jflex Lexer.jflex
 java -classpath "asbolute path de tu java-cup-11b.jar";. java_cup.Main -expect 1 < parser.cup
-javac -classpath "asbolute path de tu java-cup-11b.jar";. Main.java y demás clases que ocupes
+-->javac -classpath "asbolute path de tu java-cup-11b.jar";. Main.java y demás clases que ocupes lo haré en la siguiente linea
+javac -classpath "asbolute path de tu java-cup-11b.jar";. Main.java ./Nodes/MathMultNode.java
 java -classpath "absolute path de tu java-cup-11b.jar";. Main prueba.txt
 
 Rojas me ayudó :v shoutout
+
+Paths de Josue
+jflex Lexer.jflex
+java -classpath "C:\Users\Josue Rodriguez\Documents\UNITEC\Compiladores 1\compilador-mini-pascal\jars\java-cup-11b.jar";. java_cup.Main -expect 2 < parser.cup
+javac -classpath "C:\Users\Josue Rodriguez\Documents\UNITEC\Compiladores 1\compilador-mini-pascal\jars\java-cup-11b.jar";. Main.java ./MathMultNode.java
+java -classpath "C:\Users\Josue Rodriguez\Documents\UNITEC\Compiladores 1\compilador-mini-pascal\jars\java-cup-11b.jar";. Main pruebaCup.txt
