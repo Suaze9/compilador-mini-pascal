@@ -8,8 +8,11 @@ terminal PROGRAM, FUNCTION, PROCEDURE, DO, VAR, BEGIN, END, FOR,
     COLON, INT, CHAR, BOOLEAN, RECORD, STRING, THEN,
     TO, UNTIL, ID, COMA, NOT;
         
-non terminal Integer math, sum, mult, num, mathpar;                 //math operations
-non terminal Boolean bool, boolmath, rel, booland, boolor;  //boolean operations
+non terminal Object test;
+//non terminal Integer math, sum, mult, num, mathpar;                 //math operations ORIGINAL
+non terminal Object math, sum, num, mathpar;
+non terminal Object mult;         //Math multiplication operations
+non terminal Object bool, boolmath, rel, booland, boolor;  //boolean operations
 non terminal Object statement;          //Statement
 non terminal Object statementlist;      //Statement List
 non terminal Object if;                 //If block
@@ -31,8 +34,11 @@ non terminal Object params;             //function or procedure parameters
 non terminal Object attr;               //function or procedure attributes
 non terminal Object type;               //variable type declaration
 
-precedence nonassoc ELSE;
-precedence nonassoc IF; 
+test ::= rel: m {:
+    BoolNode mo = (BoolNode)m;
+    mo.printNode(1);
+    RESULT = m;
+:};
 
 program ::= PROGRAM ID:i decl:d funclist:fl BEGIN statementlist:sl END {::};
 
@@ -99,172 +105,177 @@ decl ::= VAR ID:i multdecl:m{::}
 multdecl ::= COMA ID:i multdecl:m {::}
     | COLON type:t {::};
 
-assig ::= ID:i COMA assig:a {::}
-    | ID:i ASSIG CONSTSTR:cs {::}
+assig ::= ID:i ASSIG CONSTSTR:cs {::}
     | ID:i ASSIG CONSTCHAR:cc {::}
     | ID:i ASSIG math:m {::}
     | ID:i ASSIG rel:r {::};
 
 mathpar::= math:m PARDER {::};
 
-
 math ::= sum:s {:
-    /*
-    System.out.println("puto el que lo lea :v: " + s.intValue());
-    RESULT = s.intValue();
-    */
+    //////////////// RETORNAR s ////////////////
+    RESULT = new MathNode(s);
 :};
 
 sum ::= sum:s OPSUM:o mult:m {:
-    /*
-    switch((String)o){
-        case "+":{
-            RESULT = s.intValue() + m.intValue();
-            break;
-        }
-        case "-":{
-            RESULT = s.intValue() - m.intValue();
-            break;
-        }
-        default:{
-            ///////////////////////////////////
-            break;
-        }
-    }
-    */
+    //////////////// RETORNAR NUEO NODO MathSum (s, o, m) ////////////////
+    //System.out.print("llego a sum");
+    RESULT = new MathSum(s, (String)o, m);
 :} 
 | mult:m {:
-    //RESULT = m.intValue();
+    //////////////// RETORNAR m ////////////////
+    RESULT = m;
 :};
 
+/*
+
+Value
+    Obj num, bool, funccal, Id
+    boolean not
+
+num := Value | MathNode
+
+MathMult
+    Obj Value, MathNode, MathMult
+    op
+    Obj Value, MathNode, MathMult
+
+mult := Value | MathNode | MathMult
+
+MathSum
+    Obj Value, MathNode, MathMult, MathSum
+    op
+    Obj Value, MathNode, MathMult, MathSum
+
+sum := Value | MathNode | MathMult | MathSum
+
+MathNode
+    Obj Value, MathNode, MathMult, MathSum
+    
+math := Value | MathNode | MathMult | MathSum
+
+*/
+
+
 mult ::= mult:m OPMULT:o num:n {:
-    /*
-    switch((String)o){
-        case "*":{
-            RESULT = m.intValue() * n.intValue();
-            break;
-        }
-        case "/":
-        case "div":{
-            RESULT = new Integer((int)(m.intValue() / n.intValue()));
-            break;
-        }
-        case "mod":{
-            RESULT = m.intValue() % n.intValue();
-            break;
-        }
-        default:{
-            ///////////////////////////////////////////////////////
-            break;
-        }
-    }
-    */
+    //////////////// RETORNAR UN NUEVO NODO MathMultNode (m, o, n); ////////////////
+    //MathMultNode number = new MathMultNode(n.intValue(),2); 
+    //System.out.println("Llego a mult");
+    RESULT = new MathMult(m,(String)o,n);
+
 :}
 | num:n {:
-    //RESULT = n.intValue();
+    //System.out.println("Llego a num");
+    //////////////// RETORNAR n ////////////////
+    //RESULT = new MathMultNode(n.intValue(), 2);
+    RESULT = n;
 :};
 
 num ::= NUMS:n {:
-    //System.out.println("N: " + (String)n);
-    //RESULT = new Integer((String)n);
+    RESULT = new Value(new Integer((String)n));
 :}  
-| PARIZQ math:m PARDER
-{:
+| PARIZQ math:m PARDER {:
+    //////////////// AQUI SE DEBE VER QUE RETORNA MATH, SI ES UN MathNode RETORNAR MISMO MATHNODE, SINO, CREAR UN NUEVO MathNode DANDO COMO PARAMETRO m ////////////////
+    if(m instanceof MathNode){
+        RESULT = m;
+    }else{
+        RESULT = new MathNode(m);
+    }
     //RESULT = m.intValue();
 :}
 | ID:i {:
-    ///////////// ID ID ID ID ID ID ID ID ID ID ID ID ID ///////////
+    // ID 
+    RESULT = new Value((String)i);
 :}
-| funccall:fc {::};
+| funccall:fc {:
+    //////////////// RETORNAR NUEVO NODO FuncCallNode ////////////////
+:};
+
+/*
+
+BoolMathNode
+    Object Value, MathNode, MathMult, MathSum
+    String oprel
+    Object Value, MathNode, MathMult, MathSum
+    
+boolmath::= BoolMathNode
+
+Value
+    Obj num, bool, funccal, Id
+    boolean not
+
+bool := Value | BoolNode | BoolMathNode
+
+BoolAndNode
+    Object  Value, BoolNode, BoolMathNode, BoolAndNode
+    String operator
+    Object  Value, BoolNode, BoolMathNode, BoolAndNode
+
+booland := Value | BoolNode | BoolMathNode | BoolAndNode
+
+BoolOrNode
+    Object Value, BoolNode, BoolMathNode, BoolAndNode, BoolOrNode
+    String operator
+    Object Value, BoolNode, BoolMathNode, BoolAndNode, BoolOrNode
+
+boolor := Value | BoolNode | BoolMathNode | BoolAndNode | BoolOrNode
+
+BoolNode
+    Object Value, BoolNode, BoolMathNode, BoolAndNode, BoolOrNode
+
+rel := Value | BoolNode | BoolMathNode | BoolAndNode | BoolOrNode
+
+*/
+
 
 rel ::= boolor:b {:
+    RESULT = new BoolNode(b);
     //RESULT = b;
 :};
 
-boolor ::= boolor:r OPOR:o booland:b {:
-    //<>|=|>|<|>=|<=|[aA][nN][dD]|[oO][rR]|[nN][oO][tT]
+boolor ::= boolor:r OPOR booland:b {:
+    RESULT = new BoolOrNode(r,"OR",b);
+    //[oO][rR]
     //RESULT = new Boolean(r.booleanValue() || b.booleanValue());
 :}
 | booland:b {:
+    RESULT = b;
     //RESULT = b.booleanValue();
 :};
 
 booland ::= booland:br OPAND bool:bl {:
+    RESULT = new BoolAndNode(br, "AND", bl);
+    //[aA][nN][dD]
     //RESULT = new Boolean(br.booleanValue() && bl.booleanValue());
 :}
 | bool:b {:
+    RESULT = b;
     //RESULT = b;
 :};
 
 bool ::= TRUE {:
-    //RESULT = new Boolean(true);
+    RESULT = new Value(new Boolean(true));
 :} 
 | FALSE {:
-    //RESULT = new Boolean(false);
+    RESULT = new Value(new Boolean(false));
 :}
 | ID:i {:
+    RESULT = new Value((String)i);
     ///////////////////////////////////////////////////////////////////////
 :}
 | NOT bool:b {:
-    //RESULT = new Boolean(!b.booleanValue());
+    RESULT = new Value(b, true);
 :}
 | PARIZQ rel:r PARDER {:
+    RESULT = r;
     //RESULT = r;
 :}
 | boolmath:b {:
+    RESULT = b;
     //RESULT = b;
 :};
 
 boolmath ::= math:b OPREL:o math:m{:
-    /*
-    switch((String)o){
-        case "<>":{
-            RESULT = new Boolean(b.intValue() != m.intValue());
-            break;
-        }
-        case "=":{
-            RESULT = new Boolean(b.intValue() == m.intValue());
-            break;
-        }
-        case "<":{
-            RESULT = new Boolean(b.intValue() < m.intValue());
-            break;
-        }
-        case ">":{
-            RESULT = new Boolean(b.intValue() > m.intValue());
-            break;
-        }
-        case ">=":{
-            RESULT = new Boolean(b.intValue() >= m.intValue());
-            break;
-        }
-        case "<=":{
-            RESULT = new Boolean(b.intValue() <= m.intValue());
-            break;
-        }
-        default:{
-            //////////////////////////////////////////////////////////////////
-            break;
-        }
-    }
-    */
+    RESULT = new BoolMathNode(b, (String)o, m);
+    //<>|=|>|<|>=|<=
 :};
-
-/*
-S ::= P:p {:
-		RESULT = p.intValue();
-		System.out.println("El numero es: " + RESULT);
-	:};
-
-P ::= P:p MAS NUM:n1 NUMX NUM:n2 {:
-		RESULT = new noTerminal (p.intValue() + new Integer(n1) * Math.pow(v.intValue(), new Integer(n2)), p.x)
-	:}
-	| V:v PUNTCOMA NUM:n1 NUMX NUM:n2 {:
-		RESULT = new noTerminal(new Integer(n1) * Math.pow(v.intValue(), new Integer(n2)), v.intValue());
-	:};
-	
-V ::= NUMX IGUAL NUM:n {:
-		RESULT = new Integer(n);
-	:};
-
-*/
