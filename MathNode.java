@@ -30,48 +30,21 @@ public class MathNode{
       System.out.print("----");
     }
 
-    switch(this.typeLeft){
+    switch(this.type){
         case VALUE:
-            ((Value)this.leftChild).printNode(depth + 1);
+            ((Value)this.content).printNode(depth + 1);
             break;
         case MATH:
-            ((MathNode)this.leftChild).printNode(depth + 1);
+            ((MathNode)this.content).printNode(depth + 1);
             break;
         case MULT:
-            ((MathMult)this.leftChild).printNode(depth + 1);
+            ((MathMult)this.content).printNode(depth + 1);
             break;
         case SUM:
-            ((MathSum)this.leftChild).printNode(depth + 1);
+            ((MathSum)this.content).printNode(depth + 1);
             break;
         default:
             System.out.println("ERROR NODO IZQ de \"MathNode\"");
-            break;
-    }
-
-    for (int i = 0; i <= depth; i++){
-      System.out.print("----");
-    }
-    System.out.println(this.operator);
-
-    for (int i = 0; i <= depth; i++){
-      System.out.print("----");
-    }
-
-    switch(this.typeRight){
-        case VALUE:
-            ((Value)this.rightChild).printNode(depth + 1);
-            break;
-        case MATH:
-            ((MathNode)this.rightChild).printNode(depth + 1);
-            break;
-        case MULT:
-            ((MathMult)this.rightChild).printNode(depth + 1);
-            break;
-        case SUM:
-            ((MathSum)this.rightChild).printNode(depth + 1);
-            break;
-        default:
-            System.out.println("ERROR NODO DER de \"MathNode\"");
             break;
     }
     return "Ola";

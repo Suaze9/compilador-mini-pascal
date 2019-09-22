@@ -33,9 +33,10 @@ non terminal Object params;             //function or procedure parameters
 non terminal Object attr;               //function or procedure attributes
 non terminal Object type;               //variable type declaration
 
-test ::= mult: m {:
-    //m.printNode(1);
-    //RESULT = m;
+test ::= math: m {:
+    MathNode mo = (MathNode)m;
+    mo.printNode(1);
+    RESULT = m;
 :};
 
 program ::= PROGRAM ID:i decl:d funclist:fl BEGIN statementlist:sl END {::};
@@ -117,6 +118,7 @@ math ::= sum:s {:
 
 sum ::= sum:s OPSUM:o mult:m {:
     //////////////// RETORNAR NUEO NODO MathSum (s, o, m) ////////////////
+    System.out.print("llego a sum");
     RESULT = new MathSum(s, (String)o, m);
 :} 
 | mult:m {:
@@ -157,17 +159,19 @@ math := Value | MathNode | MathMult | MathSum
 mult ::= mult:m OPMULT:o num:n {:
     //////////////// RETORNAR UN NUEVO NODO MathMultNode (m, o, n); ////////////////
     //MathMultNode number = new MathMultNode(n.intValue(),2); 
+    System.out.println("Llego a mult");
     RESULT = new MathMult(m,(String)o,n);
 
 :}
 | num:n {:
+    System.out.println("Llego a num");
     //////////////// RETORNAR n ////////////////
     //RESULT = new MathMultNode(n.intValue(), 2);
     RESULT = n;
 :};
 
 num ::= NUMS:n {:
-    RESULT = new Integer((String)n);
+    RESULT = new Value(new Integer((String)n));
 :}  
 | PARIZQ math:m PARDER {:
     //////////////// AQUI SE DEBE VER QUE RETORNA MATH, SI ES UN MathNode RETORNAR MISMO MATHNODE, SINO, CREAR UN NUEVO MathNode DANDO COMO PARAMETRO m ////////////////

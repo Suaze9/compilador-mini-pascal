@@ -19,7 +19,7 @@ public class BoolMathNode{
       this.typeLeft = VALUE;
     }else if(leftChild instanceof MathNode){
       this.typeLeft = MATH;
-    }else if(leftChild instanceof MathMul){
+    }else if(leftChild instanceof MathMult){
       this.typeLeft = MULT;
     }else if(leftChild instanceof MathSum){
       this.typeLeft = SUM;
@@ -32,7 +32,7 @@ public class BoolMathNode{
       this.typeRight = VALUE;
     }else if(rightChild instanceof MathNode){
       this.typeRight = MATH;
-    }else if(rightChild instanceof MathMul){
+    }else if(rightChild instanceof MathMult){
       this.typeRight = MULT;
     }else if(rightChild instanceof MathSum){
       this.typeRight = SUM;
@@ -56,7 +56,7 @@ public class BoolMathNode{
             ((MathNode)this.leftChild).printNode(depth + 1);
             break;
         case MULT:
-            ((MathMul)this.leftChild).printNode(depth + 1);
+            ((MathMult)this.leftChild).printNode(depth + 1);
             break;
         case SUM:
             ((MathSum)this.leftChild).printNode(depth + 1);
@@ -84,7 +84,7 @@ public class BoolMathNode{
             ((MathNode)this.rightChild).printNode(depth + 1);
             break;
         case MULT:
-            ((MathMul)this.rightChild).printNode(depth + 1);
+            ((MathMult)this.rightChild).printNode(depth + 1);
             break;
         case SUM:
             ((MathSum)this.rightChild).printNode(depth + 1);

@@ -72,5 +72,6 @@ public class Value{
         System.out.println("ERROR NODO de \"Value\"");
         break;
     }
+    return "Ola";
   }
 }
