@@ -33,8 +33,8 @@ non terminal Object params;             //function or procedure parameters
 non terminal Object attr;               //function or procedure attributes
 non terminal Object type;               //variable type declaration
 
-test ::= math: m {:
-    MathNode mo = (MathNode)m;
+test ::= rel: m {:
+    BoolNode mo = (BoolNode)m;
     mo.printNode(1);
     RESULT = m;
 :};
@@ -118,7 +118,7 @@ math ::= sum:s {:
 
 sum ::= sum:s OPSUM:o mult:m {:
     //////////////// RETORNAR NUEO NODO MathSum (s, o, m) ////////////////
-    System.out.print("llego a sum");
+    //System.out.print("llego a sum");
     RESULT = new MathSum(s, (String)o, m);
 :} 
 | mult:m {:
@@ -159,12 +159,12 @@ math := Value | MathNode | MathMult | MathSum
 mult ::= mult:m OPMULT:o num:n {:
     //////////////// RETORNAR UN NUEVO NODO MathMultNode (m, o, n); ////////////////
     //MathMultNode number = new MathMultNode(n.intValue(),2); 
-    System.out.println("Llego a mult");
+    //System.out.println("Llego a mult");
     RESULT = new MathMult(m,(String)o,n);
 
 :}
 | num:n {:
-    System.out.println("Llego a num");
+    //System.out.println("Llego a num");
     //////////////// RETORNAR n ////////////////
     //RESULT = new MathMultNode(n.intValue(), 2);
     RESULT = n;
@@ -184,7 +184,7 @@ num ::= NUMS:n {:
 :}
 | ID:i {:
     // ID 
-    RESULT = (String)i;
+    RESULT = new Value((String)i);
 :}
 | funccall:fc {:
     //////////////// RETORNAR NUEVO NODO FuncCallNode ////////////////
@@ -232,8 +232,8 @@ rel ::= boolor:b {:
     //RESULT = b;
 :};
 
-boolor ::= boolor:r OPOR:o booland:b {:
-    RESULT = new BoolOrNode(r,(String)o,b);
+boolor ::= boolor:r OPOR booland:b {:
+    RESULT = new BoolOrNode(r,"OR",b);
     //[oO][rR]
     //RESULT = new Boolean(r.booleanValue() || b.booleanValue());
 :}
@@ -242,8 +242,8 @@ boolor ::= boolor:r OPOR:o booland:b {:
     //RESULT = b.booleanValue();
 :};
 
-booland ::= booland:br OPAND:o bool:bl {:
-    RESULT = new BoolAndNode(br,(String)o, bl);
+booland ::= booland:br OPAND bool:bl {:
+    RESULT = new BoolAndNode(br, "AND", bl);
     //[aA][nN][dD]
     //RESULT = new Boolean(br.booleanValue() && bl.booleanValue());
 :}
@@ -253,13 +253,13 @@ booland ::= booland:br OPAND:o bool:bl {:
 :};
 
 bool ::= TRUE {:
-    RESULT = new Boolean(true);
+    RESULT = new Value(new Boolean(true));
 :} 
 | FALSE {:
-    RESULT = new Boolean(false);
+    RESULT = new Value(new Boolean(false));
 :}
 | ID:i {:
-    RESULT = (String)i;
+    RESULT = new Value((String)i);
     ///////////////////////////////////////////////////////////////////////
 :}
 | NOT bool:b {:
