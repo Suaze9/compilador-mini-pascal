@@ -58,63 +58,86 @@ public class BoolOrNode{
   }
 
   public String printNode(int depth){
-    System.out.println("This BoolOrNode holds: "); 
+    String json = "{";
+    System.out.println("This BoolOrNode holds: " + depth); 
+    
     for (int i = 0; i <= depth; i++){
-      System.out.print("----");
+      System.out.print("|  ");
     }
+
+    System.out.print("|-- ");
     
     switch(this.typeLeft){
         case VALUE:
-            ((Value)this.leftChild).printNode(depth + 1);
+            json += "\"Value L\": ";
+            json += ((Value)this.leftChild).printNode(depth + 1);
             break;
         case BOOLOR:
-            ((BoolOrNode)this.leftChild).printNode(depth + 1);
+            json += "\"BoolOrNode L\": ";
+            json += ((BoolOrNode)this.leftChild).printNode(depth + 1);
             break;
         case BOOLAND:
-            ((BoolAndNode)this.leftChild).printNode(depth + 1);
+            json += "\"BoolAndNode L\": ";
+            json += ((BoolAndNode)this.leftChild).printNode(depth + 1);
             break;
         case BOOLMATH:
-            ((BoolMathNode)this.leftChild).printNode(depth + 1);
+            json += "\"BoolMathNode L\": ";
+            json += ((BoolMathNode)this.leftChild).printNode(depth + 1);
             break;
         case BOOL:
-            ((BoolNode)this.leftChild).printNode(depth + 1);
+            json += "\"BoolNode L\": ";
+            json += ((BoolNode)this.leftChild).printNode(depth + 1);
             break;
         default:
+            json += "\"Error L\" : \"0\"";
             System.out.println("ERROR NODO IZQ de \"BoolOrNode\"");
             break;
     }
 
     for (int i = 0; i <= depth; i++){
-      System.out.print("----");
+      System.out.print("|  ");
     }
+
+    System.out.print("|-- ");
+
     System.out.println(this.operator);
+    json += ", \"Operator\" : \"" + this.operator + "\",";
 
 
     for (int i = 0; i <= depth; i++){
-      System.out.print("----");
+      System.out.print("|  ");
     }
+
+    System.out.print("|-- ");
     
     switch(this.typeRight){
         case VALUE:
-            ((Value)this.rightChild).printNode(depth + 1);
+            json += "\"Value R\": ";
+            json += ((Value)this.rightChild).printNode(depth + 1);
             break;
         case BOOLOR:
-            ((BoolOrNode)this.rightChild).printNode(depth + 1);
+            json += "\"BoolOrNode R\": ";
+            json += ((BoolOrNode)this.rightChild).printNode(depth + 1);
             break;
         case BOOLAND:
-            ((BoolAndNode)this.rightChild).printNode(depth + 1);
+            json += "\"BoolAndNode R\": ";
+            json += ((BoolAndNode)this.rightChild).printNode(depth + 1);
             break;
         case BOOLMATH:
-            ((BoolMathNode)this.rightChild).printNode(depth + 1);
+            json += "\"BoolMathNode R\": ";
+            json += ((BoolMathNode)this.rightChild).printNode(depth + 1);
             break;
         case BOOL:
-            ((BoolNode)this.rightChild).printNode(depth + 1);
+            json += "\"BoolNode R\": ";
+            json += ((BoolNode)this.rightChild).printNode(depth + 1);
             break;
         default:
+            json += "\"Error R\" : \"0\"";
             System.out.println("ERROR NODO DER de \"BoolOrNode\"");
             break;
     }
-    return "Ola";
+    json += "}";
+    return json;
   }
 
 }

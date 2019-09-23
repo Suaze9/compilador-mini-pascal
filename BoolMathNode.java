@@ -43,56 +43,77 @@ public class BoolMathNode{
   }
 
   public String printNode(int depth){
+    String json = "{";
     System.out.println("This BoolMathNode holds: "); 
+    
     for (int i = 0; i <= depth; i++){
-      System.out.print("----");
+      System.out.print("|  ");
     }
+
+    System.out.print("|-- ");
     
     switch(this.typeLeft){
         case VALUE:
-            ((Value)this.leftChild).printNode(depth + 1);
+            json += "\"Value L\": ";
+            json += ((Value)this.leftChild).printNode(depth + 1);
             break;
         case MATH:
-            ((MathNode)this.leftChild).printNode(depth + 1);
+            json += "\"MathNode L\": ";
+            json += ((MathNode)this.leftChild).printNode(depth + 1);
             break;
         case MULT:
-            ((MathMult)this.leftChild).printNode(depth + 1);
+            json += "\"MathMult L\": ";
+            json += ((MathMult)this.leftChild).printNode(depth + 1);
             break;
         case SUM:
-            ((MathSum)this.leftChild).printNode(depth + 1);
+            json += "\"MathSum L\": ";
+            json += ((MathSum)this.leftChild).printNode(depth + 1);
             break;
         default:
+            json += "\"Error L\" : \"0\"";
             System.out.println("ERROR NODO IZQ de \"BoolMathNode\"");
             break;
     }
 
     for (int i = 0; i <= depth; i++){
-      System.out.print("----");
+      System.out.print("|  ");
     }
+
+    System.out.print("|-- ");
+
     System.out.println(this.operator);
+    json += ", \"Operator\" : \"" + this.operator + "\",";
 
 
     for (int i = 0; i <= depth; i++){
-      System.out.print("----");
+      System.out.print("|  ");
     }
+
+    System.out.print("|-- ");
     
     switch(this.typeRight){
         case VALUE:
-            ((Value)this.rightChild).printNode(depth + 1);
+            json += "\"Value R\": ";
+            json += ((Value)this.rightChild).printNode(depth + 1);
             break;
         case MATH:
-            ((MathNode)this.rightChild).printNode(depth + 1);
+            json += "\"MathNode R\": ";
+            json += ((MathNode)this.rightChild).printNode(depth + 1);
             break;
         case MULT:
-            ((MathMult)this.rightChild).printNode(depth + 1);
+            json += "\"MathMult R\": ";
+            json += ((MathMult)this.rightChild).printNode(depth + 1);
             break;
         case SUM:
-            ((MathSum)this.rightChild).printNode(depth + 1);
+            json += "\"MathSum R\": ";
+            json += ((MathSum)this.rightChild).printNode(depth + 1);
             break;
         default:
-            System.out.println("ERROR NODO IZQ de \"BoolMathNode\"");
+            json += "\"Error R\" : \"0\"";
+            System.out.println("ERROR NODO DER de \"BoolMathNode\"");
             break;
     }
-    return "Ola";
+    json += "}";
+    return json;
   }
 }

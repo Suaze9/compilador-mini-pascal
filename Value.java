@@ -46,32 +46,42 @@ public class Value{
   }
 
   public String printNode(int depth){
+    String json = "{";
     if(!this.not){
       System.out.print("This Value holds: ");
     }else{
       System.out.print("This NOT Value holds: ");
+      json += "\"NOT\" :{";
     }
 
     switch(this.type){
       case NUM:
+        json += "\"NUM \" : \"" + ((Integer)this.content).toString() + "\"";
         System.out.println((Integer)this.content);
         break;
       case BOOL:
+        json += "\"BOOL \" : \"" + ((Boolean)this.content).toString()  + "\"";
         System.out.println((Boolean)this.content);
         break;
       case ID:
+        json += "\"ID \" : \"" + (String)this.content  + "\"";
         System.out.println((String)this.content);
         break;
       case FUNCCALL:
         for (int i = 0; i <= depth; i++){
           System.out.print("----");
         }
-        ((FuncCallNode)this.content).printNode(depth + 1);
+        json += "\"FuncCallNode\": ";
+        json += ((FuncCallNode)this.content).printNode(depth + 1);
         break;
       default:
         System.out.println("ERROR NODO de \"Value\"");
         break;
     }
-    return "Ola";
+    if(this.not){
+      json += "}";
+    }
+    json += "}";
+    return json;
   }
 }

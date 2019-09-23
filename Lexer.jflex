@@ -22,12 +22,12 @@ import java_cup.runtime.ComplexSymbolFactory.Location;
   public static String texto = "";
   
   private Symbol symbol(String name, int sym) {
-		//System.out.println("name: " + name + " sym: " + sym);
+		System.out.println("name: " + name + " sym: " + sym);
 		return new Symbol(sym, yyline, yycolumn);
 	}
 
 	private Symbol symbol(String name, int sym, Object val) {
-		//System.out.println("name: " + name + " sym: " + sym + " val: " + val);
+		System.out.println("name: " + name + " sym: " + sym + " val: " + val);
 		return new Symbol(sym, yyline, yycolumn, val);
 	}
 %}
@@ -98,7 +98,7 @@ letra = [a-zA-Z_]
 <YYINITIAL>{
   {comentarioIn}  {yybegin(COMMENT);}            
   {espacios}      {}
-  {comillas}      {yybegin(TEXT);}            
+  {comillas}      {texto = "";yybegin(TEXT);}            
   {program}       {return symbol("PROGRAM", sym.PROGRAM);}       
   {function}      {return symbol("FUNCTION", sym.FUNCTION);}
   {procedure}      {return symbol("PROCEDURE", sym.PROCEDURE);}
@@ -138,7 +138,7 @@ letra = [a-zA-Z_]
   {id}            {return symbol("ID", sym.ID, yytext().toLowerCase());}            
   {coma}          {return symbol("COMA", sym.COMA);}            
   {constchar}     {return symbol("CONSTCHAR", sym.CONSTCHAR, yytext());}            
-  .               {System.out.println("Unrecognized token: " + yytext() + " at line " + yyline + " column " + yycolumn);}
+  .               {System.out.println("Símbolo no reconocido: " + yytext() + " en la línea " + yyline + ", columna " + yycolumn);}
 }
 
 <COMMENT>{
@@ -148,8 +148,7 @@ letra = [a-zA-Z_]
 }
 
 <TEXT>{
-  {comillas}  { texto = "";
-                yybegin(YYINITIAL);
+  {comillas}  { yybegin(YYINITIAL);
                 return symbol("CONSTSTR", sym.CONSTSTR, texto);
               }
   .           {texto += yytext();}

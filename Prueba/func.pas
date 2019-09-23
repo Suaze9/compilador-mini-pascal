@@ -1,6 +1,7 @@
 program func
 var
   nombre, a, b, c, d, res: integer
+  ola, pene: Char
 
 procedure hola(nombre: string)
 var
@@ -8,8 +9,13 @@ var
 begin
   write('Hola ', nombre)
   read(edad)
-  if edad < 18 then
+  if edad < 18 then begin
     write('Aun no puedes manejar, ', nombre)
+    if edad >= 10 then
+      write('hehe')
+    else
+      edad := 0
+  end
   else
     write('Ya puedes empezar a manejar, ', nombre)
 end
@@ -24,7 +30,7 @@ end
 
 begin
   nombre := 'Jose'
-  hola(nombre)
+
 
   a := 3
   b := 5

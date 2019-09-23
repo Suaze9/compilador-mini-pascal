@@ -1,0 +1,330 @@
+{
+    "Id": {
+        "ID ": "rel"
+    },
+    "DeclNode": {
+        "IDs": {
+            "ID 0": {
+                "ID ": "c"
+            },
+            "ID 1": {
+                "ID ": "b"
+            },
+            "ID 2": {
+                "ID ": "a"
+            }
+        },
+        "Type": "INT"
+    },
+    "Statements": [{
+        "AssigNode": {
+            "Id": {
+                "ID ": "a"
+            },
+            "MathNode": {
+                "Value": {
+                    "NUM ": "21"
+                }
+            }
+        }
+    }, {
+        "AssigNode": {
+            "Id": {
+                "ID ": "b"
+            },
+            "MathNode": {
+                "Value": {
+                    "NUM ": "10"
+                }
+            }
+        }
+    }, {
+        "IfNode": {
+            "BoolNode": {
+                "BoolMathNode": {
+                    "MathNode L": {
+                        "Value": {
+                            "ID ": "a"
+                        }
+                    },
+                    "Operator": "=",
+                    "MathNode R": {
+                        "Value": {
+                            "ID ": "b"
+                        }
+                    }
+                }
+            },
+            "If": [{
+                "WriteNode": {
+                    "String": "a es igual que b"
+                }
+            }],
+            "Else": [{
+                "WriteNode": {
+                    "String": "a es distinto que b"
+                }
+            }]
+        }
+    }, {
+        "IfNode": {
+            "BoolNode": {
+                "BoolMathNode": {
+                    "MathNode L": {
+                        "Value": {
+                            "ID ": "a"
+                        }
+                    },
+                    "Operator": "<",
+                    "MathNode R": {
+                        "Value": {
+                            "ID ": "b"
+                        }
+                    }
+                }
+            },
+            "If": [{
+                "WriteNode": {
+                    "String": "a es menor que b"
+                }
+            }],
+            "Else": [{
+                "WriteNode": {
+                    "String": "a no es menor que b"
+                }
+            }]
+        }
+    }, {
+        "IfNode": {
+            "BoolNode": {
+                "BoolMathNode": {
+                    "MathNode L": {
+                        "Value": {
+                            "ID ": "a"
+                        }
+                    },
+                    "Operator": ">",
+                    "MathNode R": {
+                        "Value": {
+                            "ID ": "b"
+                        }
+                    }
+                }
+            },
+            "If": [{
+                "WriteNode": {
+                    "String": "a es mayor que b"
+                }
+            }],
+            "Else": [{
+                "WriteNode": {
+                    "String": "a no es mayor que b"
+                }
+            }]
+        }
+    }, {
+        "AssigNode": {
+            "Id": {
+                "ID ": "a"
+            },
+            "MathNode": {
+                "Value": {
+                    "NUM ": "5"
+                }
+            }
+        }
+    }, {
+        "AssigNode": {
+            "Id": {
+                "ID ": "b"
+            },
+            "MathNode": {
+                "Value": {
+                    "NUM ": "20"
+                }
+            }
+        }
+    }, {
+        "IfNode": {
+            "BoolNode": {
+                "BoolMathNode": {
+                    "MathNode L": {
+                        "Value": {
+                            "ID ": "a"
+                        }
+                    },
+                    "Operator": "<=",
+                    "MathNode R": {
+                        "Value": {
+                            "ID ": "b"
+                        }
+                    }
+                }
+            },
+            "If": [{
+                "WriteNode": {
+                    "String": "a es menor que o igual que b"
+                }
+            }]
+        }
+    }, {
+        "IfNode": {
+            "BoolNode": {
+                "BoolNode": {
+                    "BoolMathNode": {
+                        "MathNode L": {
+                            "Value": {
+                                "ID ": "b"
+                            }
+                        },
+                        "Operator": ">=",
+                        "MathNode R": {
+                            "Value": {
+                                "ID ": "a"
+                            }
+                        }
+                    }
+                }
+            },
+            "If": [{
+                "WriteNode": {
+                    "String": "b es mayor que o igual que a"
+                }
+            }]
+        }
+    }, {
+        "AssigNode": {
+            "Id": {
+                "ID ": "c"
+            },
+            "MathNode": {
+                "Value": {
+                    "NUM ": "10"
+                }
+            }
+        }
+    }, {
+        "WhileNode": {
+            "BoolNode": {
+                "BoolMathNode": {
+                    "MathNode L": {
+                        "Value": {
+                            "ID ": "c"
+                        }
+                    },
+                    "Operator": "<",
+                    "MathNode R": {
+                        "Value": {
+                            "NUM ": "20"
+                        }
+                    }
+                }
+            },
+            "While": [{
+                "WriteNode": {
+                    "String": "[while] valor de c: ",
+                    "Id": {
+                        "ID ": "c"
+                    }
+                }
+            }, {
+                "AssigNode": {
+                    "Id": {
+                        "ID ": "c"
+                    },
+                    "MathNode": {
+                        "MathSum": {
+                            "Value L": {
+                                "ID ": "c"
+                            },
+                            "Operator": "+",
+                            "Value R": {
+                                "NUM ": "1"
+                            }
+                        }
+                    }
+                }
+            }]
+        }
+    }, {
+        "ForNode": {
+            "AssigNode": {
+                "Id": {
+                    "ID ": "c"
+                },
+                "MathNode": {
+                    "Value": {
+                        "NUM ": "10"
+                    }
+                }
+            },
+            "MathNode R": {
+                "Value": {
+                    "NUM ": "20"
+                }
+            },
+            "Statements": [{
+                "WriteNode": {
+                    "String": "(for) valor de c: ",
+                    "Id": {
+                        "ID ": "c"
+                    }
+                }
+            }]
+        }
+    }, {
+        "AssigNode": {
+            "Id": {
+                "ID ": "c"
+            },
+            "MathNode": {
+                "Value": {
+                    "NUM ": "10"
+                }
+            }
+        }
+    }, {
+        "RepeatNode": {
+            "Repeat": [{
+                "WriteNode": {
+                    "String": "#repeat# valor de c: ",
+                    "Id": {
+                        "ID ": "c"
+                    }
+                }
+            }, {
+                "AssigNode": {
+                    "Id": {
+                        "ID ": "c"
+                    },
+                    "MathNode": {
+                        "MathSum": {
+                            "Value L": {
+                                "ID ": "c"
+                            },
+                            "Operator": "+",
+                            "Value R": {
+                                "NUM ": "1"
+                            }
+                        }
+                    }
+                }
+            }],
+            "BoolNode": {
+                "BoolMathNode": {
+                    "MathNode L": {
+                        "Value": {
+                            "ID ": "c"
+                        }
+                    },
+                    "Operator": "=",
+                    "MathNode R": {
+                        "Value": {
+                            "NUM ": "20"
+                        }
+                    }
+                }
+            }
+        }
+    }]
+}

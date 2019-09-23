@@ -25,29 +25,40 @@ public class MathNode{
   }
 
   public String printNode(int depth){
+    String json = "{ ";
     System.out.println("This MathNode holds: "); 
+    
     for (int i = 0; i <= depth; i++){
-      System.out.print("----");
+      System.out.print("|  ");
     }
+
+    System.out.print("|-- ");
 
     switch(this.type){
         case VALUE:
-            ((Value)this.content).printNode(depth + 1);
+            json += "\"Value\": ";
+            json += ((Value)this.content).printNode(depth + 1);
             break;
         case MATH:
-            ((MathNode)this.content).printNode(depth + 1);
+            json += "\"MathNode\": ";
+            json += ((MathNode)this.content).printNode(depth + 1);
             break;
         case MULT:
-            ((MathMult)this.content).printNode(depth + 1);
+            json += "\"MathNode\": ";
+            json += ((MathMult)this.content).printNode(depth + 1);
             break;
         case SUM:
-            ((MathSum)this.content).printNode(depth + 1);
+            json += "\"MathSum\": ";
+            json += ((MathSum)this.content).printNode(depth + 1);
             break;
         default:
+            json += "\"Error\" : 0";
             System.out.println("ERROR NODO IZQ de \"MathNode\"");
             break;
     }
-    return "Ola";
+
+    json += "}";
+    return json;
   }
 
 }

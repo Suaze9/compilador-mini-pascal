@@ -28,32 +28,43 @@ public class BoolNode{
   }
 
   public String printNode(int depth){
-    System.out.println("This BoolNode holds: "); 
+    String json = "{";
+    System.out.println("This BoolNode holds: " + depth); 
+    
     for (int i = 0; i <= depth; i++){
-      System.out.print("----");
+      System.out.print("|  ");
     }
+
+    System.out.print("|-- ");
     
     switch(this.type){
         case VALUE:
-            ((Value)this.content).printNode(depth + 1);
+            json += "\"Value\": ";
+            json += ((Value)this.content).printNode(depth + 1);
             break;
         case BOOLOR:
-            ((BoolOrNode)this.content).printNode(depth + 1);
+            json += "\"BoolOrNode\": ";
+            json += ((BoolOrNode)this.content).printNode(depth + 1);
             break;
         case BOOLAND:
-            ((BoolAndNode)this.content).printNode(depth + 1);
+            json += "\"BoolAndNode\": ";
+            json += ((BoolAndNode)this.content).printNode(depth + 1);
             break;
         case BOOLMATH:
-            ((BoolMathNode)this.content).printNode(depth + 1);
+            json += "\"BoolMathNode\": ";
+            json += ((BoolMathNode)this.content).printNode(depth + 1);
             break;
         case BOOL:
-            ((BoolNode)this.content).printNode(depth + 1);
+            json += "\"BoolNode\": ";
+            json += ((BoolNode)this.content).printNode(depth + 1);
             break;
         default:
+            json += "\"Error\" : \"0\"";
             System.out.println("ERROR NODO IZQ de \"BoolNode\"");
             break;
     }
-    return "Ola";
+    json += "}";
+    return json;
   }
 
 }

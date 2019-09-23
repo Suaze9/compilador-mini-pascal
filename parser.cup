@@ -1,4 +1,5 @@
 import java_cup.runtime.*;
+import java.util.ArrayList;
 
 terminal String CONSTSTR, CONSTCHAR, NUMS;
 terminal PROGRAM, FUNCTION, PROCEDURE, DO, VAR, BEGIN, END, FOR,
@@ -8,15 +9,16 @@ terminal PROGRAM, FUNCTION, PROCEDURE, DO, VAR, BEGIN, END, FOR,
     COLON, INT, CHAR, BOOLEAN, RECORD, STRING, THEN,
     TO, UNTIL, ID, COMA, NOT;
         
-non terminal Object test;
-//non terminal Integer math, sum, mult, num, mathpar;                 //math operations ORIGINAL
-non terminal Object math, sum, num, mathpar;
+//non terminal Object test;
+non terminal Object math, sum, num;
 non terminal Object mult;         //Math multiplication operations
+non terminal Object multmultdecl;
 non terminal Object bool, boolmath, rel, booland, boolor;  //boolean operations
 non terminal Object statement;          //Statement
 non terminal Object statementlist;      //Statement List
+non terminal Object sinmultstatement;      //Statement List
 non terminal Object if;                 //If block
-non terminal Object ifun;               //If block unmatched
+//non terminal Object ifun;               //If block unmatched
 non terminal Object while;              //While cycle
 non terminal Object for;                //For cycle
 non terminal Object repeat;             //repeat cycle
@@ -33,84 +35,417 @@ non terminal Object funccall;           //call a function
 non terminal Object params;             //function or procedure parameters
 non terminal Object attr;               //function or procedure attributes
 non terminal Object type;               //variable type declaration
-
+/*
 test ::= rel: m {:
     BoolNode mo = (BoolNode)m;
-    mo.printNode(1);
+    System.out.println(" \"BoolNode\" :" + mo.printNode(0));
     RESULT = m;
 :};
+*/
 
-program ::= PROGRAM ID:i decl:d funclist:fl BEGIN statementlist:sl END {::};
+program ::= PROGRAM ID:i multmultdecl:d funclist:fl BEGIN statementlist:sl END {:
+    Value v = new Value((String)i);
+    ProgramNode root = new ProgramNode(v,d,(ArrayList<Object>)fl,(ArrayList<Object>)sl);
+    System.out.println(root.printNode(0));
+    RESULT = root;
+:};
 
-funclist ::= function:f funclist:fl {::}
-    | procedure:p funclist:fl {::}
-    | {::};
+funclist ::= function:f funclist:fl {:
+    ArrayList<Object> funlist = (ArrayList<Object>) fl;
+    funlist.add(0, f);
+    RESULT = funlist;
+:}
+| procedure:p funclist:fl {:
+    //Lista divertida lol :V fun list :3 
+    ArrayList<Object> funlist = (ArrayList<Object>) fl;
+    funlist.add(0, p);
+    RESULT = funlist;
+:}
+| {:
+    RESULT = new ArrayList<Object>();
+:};
 
-procedure ::= PROCEDURE ID:i PARIZQ params:p decl:d BEGIN statementlist:s END
-    | PROCEDURE ID:i PARIZQ PARDER COLON type:t decl:d BEGIN statementlist:s END {::}; 
+/*
+    FuncListNode
+        ArrayList<Object> todos los funciones y procedures
 
-function ::= FUNCTION ID:i PARIZQ params:p COLON type:t decl:d BEGIN statementlist:s END
-    | FUNCTION ID:i PARIZQ PARDER COLON type:t decl:d BEGIN statementlist:s END {::};
+funclist := ArrayList<Object>
 
-funccall ::= ID:i PARIZQ attr:at {::};
+*/
 
-attr ::= math:m COMA attr:a {::}
-    | rel:r COMA attr:a {::}
-    | CONSTCHAR:cc COMA attr:a {::}
-    | CONSTSTR:cc COMA attr:a {::}
-    | math:m PARDER {::}
-    | rel:r PARDER {::}
-    | CONSTCHAR:cc PARDER{::}
-    | CONSTSTR:cc PARDER{::};
+procedure ::= PROCEDURE ID:i PARIZQ params:p multmultdecl:d BEGIN statementlist:s END {:
+    Value v = new Value((String)i);
+    if(d != null){
+        RESULT = new ProcedureNode(v,(ArrayList<ParamsNode>)p,d,(ArrayList<Object>)s);
+    }else{
+        ArrayList<Object> declarations = new ArrayList<Object>();
+        RESULT = new ProcedureNode(v,(ArrayList<ParamsNode>)p,declarations,(ArrayList<Object>)s);
+    }
+:}
+    | PROCEDURE ID:i PARIZQ PARDER multmultdecl:d BEGIN statementlist:s END {:
+        Value v = new Value((String)i);
+        ArrayList<ParamsNode> params = new ArrayList<ParamsNode>();
+        if(d != null){
+            RESULT = new ProcedureNode(v,params,d,(ArrayList<Object>)s);
+        }else{
+            ArrayList<Object> declarations = new ArrayList<Object>();
+            RESULT = new ProcedureNode(v,params,declarations,(ArrayList<Object>)s);
+        }   
+    :}; 
 
-params ::= ID:i COMA params:p {::}
-    | ID:i COLON type:t COMA params:p {::}
-    | ID:i COLON type:t PARDER {::};
+/*
+    ProcedureNode
+        Value id
+        ParamsNode params ó ArrayList<ParamsNode>
+        DeclNode declaration
+        ArrayList<DeclNode> declarations
+        ArrayList<Object> statements
 
-type ::= INT {::}
-    | CHAR {::}
-    | BOOLEAN {::}
-    | RECORD {::}
-    | STRING {::};
 
-statement ::= BEGIN statementlist:sl END {::}
-    | if:i {::}
-    | while:w {::}
-    | for:f {::}
-    | repeat:r {::}
-    | read:r {::}
-    | write:w {::}
-    | assig:a {::};
+*/
 
-statementlist ::= statementlist:sl statement:s {::}
-    | {::};
+function ::= FUNCTION ID:i PARIZQ params:p COLON type:t multmultdecl:d BEGIN statementlist:s END {:
+    Value v = new Value((String)i);
+    if(d != null){
+        RESULT = new FunctionNode(v,(ArrayList<ParamsNode>)p,d,(ArrayList<Object>)s,(String)t);
+    }else{
+        ArrayList<Object> declarations = new ArrayList<Object>();
+        RESULT = new FunctionNode(v,(ArrayList<ParamsNode>)p,declarations,(ArrayList<Object>)s,(String)t);
+    }
+:}
+    | FUNCTION ID:i PARIZQ PARDER COLON type:t multmultdecl:d BEGIN statementlist:s END {:
+        Value v = new Value((String)i);
+        ArrayList<ParamsNode> params = new ArrayList<ParamsNode>();
+        if(d != null){
+            RESULT = new FunctionNode(v,params,d,(ArrayList<Object>)s,(String)t);
+        }else{
+            ArrayList<Object> declarations = new ArrayList<Object>();
+            RESULT = new FunctionNode(v,params,declarations,(ArrayList<Object>)s,(String)t); 
 
-if ::= IF rel:r THEN statement:s {::}
-    | IF rel:r THEN statement:si ELSE statement:se {::};
+        }
+    :};
 
-while ::= WHILE rel:r DO statement:s {::};
+/*
+    FunctionNode
+        Value id
+        ParamsNode params ó ArrayList<ParamsNode>
+        DeclNode declaration
+        ArrayList<DeclNode> declarations
+        ArrayList<Object> statements
+        String type;
+*/
 
-for ::= FOR ID:i ASSIG math:ma TO math:ml DO statement:s {::};
 
-repeat ::= REPEAT statementlist UNTIL rel:r {::};
+funccall ::= ID:i PARIZQ attr:at {:
+    RESULT = new FuncCallNode(new Value((String)i),(ArrayList<Object>)at);
+:};
 
-read ::= READ PARIZQ ID:i PARDER {::};
+//excelente 糞 <- mire, ahí ta
+/*
 
-write ::= WRITE PARIZQ CONSTSTR:s PARDER {::}
-    | WRITE PARIZQ CONSTSTR:s COMA ID:id PARDER {::};
+⠀⠀⠀⣠⣾⣿⣿⣿⣷⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣾⣿⣿⣿⣿⣷⣄⠀
+⠀⠀⠀⣿⣿⡇⠀⠀⢸⣿⢰⣿⡆⠀⣾⣿⡆⠀⣾⣷⠀⣿⣿⡇⠀⠀⢸⣿⣿⠀
+⠀⠀⠀⣿⣿⡇⠀⠀⢸⣿⠘⣿⣿⣤⣿⣿⣿⣤⣿⡇⠀⢻⣿⡇⠀⠀⢸⣿⣿⠀
+⠀⠀⠀⣿⣿⡇⠀⠀⢸⡿⠀⢹⣿⣿⣿⣿⣿⣿⣿⠁⠀⢸⣿⣇⠀⠀⢸⣿⣿⠀
+⠀⠀⠀⠙⢿⣷⣶⣶⡿⠁⠀⠈⣿⣿⠟⠀⣿⣿⠇⠀⠀⠈⠻⣿⣿⣿⣿⡿⠋
 
-decl ::= VAR ID:i multdecl:m{::}
-    | {::};
+*/
 
-multdecl ::= COMA ID:i multdecl:m {::}
-    | COLON type:t {::};
 
-assig ::= ID:i ASSIG CONSTSTR:cs {::}
-    | ID:i ASSIG CONSTCHAR:cc {::}
-    | ID:i ASSIG math:m {::}
-    | ID:i ASSIG rel:r {::};
+attr ::= math:m COMA attr:a {:
+    ArrayList<AttrNode> attrlst = (ArrayList<AttrNode>) a;
+    attrlst.add(0, new AttrNode( m ));
+    RESULT = attrlst;
+:}
+| rel:r COMA attr:a {:
+    ArrayList<AttrNode> attrlst = (ArrayList<AttrNode>) a;
+    attrlst.add(0, new AttrNode( r ));
+    RESULT = attrlst;
+:}
+| CONSTCHAR:cc COMA attr:a {:
+    ArrayList<AttrNode> attrlst = (ArrayList<AttrNode>) a;
+    attrlst.add(0, new AttrNode(new Character( ((String) cc).charAt(0) ) ));
+    RESULT = attrlst;
+:}
+| CONSTSTR:cc COMA attr:a {:
+    ArrayList<AttrNode> attrlst = (ArrayList<AttrNode>) a;
+    attrlst.add(0, new AttrNode( (String)cc ));
+    RESULT = attrlst;
+:}
+| math:m PARDER {:
+    ArrayList<AttrNode> attrlst = new ArrayList<AttrNode>();
+    attrlst.add(0, new AttrNode( m ));
+    RESULT = attrlst;
+:}
+| rel:r PARDER {:
+    ArrayList<AttrNode> attrlst = new ArrayList<AttrNode>();
+    attrlst.add(0, new AttrNode( r ));
+    RESULT = attrlst;
+:}
+| CONSTCHAR:cc PARDER{:
+    ArrayList<AttrNode> attrlst = new ArrayList<AttrNode>();
+    attrlst.add(0, new AttrNode(new Character( ((String) cc).charAt(0) ) ));
+    RESULT = attrlst;
+:}
+| CONSTSTR:cc PARDER{:
+    ArrayList<AttrNode> attrlst = new ArrayList<AttrNode>();
+    attrlst.add(0, new AttrNode( (String)cc ));
+    RESULT = attrlst;
+:};
 
-mathpar::= math:m PARDER {::};
+/*
+
+FuncCallNode
+    Value id
+    ArrayList<AttrNode> args
+
+funccal := FuncCallNode
+
+AttrNode
+    Object String, Char, Value, MathNode, MathMult, MathSum, BoolNode, BoolMathNode, BoolAndNode, BoolOrNode
+
+attr := ArrayList <AttrNode>
+
+*/
+
+params ::= ID:i COMA params:p {:
+    ArrayList<ParamsNode> paramlst = (ArrayList<ParamsNode>)p;
+    paramlst.get(0).push( (String)i );
+    RESULT = paramlst;
+:}
+| ID:i COLON type:t COMA params:p {:
+    ArrayList<ParamsNode> paramlst = (ArrayList<ParamsNode>)p;
+    paramlst.add( 0, new ParamsNode( (String)t ) );
+    paramlst.get(0).push( (String)i );
+    RESULT = paramlst;
+:}
+| ID:i COLON type:t PARDER {:
+    ArrayList<ParamsNode> paramlst = new ArrayList<ParamsNode>();
+    paramlst.add( new ParamsNode( (String)t ) );
+    paramlst.get(0).push( (String)i );
+    RESULT = paramlst;
+:};
+
+/*
+
+ParamsNode
+    ArrayList<Value> ids
+    String type
+
+params := ArrayList<ParamsNode>
+
+*/
+
+type ::= INT {:RESULT = "INT";:}
+    | CHAR {:RESULT = "CHAR";:}
+    | BOOLEAN {:RESULT = "BOOLEAN";:}
+    | RECORD {:RESULT = "RECORD";:}
+    | STRING {:RESULT = "STRING";:};
+
+/*
+
+type := String (INT, CHAR, BOOLEAN, RECORD, STRNIG)
+
+*/
+
+statement ::= 
+      if:i {:
+        RESULT = (IfNode)i;
+      :}
+    | while:w {:
+        RESULT = (WhileNode)w;
+    :}
+    | for:f {:
+        RESULT = (ForNode)f;
+    :}
+    | repeat:r {:
+        RESULT = (RepeatNode)r;
+    :}
+    | read:r {:
+        RESULT = (ReadNode)r;
+    :}
+    | write:w {:
+        RESULT = (WriteNode)w;
+    :}
+    | assig:a {:
+        RESULT = (AssigNode)a;
+    :};
+
+statementlist ::= statementlist:sl statement:s {:
+    ((ArrayList<Object>)sl).add(s);
+    RESULT = ((ArrayList<Object>)sl);
+:}
+| {:
+    RESULT = new ArrayList<Object>();
+:};
+
+sinmultstatement ::= BEGIN statementlist:sl END {:
+    RESULT = ((ArrayList<Object>)sl);
+:}
+| statement:st {:
+    ArrayList<Object> retVal = new ArrayList<Object>();
+    retVal.add(st);
+    RESULT = retVal;
+:};
+
+/*
+
+statement en los arraylist es IfNode, WhileNode, ForNode, RepeatNode, ReadNode, WriteNode y AssigNode
+Si solo hay un statement, retornar un ArrayList con una sola entrada
+
+statement := ArrayList<Object>
+
+*/
+
+if ::= IF rel:r THEN sinmultstatement:sl {:
+    RESULT = new IfNode(r,(ArrayList<Object>)sl);
+:}
+    | IF rel:r THEN sinmultstatement:sl ELSE sinmultstatement:s {:
+        RESULT = new IfNode(r,(ArrayList<Object>)sl,(ArrayList<Object>)s);
+    :};
+
+while ::= WHILE rel:r DO sinmultstatement:sl {:
+    RESULT = new WhileNode(r,(ArrayList<Object>)sl);
+:};
+
+for ::= FOR ID:i ASSIG math:ma TO math:ml DO sinmultstatement:sl {:
+    AssigNode assig = new AssigNode(new Value((String)i),ma);
+    RESULT = new ForNode(assig, ml, (ArrayList<Object>)sl);    
+:};
+
+repeat ::= REPEAT sinmultstatement:sl UNTIL rel:r {:
+    RESULT = new RepeatNode((ArrayList<Object>)sl,r);
+:};
+
+/*
+
+IfNode
+    Obj Value, BoolNode, BoolMathNode, BoolAndNode, BoolOrNode
+    ArrayList<Statement> statements  //Son arreglos de objetos :v
+    ArrayList<Statement> else statements
+    int type
+
+if := IfNode
+
+WhileNode
+    Obj Value, BoolNode, BoolMathNode, BoolAndNode, BoolOrNode    
+    ArrayList<Statement> statements
+
+while := WhileNode
+
+ForNode
+    AssigNode assig
+    Object Value, MathNode, MathMult, MathSum
+    ArrayList<Statement> statements
+
+for := ForNode
+
+RepeatNode
+    ArrayList<Statement> statements
+    Obj Value, BoolNode, BoolMathNode, BoolAndNode, BoolOrNode    
+
+repeat := RepeatNode
+
+*/
+
+read ::= READ PARIZQ ID:i PARDER {:
+    RESULT = new ReadNode(new Value((String)i));
+:};
+
+write ::= WRITE PARIZQ CONSTSTR:s PARDER {:
+        RESULT = new WriteNode((String)s);
+    :}
+    | WRITE PARIZQ CONSTSTR:s COMA ID:id PARDER {:
+        RESULT = new WriteNode((String)s, new Value((String)id));
+    :};
+
+/*
+
+ReadNode
+    Value Id
+
+read := ReadNode
+
+WriteNode
+    String conststr
+    Value Id
+
+write := WriteNode
+
+*/
+
+decl ::= ID:i multdecl:m{:
+    ((DeclNode)m).push((String)i);
+    RESULT = (DeclNode)m;
+:};
+
+multdecl ::= COMA ID:i multdecl:m {:
+    ((DeclNode)m).push((String)i);
+    DeclNode retVal = (DeclNode)m;
+    RESULT = retVal;
+:}
+| COLON type:t {:
+    RESULT = new DeclNode((String) t);
+:};
+
+multmultdecl ::= multmultdecl:mmd decl:d {:
+    if(mmd != null){
+        if(mmd instanceof DeclNode){
+            ArrayList<DeclNode> declarations = new ArrayList<DeclNode>();
+            declarations.add((DeclNode)mmd);
+            declarations.add((DeclNode)d);
+            RESULT = declarations;
+        }else if(mmd instanceof ArrayList){
+            ((ArrayList<DeclNode>)mmd).add((DeclNode)d);
+            RESULT = (ArrayList<DeclNode>)mmd;
+        }
+    }else{
+        RESULT = null;
+    }
+:}
+| VAR decl:d {:
+    RESULT = (DeclNode)d;
+:}
+| {:
+    RESULT = null;
+:};
+
+/*
+
+DeclNode
+    ArrayList<Value id> ids
+    String type
+
+decl := DeclNode
+
+multdecl := ArrayList<Value id>
+
+multmultdecl := DeclNode | ArrayList<DeclNode> | null
+
+*/
+
+
+assig ::= ID:i ASSIG CONSTSTR:cs {:
+        RESULT = new AssigNode(new Value((String)i),(String)cs);
+    :}
+    | ID:i ASSIG CONSTCHAR:cc {:
+        RESULT = new AssigNode(new Value((String)i),new Character(cc.charAt(0)));
+    :}
+    | ID:i ASSIG math:m {:
+        RESULT = new AssigNode(new Value((String)i),m);
+    :}
+    | ID:i ASSIG rel:r {:
+        RESULT = new AssigNode(new Value((String)i),r);
+    :};
+
+/*
+
+AssigNode
+    Value id
+    Object String, Char, Value, MathNode, MathMult, MathSum, BoolNode, BoolMathNode, BoolAndNode, BoolOrNode 
+
+assig := AssigNode
+*/
 
 math ::= sum:s {:
     //////////////// RETORNAR s ////////////////
@@ -262,6 +597,9 @@ bool ::= TRUE {:
 | ID:i {:
     RESULT = new Value((String)i);
     ///////////////////////////////////////////////////////////////////////
+:}
+| funccall:fc {:
+    //////////////// RETORNAR NUEVO NODO FuncCallNode ////////////////
 :}
 | NOT bool:b {:
     RESULT = new Value(b, true);
