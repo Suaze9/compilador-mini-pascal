@@ -138,6 +138,9 @@ public class FunctionNode{
         }else if(e instanceof AssigNode){
             json += "\"AssigNode\": ";
             json += ((AssigNode)e).printNode(depth + 1);
+        }else if(e instanceof FuncCallNode){
+            json += "\"FuncCallNode\": ";
+            json += ((FuncCallNode)e).printNode(depth + 1);
         }else{
             json += "\"Error\" : \"0\"";
             System.out.println("ERROR NODO " + index + " de statements de \"FunctionNode\"");

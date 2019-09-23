@@ -3,6 +3,7 @@ public class MathNode{
   final int MATH = 2;
   final int MULT = 3;
   final int SUM = 4;
+  final int FUNCCALL = 6;
   
   Object content;
   int type;
@@ -18,6 +19,8 @@ public class MathNode{
         this.type = MULT;
     else if (content instanceof MathSum)
         this.type = SUM;
+    else if (content instanceof FuncCallNode)
+        this.type = FUNCCALL;
     else{
         System.out.println("TIPO NO VALIDO ENTREGADO A NODO \"MathNode\"!!! ");
         this.type = 0;
@@ -50,6 +53,10 @@ public class MathNode{
         case SUM:
             json += "\"MathSum\": ";
             json += ((MathSum)this.content).printNode(depth + 1);
+            break;
+        case FUNCCALL:
+            json += "\"FuncCallNode\": ";
+            json += ((FuncCallNode)this.content).printNode(depth + 1);
             break;
         default:
             json += "\"Error\" : 0";

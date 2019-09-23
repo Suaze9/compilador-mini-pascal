@@ -1,5 +1,60 @@
 import java_cup.runtime.*;
 import java.util.ArrayList;
+import java.util.List;
+
+parser code {:
+        
+    @Override
+	public void report_error(String message, Object info) {
+        System.err.print("Syntax error: " ); 
+        expected();
+        System.err.println("pero se encontro el token \'" + ((Symbol)info).value + "\' en la Linea: " + (((Symbol)info).left + 1) + ", Columna: " + (((Symbol)info).right + 1) + ". " ); 
+    }
+
+    @Override
+	public void syntax_error(Symbol s){
+        System.err.println("Error Sintactico: " ); 
+        expected();
+        System.err.println("      pero se encontro el token \'" + sym.terminalNames[s.sym] + "\' en la Linea: " + (s.left + 1) + ", Columna: " + (s.right + 1) + ". \n" ); 
+	}
+
+    public void expected(){
+        List<Integer> token_list = this.expected_token_ids();
+        if (token_list.size() <= 0){
+                token_list = this.expected_token_ids();
+        }
+        String expected_tokens = "";
+        for (int i = 0 ; i < token_list.size(); i++){
+                int id = token_list.get(i);
+                if (id == 1){ //error
+                    continue;
+                }
+                String terminal_name = sym.terminalNames[id];
+                if (i == token_list.size() - 1){
+                    expected_tokens += terminal_name;
+                }else{
+                    expected_tokens += terminal_name + " , ";
+                }
+        }
+        System.err.println("      Se esperaba uno de los siguientes tokens: [" + expected_tokens + "] ");
+    }
+
+    public void report_fatal_error(String message, Object info) {
+        //throw new Error("Error Fatal Sintactico, no se pudo recuperar del problema.");
+        report_error(message,info);
+        System.exit(1);
+    }
+
+    public void unrecovered_syntax_error(Symbol s) {
+    }
+
+    @Override
+    public int error_sync_size(){
+        return 1;
+    }
+    
+:};
+
 
 terminal String CONSTSTR, CONSTCHAR, NUMS;
 terminal PROGRAM, FUNCTION, PROCEDURE, DO, VAR, BEGIN, END, FOR,
@@ -9,7 +64,6 @@ terminal PROGRAM, FUNCTION, PROCEDURE, DO, VAR, BEGIN, END, FOR,
     COLON, INT, CHAR, BOOLEAN, RECORD, STRING, THEN,
     TO, UNTIL, ID, COMA, NOT;
         
-//non terminal Object test;
 non terminal Object math, sum, num;
 non terminal Object mult;         //Math multiplication operations
 non terminal Object multmultdecl;
@@ -35,20 +89,18 @@ non terminal Object funccall;           //call a function
 non terminal Object params;             //function or procedure parameters
 non terminal Object attr;               //function or procedure attributes
 non terminal Object type;               //variable type declaration
-/*
-test ::= rel: m {:
-    BoolNode mo = (BoolNode)m;
-    System.out.println(" \"BoolNode\" :" + mo.printNode(0));
-    RESULT = m;
-:};
-*/
+
+precedence left error;
 
 program ::= PROGRAM ID:i multmultdecl:d funclist:fl BEGIN statementlist:sl END {:
     Value v = new Value((String)i);
     ProgramNode root = new ProgramNode(v,d,(ArrayList<Object>)fl,(ArrayList<Object>)sl);
     System.out.println(root.printNode(0));
     RESULT = root;
-:};
+:}
+| PROGRAM error multmultdecl:d funclist:fl BEGIN statementlist:sl END
+| PROGRAM ID:i multmultdecl:d funclist:fl error statementlist:sl END
+| PROGRAM ID:i multmultdecl:d funclist:fl BEGIN statementlist:sl;
 
 funclist ::= function:f funclist:fl {:
     ArrayList<Object> funlist = (ArrayList<Object>) fl;
@@ -56,7 +108,6 @@ funclist ::= function:f funclist:fl {:
     RESULT = funlist;
 :}
 | procedure:p funclist:fl {:
-    //Lista divertida lol :V fun list :3 
     ArrayList<Object> funlist = (ArrayList<Object>) fl;
     funlist.add(0, p);
     RESULT = funlist;
@@ -91,7 +142,9 @@ procedure ::= PROCEDURE ID:i PARIZQ params:p multmultdecl:d BEGIN statementlist:
             ArrayList<Object> declarations = new ArrayList<Object>();
             RESULT = new ProcedureNode(v,params,declarations,(ArrayList<Object>)s);
         }   
-    :}; 
+    :}
+    | PROCEDURE ID:i PARIZQ error multmultdecl:d BEGIN statementlist:s END
+    | PROCEDURE ID:i PARIZQ params:p error multmultdecl:d BEGIN statementlist:s END;
 
 /*
     ProcedureNode
@@ -123,7 +176,12 @@ function ::= FUNCTION ID:i PARIZQ params:p COLON type:t multmultdecl:d BEGIN sta
             RESULT = new FunctionNode(v,params,declarations,(ArrayList<Object>)s,(String)t); 
 
         }
-    :};
+    :}
+    |FUNCTION error PARIZQ params:p COLON type:t multmultdecl:d BEGIN statementlist:s END
+    |FUNCTION error PARIZQ PARDER COLON type:t multmultdecl:d BEGIN statementlist:s END
+    |FUNCTION ID:i PARIZQ error COLON type:t multmultdecl:d BEGIN statementlist:s END
+    |FUNCTION ID:i PARIZQ params:p error type:t multmultdecl:d BEGIN statementlist:s END
+    |FUNCTION ID:i PARIZQ PARDER error type:t multmultdecl:d BEGIN statementlist:s END;
 
 /*
     FunctionNode
@@ -138,7 +196,8 @@ function ::= FUNCTION ID:i PARIZQ params:p COLON type:t multmultdecl:d BEGIN sta
 
 funccall ::= ID:i PARIZQ attr:at {:
     RESULT = new FuncCallNode(new Value((String)i),(ArrayList<Object>)at);
-:};
+:}
+| ID:i PARIZQ PARDER {:RESULT = new FuncCallNode(new Value((String)i),new ArrayList<Object>());:};
 
 //excelente 糞 <- mire, ahí ta
 /*
@@ -191,7 +250,11 @@ attr ::= math:m COMA attr:a {:
     ArrayList<AttrNode> attrlst = new ArrayList<AttrNode>();
     attrlst.add(0, new AttrNode( (String)cc ));
     RESULT = attrlst;
-:};
+:}
+| math:m error attr:a
+| rel error attr:a
+| CONSTCHAR error attr:a
+| CONSTSTR error attr:a;
 
 /*
 
@@ -224,7 +287,11 @@ params ::= ID:i COMA params:p {:
     paramlst.add( new ParamsNode( (String)t ) );
     paramlst.get(0).push( (String)i );
     RESULT = paramlst;
-:};
+:}
+| error COMA params:p
+| error COLON type:t COMA params:p
+| error COLON type:t PARDER
+| ID:i COLON type:t;
 
 /*
 
@@ -240,7 +307,8 @@ type ::= INT {:RESULT = "INT";:}
     | CHAR {:RESULT = "CHAR";:}
     | BOOLEAN {:RESULT = "BOOLEAN";:}
     | RECORD {:RESULT = "RECORD";:}
-    | STRING {:RESULT = "STRING";:};
+    | STRING {:RESULT = "STRING";:}
+    | error;
 
 /*
 
@@ -269,7 +337,11 @@ statement ::=
     :}
     | assig:a {:
         RESULT = (AssigNode)a;
-    :};
+    :}
+    | funccall:fc {:
+        RESULT = (FuncCallNode)fc;
+    :}
+    | error;
 
 statementlist ::= statementlist:sl statement:s {:
     ((ArrayList<Object>)sl).add(s);
@@ -300,22 +372,29 @@ statement := ArrayList<Object>
 if ::= IF rel:r THEN sinmultstatement:sl {:
     RESULT = new IfNode(r,(ArrayList<Object>)sl);
 :}
-    | IF rel:r THEN sinmultstatement:sl ELSE sinmultstatement:s {:
+| IF rel:r THEN sinmultstatement:sl ELSE sinmultstatement:s {:
         RESULT = new IfNode(r,(ArrayList<Object>)sl,(ArrayList<Object>)s);
-    :};
+    :}
+| IF rel:r error sinmultstatement:sl;
 
 while ::= WHILE rel:r DO sinmultstatement:sl {:
     RESULT = new WhileNode(r,(ArrayList<Object>)sl);
-:};
+:}
+| WHILE rel:r error sinmultstatement:sl;
 
 for ::= FOR ID:i ASSIG math:ma TO math:ml DO sinmultstatement:sl {:
     AssigNode assig = new AssigNode(new Value((String)i),ma);
     RESULT = new ForNode(assig, ml, (ArrayList<Object>)sl);    
-:};
+:}
+| FOR error ASSIG math:ma TO math:ml DO sinmultstatement:sl
+| FOR ID:i error math:ma TO math:ml DO sinmultstatement:sl
+| FOR ID:i ASSIG math:ma error math:ml DO sinmultstatement:sl
+| FOR ID:i ASSIG math:ma TO math:ml error sinmultstatement:sl;
 
 repeat ::= REPEAT sinmultstatement:sl UNTIL rel:r {:
     RESULT = new RepeatNode((ArrayList<Object>)sl,r);
-:};
+:}
+| REPEAT sinmultstatement:sl error rel:r;
 
 /*
 
@@ -350,14 +429,20 @@ repeat := RepeatNode
 
 read ::= READ PARIZQ ID:i PARDER {:
     RESULT = new ReadNode(new Value((String)i));
-:};
+:}
+| READ error ID:i PARDER
+| READ PARIZQ error PARDER;
 
 write ::= WRITE PARIZQ CONSTSTR:s PARDER {:
         RESULT = new WriteNode((String)s);
     :}
-    | WRITE PARIZQ CONSTSTR:s COMA ID:id PARDER {:
+| WRITE PARIZQ CONSTSTR:s COMA ID:id PARDER {:
         RESULT = new WriteNode((String)s, new Value((String)id));
-    :};
+    :}
+| WRITE error CONSTSTR:s PARDER
+| WRITE error CONSTSTR:s COMA ID:id PARDER
+| WRITE PARIZQ CONSTSTR:s error ID:id PARDER
+| WRITE PARIZQ CONSTSTR:s COMA error PARDER;
 
 /*
 
@@ -448,17 +533,14 @@ assig := AssigNode
 */
 
 math ::= sum:s {:
-    //////////////// RETORNAR s ////////////////
     RESULT = new MathNode(s);
 :};
 
 sum ::= sum:s OPSUM:o mult:m {:
-    //////////////// RETORNAR NUEO NODO MathSum (s, o, m) ////////////////
     //System.out.print("llego a sum");
     RESULT = new MathSum(s, (String)o, m);
 :} 
 | mult:m {:
-    //////////////// RETORNAR m ////////////////
     RESULT = m;
 :};
 
@@ -493,16 +575,10 @@ math := Value | MathNode | MathMult | MathSum
 
 
 mult ::= mult:m OPMULT:o num:n {:
-    //////////////// RETORNAR UN NUEVO NODO MathMultNode (m, o, n); ////////////////
-    //MathMultNode number = new MathMultNode(n.intValue(),2); 
-    //System.out.println("Llego a mult");
     RESULT = new MathMult(m,(String)o,n);
 
 :}
 | num:n {:
-    //System.out.println("Llego a num");
-    //////////////// RETORNAR n ////////////////
-    //RESULT = new MathMultNode(n.intValue(), 2);
     RESULT = n;
 :};
 
@@ -516,15 +592,15 @@ num ::= NUMS:n {:
     }else{
         RESULT = new MathNode(m);
     }
-    //RESULT = m.intValue();
 :}
 | ID:i {:
     // ID 
     RESULT = new Value((String)i);
 :}
 | funccall:fc {:
-    //////////////// RETORNAR NUEVO NODO FuncCallNode ////////////////
-:};
+    RESULT = (FuncCallNode)fc;
+:}
+| error;
 
 /*
 
@@ -565,27 +641,20 @@ rel := Value | BoolNode | BoolMathNode | BoolAndNode | BoolOrNode
 
 rel ::= boolor:b {:
     RESULT = new BoolNode(b);
-    //RESULT = b;
 :};
 
 boolor ::= boolor:r OPOR booland:b {:
     RESULT = new BoolOrNode(r,"OR",b);
-    //[oO][rR]
-    //RESULT = new Boolean(r.booleanValue() || b.booleanValue());
 :}
 | booland:b {:
     RESULT = b;
-    //RESULT = b.booleanValue();
 :};
 
 booland ::= booland:br OPAND bool:bl {:
     RESULT = new BoolAndNode(br, "AND", bl);
-    //[aA][nN][dD]
-    //RESULT = new Boolean(br.booleanValue() && bl.booleanValue());
 :}
 | bool:b {:
     RESULT = b;
-    //RESULT = b;
 :};
 
 bool ::= TRUE {:
@@ -596,24 +665,22 @@ bool ::= TRUE {:
 :}
 | ID:i {:
     RESULT = new Value((String)i);
-    ///////////////////////////////////////////////////////////////////////
-:}
-| funccall:fc {:
-    //////////////// RETORNAR NUEVO NODO FuncCallNode ////////////////
 :}
 | NOT bool:b {:
     RESULT = new Value(b, true);
 :}
 | PARIZQ rel:r PARDER {:
     RESULT = r;
-    //RESULT = r;
 :}
 | boolmath:b {:
     RESULT = b;
-    //RESULT = b;
-:};
+:}
+| error;
 
-boolmath ::= math:b OPREL:o math:m{:
+boolmath ::= funccall:fc {:
+    RESULT = (FuncCallNode)fc;
+:}
+| math:b OPREL:o math:m{:
     RESULT = new BoolMathNode(b, (String)o, m);
     //<>|=|>|<|>=|<=
 :};

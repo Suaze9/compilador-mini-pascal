@@ -1,62 +1,48 @@
-program rel
+program relOpp
 
 var
-a, b, c: integer
-
-{  
-  Comentario multilinea 
-  Wow
+a, b, c, d, e: integer
+f, g : Boolean
+function comparacion(x, y:integer):Boolean
+begin
+    if(x <= 30) then
+      if(x >= y) then 
+        {mientras y sea menor o igual que x, sumar 1 a y}
+        while (y <= x) do
+          y := y + 1
+      else
+        while (x <= x) do
+        begin
+          x := x + 1
+          write('while multilinea')
+        end
+    else
+      write('x es muy grande: ', x)
+end
+{
+⠀⠀⠀⣠⣾⣿⣿⣿⣷⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣾⣿⣿⣿⣿⣷⣄⠀
+⠀⠀⠀⣿⣿⡇⠀⠀⢸⣿⢰⣿⡆⠀⣾⣿⡆⠀⣾⣷⠀⣿⣿⡇⠀⠀⢸⣿⣿⠀
+⠀⠀⠀⣿⣿⡇⠀⠀⢸⣿⠘⣿⣿⣤⣿⣿⣿⣤⣿⡇⠀⢻⣿⡇⠀⠀⢸⣿⣿⠀
+⠀⠀⠀⣿⣿⡇⠀⠀⢸⡿⠀⢹⣿⣿⣿⣿⣿⣿⣿⠁⠀⢸⣿⣇⠀⠀⢸⣿⣿⠀
+⠀⠀⠀⠙⢿⣷⣶⣶⡿⠁⠀⠈⣿⣿⠟⠀⣿⣿⠇⠀⠀⠈⠻⣿⣿⣿⣿⡿⠋
 }
 
 begin
-  a := 21
-  b := 10
-
-  if a = b then
-    write('a es igual que b')
-  else
-    write('a es distinto que b')
-
-  { otro comentario entre codigo }
-  if a < b then
-    write('a es menor que b')
-  else
-    write('a no es menor que b')
-
-  if a > b then
-    write('a es mayor que b')
-  else
-    write('a no es mayor que b')
-
-  { Lets change value of a and b }
-  a := 5
+  a := 10
   b := 20
+  c := 15
+  d := 30
+  f := true
 
-  if a <= b then
-    write('a es menor que o igual que b')
-
-  if (b >= a) then
-    write('b es mayor que o igual que a')
-
-  { while loop }
-  c := 10
-  while c < 20 do
+  IF(comparacion(a, b) AND 2 = a) then
   begin
-    write('[while] valor de c: ', c)
-    c := c + 1
+    write('Entro')
+    repeat begin
+      f :=  (c > d)
+      c := c + 1
+      d := d - 1
+      end
+    until ( f and c < d )
   end
 
-  { for loop }
-  for c := 10 to 20 do
-  begin
-    write('(for) valor de c: ', c)
-  end
-
-  { repeat until }
-  c := 10
-  repeat begin
-    write('#repeat# valor de c: ', c)
-    c := c + 1
-  end
-  until c = 20
 end

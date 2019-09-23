@@ -26,39 +26,35 @@ public class FuncCallNode{
 
     
     json += "\"Value\" : ";
-    json += this.id.printNode(depth + 1) + ",";
+    json += this.id.printNode(depth + 1);
     
-    for (int i = 0; i <= depth; i++){
-      System.out.print("|  ");
-    }
-
-    System.out.print("|-- ");
     
-    json += "\"Arguments\": {";
+    if(args.size() > 0){
 
-    int index = 0;
-    for(Object e : args ){
-        if(e instanceof MathNode){
-            json += "\"MathNode\": ";
-            json += ((MathNode)e).printNode(depth + 1) + ",";
-        }else if(e instanceof BoolNode){
-            json += "\"BoolNode\": ";
-            json += ((BoolNode)e).printNode(depth + 1) + ",";
-        }else if(e instanceof Character){
-            json += "\"Character\": ";
-            json += (Character)e + ",";
-        }else if(e instanceof String){
-            json += "\"String\": ";
-            json += (String)e + ",";
-        }else{
-            json += "\"Error\" : \"0\",";
-            System.out.println("ERROR NODO " + index + " de \"FuncCallNode\"");
-        }
-        index++;
+      json +=  ",";
+
+      for (int i = 0; i <= depth; i++){
+        System.out.print("|  ");
+      }
+  
+      System.out.print("|-- ");
+      
+      json += "\"Arguments\": {";
+      int index = 0;
+      for(Object e : args ){
+          if(e instanceof AttrNode){
+              json += "\"AttrNode " + index + "\": ";
+              json += ((AttrNode)e).printNode(depth + 1) + ",";
+          }else{
+              json += "\"Error\" : \"0\",";
+              System.out.println("ERROR NODO " + index + " de \"FuncCallNode\"");
+          }
+          index++;
+      }
+  
+      json = json.substring(0, json.length()-1);
+      json += "}";
     }
-
-    json = json.substring(0, json.length()-1);
-    json += "}";
 
     json += "}";
     return json;

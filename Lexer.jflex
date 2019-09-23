@@ -138,7 +138,7 @@ letra = [a-zA-Z_]
   {id}            {return symbol("ID", sym.ID, yytext().toLowerCase());}            
   {coma}          {return symbol("COMA", sym.COMA);}            
   {constchar}     {return symbol("CONSTCHAR", sym.CONSTCHAR, yytext());}            
-  .               {System.out.println("Símbolo no reconocido: " + yytext() + " en la línea " + yyline + ", columna " + yycolumn);}
+  .               {System.out.println("Simbolo no reconocido: " + yytext() + " en la linea " + yyline + ", columna " + yycolumn);}
 }
 
 <COMMENT>{

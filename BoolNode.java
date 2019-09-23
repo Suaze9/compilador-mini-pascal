@@ -4,6 +4,7 @@ public class BoolNode{
   final int BOOLAND = 3;
   final int BOOL = 4;
   final int BOOLMATH = 5;
+  final int FUNCCALL = 6;
 
   Object content;
   int type;
@@ -21,6 +22,8 @@ public class BoolNode{
       this.type = BOOL;
     }else if(content instanceof BoolMathNode){
       this.type = BOOLMATH;
+    }else if(content instanceof FuncCallNode){
+      this.type = FUNCCALL;
     }else{
       System.out.println("TIPO NO VALIDO ENTREGADO AL HIJO DE NODO \"BoolNode\"!!! ");
       this.type = 0;
@@ -57,6 +60,10 @@ public class BoolNode{
         case BOOL:
             json += "\"BoolNode\": ";
             json += ((BoolNode)this.content).printNode(depth + 1);
+            break;
+        case FUNCCALL:
+            json += "\"FuncCallNode\": ";
+            json += ((FuncCallNode)this.content).printNode(depth + 1);
             break;
         default:
             json += "\"Error\" : \"0\"";

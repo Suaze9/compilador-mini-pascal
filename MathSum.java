@@ -4,6 +4,7 @@ public class MathSum{
   final int MATHNODE = 2;
   final int MATHMULT = 3;
   final int MATHSUM = 4;
+  final int FUNCCALL = 5;
 
   Object leftChild;
   String operator;
@@ -28,6 +29,9 @@ public class MathSum{
     else if (leftChild instanceof MathSum){
       this.typeLeft = MATHSUM;
     }
+    else if (leftChild instanceof FuncCallNode){
+      this.typeLeft = FUNCCALL;
+    }
     else{
       System.out.println("TIPO NO VALIDO ENTREGADO AL HIJO IZQ DE  NODO \"MathSum\"!!! ");
       this.typeLeft = 0;
@@ -44,6 +48,9 @@ public class MathSum{
     }
     else if (rightChild instanceof MathSum){
       this.typeRight = MATHSUM;
+    }
+    else if (rightChild instanceof FuncCallNode){
+      this.typeRight = FUNCCALL;
     }
     else{
       System.out.println("TIPO NO VALIDO ENTREGADO AL HIJO DER DE  NODO \"MathSum\"!!! ");
@@ -78,6 +85,10 @@ public class MathSum{
         case MATHSUM:
             json += "\"MathSum L\": ";
             json += ((MathSum)this.leftChild).printNode(depth + 1);
+            break;
+        case FUNCCALL:
+            json += "\"FuncCallNode L\": ";
+            json += ((FuncCallNode)this.leftChild).printNode(depth + 1);
             break;
         default:
             json += "\"Error L\" : \"0\"";
@@ -116,6 +127,10 @@ public class MathSum{
         case MATHSUM:
             json += "\"MathSum R\": ";
             json += ((MathSum)this.rightChild).printNode(depth + 1);
+            break;
+        case FUNCCALL:
+            json += "\"FuncCallNode R\": ";
+            json += ((FuncCallNode)this.rightChild).printNode(depth + 1);
             break;
         default:
             json += "\"Error R\" : \"0\"";

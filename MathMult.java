@@ -3,6 +3,7 @@ public class MathMult{
   final int VALUE = 1;
   final int MATHNODE = 2;
   final int MATHMULT = 3;
+  final int FUNCCALL = 4;
 
   Object leftChild;
   String operator;
@@ -26,6 +27,9 @@ public class MathMult{
     else if (leftChild instanceof MathMult){
       this.typeLeft = MATHMULT;
     }
+    else if (leftChild instanceof FuncCallNode){
+      this.typeLeft = FUNCCALL;
+    }
     else{
       System.out.println("TIPO NO VALIDO ENTREGADO AL HIJO IZQ DE  NODO \"MathMult\"!!! ");
       this.typeLeft = 0;
@@ -39,6 +43,9 @@ public class MathMult{
     }
     else if (rightChild instanceof MathMult){
       this.typeRight = MATHMULT;
+    }
+    else if (rightChild instanceof FuncCallNode){
+      this.typeRight = FUNCCALL;
     }
     else{
       System.out.println("TIPO NO VALIDO ENTREGADO AL HIJO DER DE  NODO \"MathMult\"!!! ");
@@ -69,6 +76,10 @@ public class MathMult{
       case MATHMULT:
         json += "\"MathMult L\": ";
         json += ((MathMult)this.leftChild).printNode(depth + 1);
+        break;
+      case FUNCCALL:
+        json += "\"FuncCallNode L\": ";
+        json += ((FuncCallNode)this.leftChild).printNode(depth + 1);
         break;
       default:
         json += "\"Error L\" : \"0\"";
@@ -103,6 +114,10 @@ public class MathMult{
       case MATHMULT:
           json += "\"MathMult R\": ";
           json += ((MathMult)this.rightChild).printNode(depth + 1);
+        break;
+      case FUNCCALL:
+        json += "\"FuncCallNode L\": ";
+        json += ((FuncCallNode)this.rightChild).printNode(depth + 1);
         break;
       default:
         json += "\"Error R\" : \"0\"";

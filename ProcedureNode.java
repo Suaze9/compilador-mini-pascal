@@ -39,10 +39,11 @@ public class ProcedureNode{
     System.out.print("|-- ");
 
     json += "\"Id\" : ";
-    json += this.id.printNode(depth + 1) + ",";
+    json += this.id.printNode(depth + 1);
 
     if(this.params.size() > 0){
-        
+        json +=  ",";
+
         for (int i = 0; i <= depth; i++){
             System.out.print("|  ");
         }
@@ -135,6 +136,9 @@ public class ProcedureNode{
         }else if(e instanceof AssigNode){
             json += "\"AssigNode\": ";
             json += ((AssigNode)e).printNode(depth + 1);
+        }else if(e instanceof FuncCallNode){
+            json += "\"FuncCallNode\": ";
+            json += ((FuncCallNode)e).printNode(depth + 1);
         }else{
             json += "\"Error\" : \"0\"";
             System.out.println("ERROR NODO " + index + " de statements de \"ProcedureNode\"");

@@ -3,6 +3,7 @@ public class BoolAndNode{
   final int BOOLMATH = 2;
   final int BOOLAND = 3;
   final int BOOL = 4;
+  final int FUNCCALL = 6;
   
   Object leftChild;
   String operator;
@@ -27,6 +28,9 @@ public class BoolAndNode{
     else if (leftChild instanceof BoolNode){
       this.typeLeft = BOOL;
     }
+    else if (leftChild instanceof FuncCallNode){
+      this.typeLeft = FUNCCALL;
+    }
     else{
       System.out.println("TIPO NO VALIDO ENTREGADO AL HIJO IZQ DE  NODO \"BoolAndNode\"!!! ");
       this.typeLeft = 0;
@@ -43,6 +47,9 @@ public class BoolAndNode{
     }
     else if (rightChild instanceof BoolNode){
       this.typeRight = BOOL;
+    }
+    else if (rightChild instanceof FuncCallNode){
+      this.typeRight = FUNCCALL;
     }
     else{
       System.out.println("TIPO NO VALIDO ENTREGADO AL HIJO DER DE  NODO \"BoolAndNode\"!!! ");
@@ -77,6 +84,10 @@ public class BoolAndNode{
         case BOOL:
             json += "\"BoolNode L\": ";
             json += ((BoolNode)this.leftChild).printNode(depth + 1);
+            break;
+        case FUNCCALL:
+            json += "\"FuncCallNode L\": ";
+            json += ((FuncCallNode)this.leftChild).printNode(depth + 1);
             break;
         default:
             json += "\"Error L\" : \"0\"";
@@ -116,6 +127,10 @@ public class BoolAndNode{
         case BOOL:
             json += "\"Bool R\": ";
             json += ((BoolNode)this.rightChild).printNode(depth + 1);
+            break;
+        case FUNCCALL:
+            json += "\"FuncCallNode R\": ";
+            json += ((FuncCallNode)this.rightChild).printNode(depth + 1);
             break;
         default:
             json += "\"Error R\" : \"0\"";
