@@ -724,19 +724,23 @@ public class parser extends java_cup.runtime.lr_parser {
 
 
 
+
+    boolean errorFlag = false;
         
     @Override
 	public void report_error(String message, Object info) {
         System.err.print("Syntax error: " ); 
         expected();
         System.err.println("pero se encontro el token \'" + ((Symbol)info).value + "\' en la Linea: " + (((Symbol)info).left + 1) + ", Columna: " + (((Symbol)info).right + 1) + ". " ); 
+        errorFlag = true;
     }
 
     @Override
 	public void syntax_error(Symbol s){
-        System.err.println("Error Sintactico: " ); 
+        System.err.println("\nError Sintactico: " ); 
         expected();
         System.err.println("      pero se encontro el token \'" + sym.terminalNames[s.sym] + "\' en la Linea: " + (s.left + 1) + ", Columna: " + (s.right + 1) + ". \n" ); 
+        errorFlag = true;
 	}
 
     public void expected(){
@@ -747,7 +751,7 @@ public class parser extends java_cup.runtime.lr_parser {
         String expected_tokens = "";
         for (int i = 0 ; i < token_list.size(); i++){
                 int id = token_list.get(i);
-                if (id == 1){ //error
+                if (id == 1){ 
                     continue;
                 }
                 String terminal_name = sym.terminalNames[id];
@@ -761,16 +765,17 @@ public class parser extends java_cup.runtime.lr_parser {
     }
 
     public void report_fatal_error(String message, Object info) {
-        //throw new Error("Error Fatal Sintactico, no se pudo recuperar del problema.");
-        report_error(message,info);
-        System.exit(1);
+        errorFlag = true;
+        throw new Error("Error Fatal:\nNo se pudo recuperar del problema.");
     }
 
     public void unrecovered_syntax_error(Symbol s) {
+        errorFlag = true;
     }
 
     @Override
     public int error_sync_size(){
+        errorFlag = true;
         return 1;
     }
     
@@ -819,7 +824,8 @@ class CUP$parser$actions {
 		
     Value v = new Value((String)i);
     ProgramNode root = new ProgramNode(v,d,(ArrayList<Object>)fl,(ArrayList<Object>)sl);
-    System.out.println(root.printNode(0));
+    if(!errorFlag)
+        System.out.println("\nJson Arbol: \n\n" + root.printNode(0));
     RESULT = root;
 
               CUP$parser$result = parser.getSymbolFactory().newSymbol("program",22, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-6)), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);

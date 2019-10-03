@@ -22,12 +22,12 @@ import java_cup.runtime.ComplexSymbolFactory.Location;
   public static String texto = "";
   
   private Symbol symbol(String name, int sym) {
-		System.out.println("name: " + name + " sym: " + sym);
+		//System.out.println("name: " + name + " sym: " + sym);
 		return new Symbol(sym, yyline, yycolumn);
 	}
 
 	private Symbol symbol(String name, int sym, Object val) {
-		System.out.println("name: " + name + " sym: " + sym + " val: " + val);
+		//System.out.println("name: " + name + " sym: " + sym + " val: " + val);
 		return new Symbol(sym, yyline, yycolumn, val);
 	}
 %}
@@ -138,7 +138,7 @@ letra = [a-zA-Z_]
   {id}            {return symbol("ID", sym.ID, yytext().toLowerCase());}            
   {coma}          {return symbol("COMA", sym.COMA);}            
   {constchar}     {return symbol("CONSTCHAR", sym.CONSTCHAR, yytext());}            
-  .               {System.out.println("Simbolo no reconocido: " + yytext() + " en la linea " + yyline + ", columna " + yycolumn);}
+  .               {System.out.println("Error Lexico:\nSimbolo no reconocido: " + yytext() + " en la linea " + yyline + ", columna " + yycolumn);}
 }
 
 <COMMENT>{

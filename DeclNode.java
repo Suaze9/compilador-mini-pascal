@@ -10,7 +10,7 @@ public class DeclNode{
   }
 
   public void push(String id){
-    ids.add(new Value(id));
+    ids.add(0, new Value(id));
   }
 
   public String printNode(int depth){
