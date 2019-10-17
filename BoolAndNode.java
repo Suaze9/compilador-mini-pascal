@@ -3,7 +3,11 @@ public class BoolAndNode{
   final int BOOLMATH = 2;
   final int BOOLAND = 3;
   final int BOOL = 4;
-  final int FUNCCALL = 6;
+  final int FUNCCALL = 5;
+
+  final int MATH = 6;
+  final int MULT = 7;
+  final int SUM = 8;
   
   Object leftChild;
   String operator;
@@ -31,6 +35,15 @@ public class BoolAndNode{
     else if (leftChild instanceof FuncCallNode){
       this.typeLeft = FUNCCALL;
     }
+    else if (leftChild instanceof MathNode){
+      this.typeLeft = MATH;
+    }
+    else if (leftChild instanceof MathMult){
+      this.typeLeft = MULT;
+    }
+    else if (leftChild instanceof MathSum){
+      this.typeLeft = SUM;
+    }
     else{
       System.out.println("TIPO NO VALIDO ENTREGADO AL HIJO IZQ DE  NODO \"BoolAndNode\"!!! ");
       this.typeLeft = 0;
@@ -50,6 +63,15 @@ public class BoolAndNode{
     }
     else if (rightChild instanceof FuncCallNode){
       this.typeRight = FUNCCALL;
+    }
+    else if (rightChild instanceof MathNode){
+      this.typeRight = MATH;
+    }
+    else if (rightChild instanceof MathMult){
+      this.typeRight = MULT;
+    }
+    else if (rightChild instanceof MathSum){
+      this.typeRight = SUM;
     }
     else{
       System.out.println("TIPO NO VALIDO ENTREGADO AL HIJO DER DE  NODO \"BoolAndNode\"!!! ");
@@ -88,6 +110,18 @@ public class BoolAndNode{
         case FUNCCALL:
             json += "\"FuncCallNode L\": ";
             json += ((FuncCallNode)this.leftChild).printNode(depth + 1);
+            break;
+        case MATH:
+            json += "\"MathNode L\": ";
+            json += ((MathNode)this.leftChild).printNode(depth + 1);
+            break;
+        case MULT:
+            json += "\"MultNode L\": ";
+            json += ((MathMult)this.leftChild).printNode(depth + 1);
+            break;
+        case SUM:
+            json += "\"SumNode L\": ";
+            json += ((MathSum)this.leftChild).printNode(depth + 1);
             break;
         default:
             json += "\"Error L\" : \"0\"";
@@ -131,6 +165,19 @@ public class BoolAndNode{
         case FUNCCALL:
             json += "\"FuncCallNode R\": ";
             json += ((FuncCallNode)this.rightChild).printNode(depth + 1);
+            break;
+        
+        case MATH:
+            json += "\"MathNode R\": ";
+            json += ((MathNode)this.rightChild).printNode(depth + 1);
+            break;
+        case MULT:
+            json += "\"MultNode R\": ";
+            json += ((MathMult)this.rightChild).printNode(depth + 1);
+            break;
+        case SUM:
+            json += "\"SumNode R\": ";
+            json += ((MathSum)this.rightChild).printNode(depth + 1);
             break;
         default:
             json += "\"Error R\" : \"0\"";

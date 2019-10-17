@@ -5,6 +5,10 @@ public class BoolOrNode{
   final int BOOLMATH = 4;
   final int BOOL = 5;
   final int FUNCCALL = 6;
+
+  final int MATH = 7;
+  final int MULT = 8;
+  final int SUM = 9;
   
   Object leftChild;
   String operator;
@@ -35,6 +39,15 @@ public class BoolOrNode{
     else if (leftChild instanceof FuncCallNode){
       this.typeLeft = FUNCCALL;
     }
+    else if (leftChild instanceof MathNode){
+      this.typeLeft = MATH;
+    }
+    else if (leftChild instanceof MathMult){
+      this.typeLeft = MULT;
+    }
+    else if (leftChild instanceof MathSum){
+      this.typeLeft = SUM;
+    }
     else{
       System.out.println("TIPO NO VALIDO ENTREGADO AL HIJO IZQ DE  NODO \"BoolOrNode\"!!! ");
       this.typeLeft = 0;
@@ -57,6 +70,15 @@ public class BoolOrNode{
     }
     else if (rightChild instanceof FuncCallNode){
       this.typeRight = FUNCCALL;
+    }
+    else if (rightChild instanceof MathNode){
+      this.typeRight = MATH;
+    }
+    else if (rightChild instanceof MathMult){
+      this.typeRight = MULT;
+    }
+    else if (rightChild instanceof MathSum){
+      this.typeRight = SUM;
     }
     else{
       System.out.println("TIPO NO VALIDO ENTREGADO AL HIJO DER DE  NODO \"BoolOrNode\"!!! ");
@@ -98,6 +120,18 @@ public class BoolOrNode{
         case FUNCCALL:
             json += "\"FuncCallNode L\": ";
             json += ((FuncCallNode)this.leftChild).printNode(depth + 1);
+            break;
+        case MATH:
+            json += "\"MathNode L\": ";
+            json += ((MathNode)this.leftChild).printNode(depth + 1);
+            break;
+        case MULT:
+            json += "\"MultNode L\": ";
+            json += ((MathMult)this.leftChild).printNode(depth + 1);
+            break;
+        case SUM:
+            json += "\"SumNode L\": ";
+            json += ((MathSum)this.leftChild).printNode(depth + 1);
             break;
         default:
             json += "\"Error L\" : \"0\"";
@@ -145,6 +179,18 @@ public class BoolOrNode{
         case FUNCCALL:
             json += "\"FuncCallNode R\": ";
             json += ((FuncCallNode)this.rightChild).printNode(depth + 1);
+            break;
+        case MATH:
+            json += "\"MathNode R\": ";
+            json += ((MathNode)this.rightChild).printNode(depth + 1);
+            break;
+        case MULT:
+            json += "\"MultNode R\": ";
+            json += ((MathMult)this.rightChild).printNode(depth + 1);
+            break;
+        case SUM:
+            json += "\"SumNode R\": ";
+            json += ((MathSum)this.rightChild).printNode(depth + 1);
             break;
         default:
             json += "\"Error R\" : \"0\"";

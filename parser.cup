@@ -67,7 +67,7 @@ terminal PROGRAM, FUNCTION, PROCEDURE, DO, VAR, BEGIN, END, FOR,
     FALSE, PARIZQ, READ, WRITE,
     PARDER, OPSUM, OPMULT, OPAND, OPOR, OPREL, ASSIG,
     COLON, INT, CHAR, BOOLEAN, RECORD, STRING, THEN,
-    TO, UNTIL, ID, COMA, NOT;
+    TO, UNTIL, ID, COMA, SEMCOLON, NOT;
         
 non terminal Object math, sum, num;
 non terminal Object mult;         //Math multiplication operations
@@ -96,16 +96,17 @@ non terminal Object attr;               //function or procedure attributes
 non terminal Object type;               //variable type declaration
 
 precedence left error;
+precedence left ELSE;
 
-program ::= PROGRAM ID:i multmultdecl:d funclist:fl BEGIN statementlist:sl END {:
+program ::= PROGRAM ID:i multmultdecl:d funclist:fl BEGIN statementlist:sl END SEMCOLON {:
     Value v = new Value((String)i);
     ProgramNode root = new ProgramNode(v,d,(ArrayList<Object>)fl,(ArrayList<Object>)sl);
     if(!errorFlag)
         System.out.println("\nJson Arbol: \n\n" + root.printNode(0));
     RESULT = root;
 :}
-| PROGRAM error multmultdecl:d funclist:fl BEGIN statementlist:sl END
-| PROGRAM ID:i multmultdecl:d funclist:fl error statementlist:sl END
+| PROGRAM error multmultdecl:d funclist:fl BEGIN statementlist:sl END SEMCOLON
+| PROGRAM ID:i multmultdecl:d funclist:fl error statementlist:sl END SEMCOLON
 | PROGRAM ID:i multmultdecl:d funclist:fl BEGIN statementlist:sl;
 
 funclist ::= function:f funclist:fl {:
@@ -130,7 +131,7 @@ funclist := ArrayList<Object>
 
 */
 
-procedure ::= PROCEDURE ID:i PARIZQ params:p multmultdecl:d BEGIN statementlist:s END {:
+procedure ::= PROCEDURE ID:i PARIZQ params:p multmultdecl:d BEGIN statementlist:s END SEMCOLON {:
     Value v = new Value((String)i);
     if(d != null){
         RESULT = new ProcedureNode(v,(ArrayList<ParamsNode>)p,d,(ArrayList<Object>)s);
@@ -139,7 +140,7 @@ procedure ::= PROCEDURE ID:i PARIZQ params:p multmultdecl:d BEGIN statementlist:
         RESULT = new ProcedureNode(v,(ArrayList<ParamsNode>)p,declarations,(ArrayList<Object>)s);
     }
 :}
-    | PROCEDURE ID:i PARIZQ PARDER multmultdecl:d BEGIN statementlist:s END {:
+    | PROCEDURE ID:i PARIZQ PARDER multmultdecl:d BEGIN statementlist:s END SEMCOLON {:
         Value v = new Value((String)i);
         ArrayList<ParamsNode> params = new ArrayList<ParamsNode>();
         if(d != null){
@@ -149,8 +150,8 @@ procedure ::= PROCEDURE ID:i PARIZQ params:p multmultdecl:d BEGIN statementlist:
             RESULT = new ProcedureNode(v,params,declarations,(ArrayList<Object>)s);
         }   
     :}
-    | PROCEDURE ID:i PARIZQ error multmultdecl:d BEGIN statementlist:s END
-    | PROCEDURE ID:i PARIZQ params:p error multmultdecl:d BEGIN statementlist:s END;
+    | PROCEDURE ID:i PARIZQ error multmultdecl:d BEGIN statementlist:s END SEMCOLON
+    | PROCEDURE ID:i PARIZQ params:p error multmultdecl:d BEGIN statementlist:s END SEMCOLON;
 
 /*
     ProcedureNode
@@ -163,7 +164,7 @@ procedure ::= PROCEDURE ID:i PARIZQ params:p multmultdecl:d BEGIN statementlist:
 
 */
 
-function ::= FUNCTION ID:i PARIZQ params:p COLON type:t multmultdecl:d BEGIN statementlist:s END {:
+function ::= FUNCTION ID:i PARIZQ params:p COLON type:t multmultdecl:d BEGIN statementlist:s END SEMCOLON {:
     Value v = new Value((String)i);
     if(d != null){
         RESULT = new FunctionNode(v,(ArrayList<ParamsNode>)p,d,(ArrayList<Object>)s,(String)t);
@@ -172,7 +173,7 @@ function ::= FUNCTION ID:i PARIZQ params:p COLON type:t multmultdecl:d BEGIN sta
         RESULT = new FunctionNode(v,(ArrayList<ParamsNode>)p,declarations,(ArrayList<Object>)s,(String)t);
     }
 :}
-    | FUNCTION ID:i PARIZQ PARDER COLON type:t multmultdecl:d BEGIN statementlist:s END {:
+    | FUNCTION ID:i PARIZQ PARDER COLON type:t multmultdecl:d BEGIN statementlist:s END SEMCOLON {:
         Value v = new Value((String)i);
         ArrayList<ParamsNode> params = new ArrayList<ParamsNode>();
         if(d != null){
@@ -183,11 +184,11 @@ function ::= FUNCTION ID:i PARIZQ params:p COLON type:t multmultdecl:d BEGIN sta
 
         }
     :}
-    |FUNCTION error PARIZQ params:p COLON type:t multmultdecl:d BEGIN statementlist:s END
-    |FUNCTION error PARIZQ PARDER COLON type:t multmultdecl:d BEGIN statementlist:s END
-    |FUNCTION ID:i PARIZQ error COLON type:t multmultdecl:d BEGIN statementlist:s END
-    |FUNCTION ID:i PARIZQ params:p error type:t multmultdecl:d BEGIN statementlist:s END
-    |FUNCTION ID:i PARIZQ PARDER error type:t multmultdecl:d BEGIN statementlist:s END;
+    |FUNCTION error PARIZQ params:p COLON type:t multmultdecl:d BEGIN statementlist:s END SEMCOLON
+    |FUNCTION error PARIZQ PARDER COLON type:t multmultdecl:d BEGIN statementlist:s END SEMCOLON
+    |FUNCTION ID:i PARIZQ error COLON type:t multmultdecl:d BEGIN statementlist:s END SEMCOLON
+    |FUNCTION ID:i PARIZQ params:p error type:t multmultdecl:d BEGIN statementlist:s END SEMCOLON
+    |FUNCTION ID:i PARIZQ PARDER error type:t multmultdecl:d BEGIN statementlist:s END SEMCOLON;
 
 /*
     FunctionNode
@@ -200,7 +201,7 @@ function ::= FUNCTION ID:i PARIZQ params:p COLON type:t multmultdecl:d BEGIN sta
 */
 
 
-funccall ::= ID:i PARIZQ attr:at {:
+funccall ::= ID:i PARIZQ attr:at{:
     RESULT = new FuncCallNode(new Value((String)i),(ArrayList<Object>)at);
 :}
 | ID:i PARIZQ PARDER {:RESULT = new FuncCallNode(new Value((String)i),new ArrayList<Object>());:};
@@ -217,12 +218,7 @@ funccall ::= ID:i PARIZQ attr:at {:
 */
 
 
-attr ::= math:m COMA attr:a {:
-    ArrayList<AttrNode> attrlst = (ArrayList<AttrNode>) a;
-    attrlst.add(0, new AttrNode( m ));
-    RESULT = attrlst;
-:}
-| rel:r COMA attr:a {:
+attr ::= rel:r COMA attr:a {:
     ArrayList<AttrNode> attrlst = (ArrayList<AttrNode>) a;
     attrlst.add(0, new AttrNode( r ));
     RESULT = attrlst;
@@ -235,11 +231,6 @@ attr ::= math:m COMA attr:a {:
 | CONSTSTR:cc COMA attr:a {:
     ArrayList<AttrNode> attrlst = (ArrayList<AttrNode>) a;
     attrlst.add(0, new AttrNode( (String)cc ));
-    RESULT = attrlst;
-:}
-| math:m PARDER {:
-    ArrayList<AttrNode> attrlst = new ArrayList<AttrNode>();
-    attrlst.add(0, new AttrNode( m ));
     RESULT = attrlst;
 :}
 | rel:r PARDER {:
@@ -257,7 +248,6 @@ attr ::= math:m COMA attr:a {:
     attrlst.add(0, new AttrNode( (String)cc ));
     RESULT = attrlst;
 :}
-| math:m error attr:a
 | rel error attr:a
 | CONSTCHAR error attr:a
 | CONSTSTR error attr:a;
@@ -335,16 +325,16 @@ statement ::=
     | repeat:r {:
         RESULT = (RepeatNode)r;
     :}
-    | read:r {:
+    | read:r SEMCOLON{:
         RESULT = (ReadNode)r;
     :}
-    | write:w {:
+    | write:w SEMCOLON{:
         RESULT = (WriteNode)w;
     :}
-    | assig:a {:
+    | assig:a SEMCOLON {:
         RESULT = (AssigNode)a;
     :}
-    | funccall:fc {:
+    | funccall:fc SEMCOLON {:
         RESULT = (FuncCallNode)fc;
     :}
     | error;
@@ -357,7 +347,7 @@ statementlist ::= statementlist:sl statement:s {:
     RESULT = new ArrayList<Object>();
 :};
 
-sinmultstatement ::= BEGIN statementlist:sl END {:
+sinmultstatement ::= BEGIN statementlist:sl END SEMCOLON {:
     RESULT = ((ArrayList<Object>)sl);
 :}
 | statement:st {:
@@ -405,7 +395,7 @@ repeat ::= REPEAT sinmultstatement:sl UNTIL rel:r {:
 /*
 
 IfNode
-    Obj Value, BoolNode, BoolMathNode, BoolAndNode, BoolOrNode
+    Obj Value, BoolNode, BoolMathNode, BoolAndNode, BoolOrNode ... , MathNode , MathMult , MathSum
     ArrayList<Statement> statements  //Son arreglos de objetos :v
     ArrayList<Statement> else statements
     int type
@@ -413,7 +403,7 @@ IfNode
 if := IfNode
 
 WhileNode
-    Obj Value, BoolNode, BoolMathNode, BoolAndNode, BoolOrNode    
+    Obj Value, BoolNode, BoolMathNode, BoolAndNode, BoolOrNode ... , MathNode , MathMult , MathSum
     ArrayList<Statement> statements
 
 while := WhileNode
@@ -427,7 +417,7 @@ for := ForNode
 
 RepeatNode
     ArrayList<Statement> statements
-    Obj Value, BoolNode, BoolMathNode, BoolAndNode, BoolOrNode    
+    Obj Value, BoolNode, BoolMathNode, BoolAndNode, BoolOrNode ... , MathNode , MathMult , MathSum 
 
 repeat := RepeatNode
 
@@ -522,9 +512,6 @@ assig ::= ID:i ASSIG CONSTSTR:cs {:
     | ID:i ASSIG CONSTCHAR:cc {:
         RESULT = new AssigNode(new Value((String)i),new Character(cc.charAt(0)));
     :}
-    | ID:i ASSIG math:m {:
-        RESULT = new AssigNode(new Value((String)i),m);
-    :}
     | ID:i ASSIG rel:r {:
         RESULT = new AssigNode(new Value((String)i),r);
     :};
@@ -605,8 +592,7 @@ num ::= NUMS:n {:
 :}
 | funccall:fc {:
     RESULT = (FuncCallNode)fc;
-:}
-| error;
+:};
 
 /*
 
@@ -615,32 +601,32 @@ BoolMathNode
     String oprel
     Object Value, MathNode, MathMult, MathSum
     
-boolmath::= BoolMathNode
+boolmath::= BoolMathNode ... | Value | MathNode | MathMult | MathSum
 
 Value
     Obj num, bool, funccal, Id
     boolean not
 
-bool := Value | BoolNode | BoolMathNode
+bool := Value | BoolNode | BoolMathNode ... | MathNode | MathMult | MathSum
 
 BoolAndNode
-    Object  Value, BoolNode, BoolMathNode, BoolAndNode
+    Object  Value, BoolNode, BoolMathNode, BoolAndNode ... , MathNode , MathMult , MathSum
     String operator
-    Object  Value, BoolNode, BoolMathNode, BoolAndNode
+    Object  Value, BoolNode, BoolMathNode, BoolAndNode ... , MathNode , MathMult , MathSum
 
-booland := Value | BoolNode | BoolMathNode | BoolAndNode
+booland := Value | BoolNode | BoolMathNode | BoolAndNode ... | MathNode | MathMult | MathSum
 
 BoolOrNode
-    Object Value, BoolNode, BoolMathNode, BoolAndNode, BoolOrNode
+    Object Value, BoolNode, BoolMathNode, BoolAndNode, BoolOrNode ... , MathNode , MathMult , MathSum
     String operator
-    Object Value, BoolNode, BoolMathNode, BoolAndNode, BoolOrNode
+    Object Value, BoolNode, BoolMathNode, BoolAndNode, BoolOrNode ... , MathNode , MathMult , MathSum
 
-boolor := Value | BoolNode | BoolMathNode | BoolAndNode | BoolOrNode
+boolor := Value | BoolNode | BoolMathNode | BoolAndNode | BoolOrNode ... | MathNode | MathMult | MathSum
 
 BoolNode
-    Object Value, BoolNode, BoolMathNode, BoolAndNode, BoolOrNode
+    Object Value, BoolNode, BoolMathNode, BoolAndNode, BoolOrNode ... , MathNode , MathMult , MathSum
 
-rel := Value | BoolNode | BoolMathNode | BoolAndNode | BoolOrNode
+rel := Value | BoolNode | BoolMathNode | BoolAndNode | BoolOrNode ... | MathNode | MathMult | MathSum
 
 */
 
@@ -669,9 +655,6 @@ bool ::= TRUE {:
 | FALSE {:
     RESULT = new Value(new Boolean(false));
 :}
-| ID:i {:
-    RESULT = new Value((String)i);
-:}
 | NOT bool:b {:
     RESULT = new Value(b, true);
 :}
@@ -683,10 +666,10 @@ bool ::= TRUE {:
 :}
 | error;
 
-boolmath ::= funccall:fc {:
-    RESULT = (FuncCallNode)fc;
-:}
-| math:b OPREL:o math:m{:
+boolmath ::= sum:b OPREL:o sum:m{:
     RESULT = new BoolMathNode(b, (String)o, m);
     //<>|=|>|<|>=|<=
+:}
+| math:m {:
+    RESULT = ((MathNode)m).content;
 :};

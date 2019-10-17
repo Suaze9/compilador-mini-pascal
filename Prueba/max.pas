@@ -9,18 +9,18 @@ var
 
 begin
    if (num1 > num2) then begin
-      result := $num1 + 2 * a
-      result := num2 - 4 / b
+      result := num1 + 2 * a;
+      result := num2 - 4 / b;
    end
    else
-      result := num2
-   max := result
-end
+      result := num2;
+   max := result;
+end;
 
 begin
-   a := 100
-   b := 200
-   ret := max(a, b)
+   a := 100;
+   b := 200;
+   ret := max(a, b);
    
    write( 'Max value is : ', ret )
-end
+end;

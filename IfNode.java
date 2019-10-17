@@ -6,6 +6,10 @@ public class IfNode{
   final int BOOLMATH = 3;
   final int BOOLAND = 4;
   final int BOOLOR = 5;
+
+  final int MATH = 6;
+  final int MULT = 7;
+  final int SUM = 8;
   
   final int SIMPLEIF = 1;
   final int IFELSE = 2;
@@ -30,6 +34,14 @@ public class IfNode{
       this.conditionType = BOOLAND;
     }else if(condition instanceof BoolOrNode){
       this.conditionType = BOOLOR;
+    }else if (condition instanceof MathNode){
+      this.conditionType = MATH;
+    }
+    else if (condition instanceof MathMult){
+      this.conditionType = MULT;
+    }
+    else if (condition instanceof MathSum){
+      this.conditionType = SUM;
     }
 
     this.ifType = SIMPLEIF;
@@ -50,6 +62,14 @@ public class IfNode{
       this.conditionType = BOOLAND;
     }else if(condition instanceof BoolOrNode){
       this.conditionType = BOOLOR;
+    }else if (condition instanceof MathNode){
+      this.conditionType = MATH;
+    }
+    else if (condition instanceof MathMult){
+      this.conditionType = MULT;
+    }
+    else if (condition instanceof MathSum){
+      this.conditionType = SUM;
     }
 
     this.ifType = IFELSE;
@@ -86,6 +106,18 @@ public class IfNode{
         case BOOLOR:
             json += "\"BoolOrNode\": ";
             json += ((BoolOrNode)this.condition).printNode(depth + 1);
+            break;
+        case MATH:
+            json += "\"MathNode\": ";
+            json += ((MathNode)this.condition).printNode(depth + 1);
+            break;
+        case MULT:
+            json += "\"MultNode\": ";
+            json += ((MathMult)this.condition).printNode(depth + 1);
+            break;
+        case SUM:
+            json += "\"SumNode\": ";
+            json += ((MathSum)this.condition).printNode(depth + 1);
             break;
         default:
             json += "\"Error\" : \"0\"";

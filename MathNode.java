@@ -13,9 +13,10 @@ public class MathNode{
     
     if (content instanceof Value)
         this.type = VALUE;
-    else if (content instanceof MathNode)
-        this.type = MATH;
-    else if (content instanceof MathMult)
+    else if (content instanceof MathNode){
+        this.type = ((MathNode)this.content).type;
+        this.content = ((MathNode)this.content).content;
+    }else if (content instanceof MathMult)
         this.type = MULT;
     else if (content instanceof MathSum)
         this.type = SUM;

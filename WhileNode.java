@@ -7,6 +7,10 @@ public class WhileNode{
   final int BOOLAND = 4;
   final int BOOLOR = 5;
 
+  final int MATH = 6;
+  final int MULT = 7;
+  final int SUM = 8;
+
   Object condition;
   ArrayList<Object> statements;
   int conditionType;
@@ -25,6 +29,14 @@ public class WhileNode{
       this.conditionType = BOOLAND;
     }else if(condition instanceof BoolOrNode){
       this.conditionType = BOOLOR;
+    }else if (condition instanceof MathNode){
+      this.conditionType = MATH;
+    }
+    else if (condition instanceof MathMult){
+      this.conditionType = MULT;
+    }
+    else if (condition instanceof MathSum){
+      this.conditionType = SUM;
     }else{
       System.out.println("TIPO NO ACEPTADO POR WHILE NODE");
       this.conditionType = 0;
@@ -62,6 +74,18 @@ public class WhileNode{
         case BOOLOR:
             json += "\"BoolOrNode\": ";
             json += ((BoolOrNode)this.condition).printNode(depth + 1);
+            break;
+        case MATH:
+            json += "\"MathNode\": ";
+            json += ((MathNode)this.condition).printNode(depth + 1);
+            break;
+        case MULT:
+            json += "\"MultNode\": ";
+            json += ((MathMult)this.condition).printNode(depth + 1);
+            break;
+        case SUM:
+            json += "\"SumNode\": ";
+            json += ((MathSum)this.condition).printNode(depth + 1);
             break;
         default:
             json += "\"Error\" : \"0\"";

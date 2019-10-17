@@ -91,6 +91,8 @@ nums = {num}+
 
 coma = ,
 
+semcolon = ;
+
 letra = [a-zA-Z_]
 
 
@@ -136,7 +138,8 @@ letra = [a-zA-Z_]
   {string}        {return symbol("STRING", sym.STRING);}            
   {nums}          {return symbol("NUMS", sym.NUMS, yytext().toLowerCase());}            
   {id}            {return symbol("ID", sym.ID, yytext().toLowerCase());}            
-  {coma}          {return symbol("COMA", sym.COMA);}            
+  {coma}          {return symbol("COMA", sym.COMA);}
+  {semcolon}      {return symbol("SEMCOLON", sym.SEMCOLON);}
   {constchar}     {return symbol("CONSTCHAR", sym.CONSTCHAR, yytext());}            
   .               {System.out.println("Error Lexico:\nSimbolo no reconocido: " + yytext() + " en la linea " + yyline + ", columna " + yycolumn);}
 }

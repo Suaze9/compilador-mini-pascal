@@ -9,36 +9,36 @@ begin
       if(x >= y) then 
         {mientras y sea menor o igual que x, sumar 1 a y}
         while (y <= x) do
-          y := y + 1
+          y := y + 1;
       else
         while (x <= x) do
         begin
-          x := x + 1
-          write('while multilinea')
-        end
+          x := x + 1;
+          write('while multilinea');
+        end;
     else
-      write('x es muy grande: ', x)
-end
+      write('x es muy grande: ', x);
+end;
 {
 ⠀⠀⠀⣠⣾⣿⣿⣿⣷⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣾⣿⣿⣿⣿⣷⣄⠀
 }
 
 begin
-  a := 10
-  b := 20
-  c := 15
-  d := 30
-  f := true
+  a := 10;
+  b := 20;
+  c := 15;
+  d := 30;
+  f := true;
 
   IF(comparacion(a, b) AND 2 = a) then
   begin
-    write('Entro')
+    write('Entro');
     repeat begin
-      f :=  (c > d)
-      c := c + 1
-      d := d - 1
-      end
-    until ( f and c < d )
-  end
+      f :=  (c > d);
+      c := c + 1;
+      d := d - 1;
+      end;
+    until ( 2 + 3 > a + 2 or nada())
+  end;
 
-end
+end;

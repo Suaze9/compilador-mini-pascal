@@ -6,6 +6,10 @@ public class BoolNode{
   final int BOOLMATH = 5;
   final int FUNCCALL = 6;
 
+  final int MATH = 7;
+  final int MULT = 8;
+  final int SUM = 9;
+
   Object content;
   int type;
 
@@ -19,11 +23,20 @@ public class BoolNode{
     }else if(content instanceof BoolAndNode){
       this.type = BOOLAND;
     }else if(content instanceof BoolNode){
-      this.type = BOOL;
+      this.type = ((BoolNode)this.content).type;
+      this.content = ((BoolNode)this.content).content;
     }else if(content instanceof BoolMathNode){
       this.type = BOOLMATH;
     }else if(content instanceof FuncCallNode){
       this.type = FUNCCALL;
+    }else if (content instanceof MathNode){
+      this.type = MATH;
+    }
+    else if (content instanceof MathMult){
+      this.type = MULT;
+    }
+    else if (content instanceof MathSum){
+      this.type = SUM;
     }else{
       System.out.println("TIPO NO VALIDO ENTREGADO AL HIJO DE NODO \"BoolNode\"!!! ");
       this.type = 0;
@@ -64,6 +77,18 @@ public class BoolNode{
         case FUNCCALL:
             json += "\"FuncCallNode\": ";
             json += ((FuncCallNode)this.content).printNode(depth + 1);
+            break;
+        case MATH:
+            json += "\"MathNode\": ";
+            json += ((MathNode)this.content).printNode(depth + 1);
+            break;
+        case MULT:
+            json += "\"MultNode\": ";
+            json += ((MathMult)this.content).printNode(depth + 1);
+            break;
+        case SUM:
+            json += "\"SumNode\": ";
+            json += ((MathSum)this.content).printNode(depth + 1);
             break;
         default:
             json += "\"Error\" : \"0\"";
