@@ -1,8 +1,8 @@
 program relOpp
 
 var
-a, b, c, d, e: integer
-f, g : Boolean
+a, b, c, d, e: integer;
+f, g : Boolean;
 function comparacion(x, y:integer):Boolean
 begin
     if(x <= 30) then

@@ -1,6 +1,10 @@
 import java_cup.runtime.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.io.Writer;
+import java.io.BufferedWriter;
+import java.io.OutputStreamWriter;
+import java.io.FileOutputStream;
 
 parser code {:
 
@@ -62,7 +66,7 @@ parser code {:
 
 
 terminal String CONSTSTR, CONSTCHAR, NUMS;
-terminal PROGRAM, FUNCTION, PROCEDURE, DO, VAR, BEGIN, END, FOR,
+terminal PROGRAM, FUNCTION, PROCEDURE, DO, VAR, TYPE, BEGIN, END, FOR,
     WHILE, REPEAT, IF, ELSE, TRUE,
     FALSE, PARIZQ, READ, WRITE,
     PARDER, OPSUM, OPMULT, OPAND, OPOR, OPREL, ASSIG,
@@ -94,20 +98,29 @@ non terminal Object funccall;           //call a function
 non terminal Object params;             //function or procedure parameters
 non terminal Object attr;               //function or procedure attributes
 non terminal Object type;               //variable type declaration
+non terminal Object typelistrec;               //variable type declaration
+non terminal Object recordlst;               //variable type declaration
+non terminal Object records;               //variable type declaration
+non terminal Object multmultdeclrec;               //variable type declaration
 
 precedence left error;
 precedence left ELSE;
 
-program ::= PROGRAM ID:i multmultdecl:d funclist:fl BEGIN statementlist:sl END SEMCOLON {:
+program ::= PROGRAM ID:i typelistrec:tlr multmultdecl:d funclist:fl BEGIN statementlist:sl END SEMCOLON {:
     Value v = new Value((String)i);
-    ProgramNode root = new ProgramNode(v,d,(ArrayList<Object>)fl,(ArrayList<Object>)sl);
-    if(!errorFlag)
-        System.out.println("\nJson Arbol: \n\n" + root.printNode(0));
+    ProgramNode root = new ProgramNode(v, (ArrayList<RecordNode>)tlr, d,(ArrayList<Object>)fl,(ArrayList<Object>)sl);
+    if(!errorFlag){
+        String json = root.printNode(0);
+        System.out.println("\nJson Arbol: \n\n" + json);
+        try (Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("arbolito.txt"), "utf-8"))) {
+            writer.write(json);
+        }
+    }
     RESULT = root;
 :}
-| PROGRAM error multmultdecl:d funclist:fl BEGIN statementlist:sl END SEMCOLON
-| PROGRAM ID:i multmultdecl:d funclist:fl error statementlist:sl END SEMCOLON
-| PROGRAM ID:i multmultdecl:d funclist:fl BEGIN statementlist:sl;
+| PROGRAM error typelistrec:tlr multmultdecl:d funclist:fl BEGIN statementlist:sl END SEMCOLON
+| PROGRAM ID:i typelistrec:tlr multmultdecl:d funclist:fl error statementlist:sl END SEMCOLON
+| PROGRAM ID:i typelistrec:tlr multmultdecl:d funclist:fl BEGIN statementlist:sl;
 
 funclist ::= function:f funclist:fl {:
     ArrayList<Object> funlist = (ArrayList<Object>) fl;
@@ -302,8 +315,8 @@ params := ArrayList<ParamsNode>
 type ::= INT {:RESULT = "INT";:}
     | CHAR {:RESULT = "CHAR";:}
     | BOOLEAN {:RESULT = "BOOLEAN";:}
-    | RECORD {:RESULT = "RECORD";:}
     | STRING {:RESULT = "STRING";:}
+    | ID:i {:RESULT = (String)i;:}
     | error;
 
 /*
@@ -465,8 +478,51 @@ multdecl ::= COMA ID:i multdecl:m {:
     DeclNode retVal = (DeclNode)m;
     RESULT = retVal;
 :}
-| COLON type:t {:
+| COLON type:t SEMCOLON {:
     RESULT = new DeclNode((String) t);
+:};
+
+typelistrec ::= TYPE recordlst:r END SEMCOLON {:
+    RESULT = (ArrayList<RecordNode>) r;
+:}
+| {:
+    RESULT = null;
+:};
+
+recordlst ::= records:r recordlst:rl {:
+    ArrayList<RecordNode> records = (ArrayList<RecordNode>) rl;
+    records.add(0, (RecordNode) r);
+    RESULT = records;
+:}
+| records:r{:
+    ArrayList<RecordNode> records = new ArrayList<RecordNode>();
+    records.add(0, (RecordNode) r);
+    RESULT = records;
+:};
+
+records ::= ID:id ASSIG RECORD BEGIN multmultdeclrec:mmd END SEMCOLON {:
+    RESULT = new RecordNode((String) id, (ArrayList<DeclNode>)mmd);
+:};
+
+multmultdeclrec ::= multmultdeclrec:mmd decl:d {:
+    if(mmd != null){
+        if(mmd instanceof DeclNode){
+            ArrayList<DeclNode> declarations = new ArrayList<DeclNode>();
+            declarations.add((DeclNode)mmd);
+            declarations.add((DeclNode)d);
+            RESULT = declarations;
+        }else if(mmd instanceof ArrayList){
+            ((ArrayList<DeclNode>)mmd).add((DeclNode)d);
+            RESULT = (ArrayList<DeclNode>)mmd;
+        }
+    }else{
+        ArrayList<DeclNode> declarations = new ArrayList<DeclNode>();
+        declarations.add((DeclNode)d);
+        RESULT = declarations;
+    }
+:}
+| {:
+    RESULT = null;
 :};
 
 multmultdecl ::= multmultdecl:mmd decl:d {:
@@ -632,7 +688,7 @@ rel := Value | BoolNode | BoolMathNode | BoolAndNode | BoolOrNode ... | MathNode
 
 
 rel ::= boolor:b {:
-    RESULT = new BoolNode(b);
+    RESULT = b;
 :};
 
 boolor ::= boolor:r OPOR booland:b {:

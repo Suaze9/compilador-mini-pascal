@@ -52,6 +52,7 @@ function = [fF][uU][nN][cC][tT][iI][oO][nN]
 procedure = [pP][rR][oO][cC][eE][dD][uU][rR][eE]
 
 var = [vV][aA][rR]
+type = [tT][yY][pP][eE]
 
 do = [dD][oO]
 begin = [bB][eE][gG][iI][nN]
@@ -103,9 +104,10 @@ letra = [a-zA-Z_]
   {comillas}      {texto = "";yybegin(TEXT);}            
   {program}       {return symbol("PROGRAM", sym.PROGRAM);}       
   {function}      {return symbol("FUNCTION", sym.FUNCTION);}
-  {procedure}      {return symbol("PROCEDURE", sym.PROCEDURE);}
+  {procedure}     {return symbol("PROCEDURE", sym.PROCEDURE);}
   {do}            {return symbol("DO", sym.DO);}       
-  {var}            {return symbol("VAR", sym.VAR);}
+  {var}           {return symbol("VAR", sym.VAR);}
+  {type}          {return symbol("TYPE", sym.TYPE);}
   {begin}         {return symbol("BEGIN", sym.BEGIN);}       
   {end}           {return symbol("END", sym.END);}       
   {for}           {return symbol("FOR", sym.FOR);}

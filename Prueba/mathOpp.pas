@@ -1,5 +1,5 @@
 program test
-var x, y, z, res : integer
+var x, y, z, res : integer;
 
 procedure xaddyz()
 begin
@@ -27,7 +27,7 @@ begin
 
     write('',res);
     
-    res := sum(x, y) * z / sum(2, y);
+    res := sum(x, y, x+y) * z / sum(2, y);
 
     write('',res);
 end;

@@ -5,7 +5,7 @@ public class Main {
     /* Start the parser */
     try {
       parser p = new parser(new lexer(new FileReader(argv[0])));
-      p.parse(); 
+      p.parse();
     } catch (Exception e) {
       e.printStackTrace();
     }

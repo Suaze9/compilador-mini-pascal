@@ -3,34 +3,49 @@ import java.util.ArrayList;
 public class ProgramNode{
   final int DECLNODE = 1;
   final int DECLARRAY = 2;
+  final int DECLNULL = 3;
+  
+  final int FUNCNODE = 4;
+  final int FUNCARRAY = 5;
 
-  final int FUNCNODE = 3;
-  final int FUNCARRAY = 4;
+  final int RECORDS = 5;
+  final int RECNULL = 6;
     
   Value id;
+  ArrayList<RecordNode> records;
   Object declarations;
   ArrayList<Object> functions;
   ArrayList<Object> statements;
 
   int declarationType;
+  int recordType;
 
-  public ProgramNode(Value id, Object declarations, ArrayList<Object> functions, ArrayList<Object> statements){
+  public ProgramNode(Value id, ArrayList<RecordNode> records, Object declarations, ArrayList<Object> functions, ArrayList<Object> statements){
     this.id = id;
+    this.records = records;
     this.declarations = declarations;
     this.functions = functions;
     this.statements = statements;
+
+    if(this.records == null){
+        this.recordType = RECNULL;
+    }else if(this.records instanceof ArrayList){
+        this.recordType = RECORDS;
+    }else{
+      System.out.println("TIPO \"RECORDS\" NO ACEPTADO POR PROGRAM NODE");
+      this.recordType = 0;
+    }
 
     if(declarations instanceof DeclNode){
       this.declarationType = DECLNODE;    
     }else if(declarations instanceof ArrayList){
       this.declarationType = DECLARRAY;
+    }else if(declarations == null){
+        this.declarationType = DECLNULL;
     }else{
       System.out.println("TIPO \"DECLARATIONS\" NO ACEPTADO POR PROGRAM NODE");
       this.declarationType = 0;
     }
-
-
-
   }
 
   public String printNode(int depth){
@@ -53,6 +68,30 @@ public class ProgramNode{
 
         System.out.print("|-- ");
 
+        if(this.recordType == RECORDS){
+            if(records.size() > 0){
+                json += ",";
+                json += "\"Records\": {";
+
+                int index = 0;
+                for(RecordNode DN : records){
+                    for (int i = 0; i <= depth; i++){
+                        System.out.print("|  ");
+                    }
+
+                    System.out.print("|-- ");
+                    json += "\"RecordNode" + index + "\" : " + DN.printNode(depth + 1) + ",";
+                    index ++;
+                }
+                json = json.substring(0, json.length()-1);
+                json += "}";
+
+            }
+        }else if(recordType == RECNULL){
+
+        }else{
+            System.out.println("This shouldn't have happened...ProgramNode Records");
+        }
         
         if(this.declarationType == DECLNODE){
             for (int i = 0; i <= depth; i++){
@@ -83,8 +122,10 @@ public class ProgramNode{
                 json += "}";
 
             }
+        }else if(this.declarationType == DECLNULL){
+            
         }else{
-        System.out.println("This shouldn't have happened...ProgramNode");
+            System.out.println("This shouldn't have happened...ProgramNode Declarations");
         }
 
         if( functions.size() > 0 ){
