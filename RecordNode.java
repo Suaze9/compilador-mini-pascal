@@ -1,6 +1,7 @@
 import java.util.ArrayList;
+import java.io.Serializable;
 
-public class RecordNode{
+public class RecordNode implements Serializable{
   ArrayList<DeclNode> decls; //ArrayList de todos los decls
   String name;
 

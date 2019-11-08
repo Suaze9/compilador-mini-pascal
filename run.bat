@@ -1,1 +1,1 @@
-java -classpath ".\jars\java-cup-11b.jar"; Main %1
+java -classpath ".\jars\*"; Main %1

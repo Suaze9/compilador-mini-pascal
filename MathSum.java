@@ -1,4 +1,6 @@
-public class MathSum{
+import java.io.Serializable;
+
+public class MathSum implements Serializable{
 
   final int VALUE = 1;
   final int MATHNODE = 2;

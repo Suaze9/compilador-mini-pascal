@@ -1,10 +1,10 @@
 import java_cup.runtime.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.io.Writer;
-import java.io.BufferedWriter;
-import java.io.OutputStreamWriter;
+import java.io.ObjectOutputStream;
 import java.io.FileOutputStream;
+import org.json.simple.*;
+import org.json.simple.parser.*;
 
 parser code {:
 
@@ -111,9 +111,11 @@ program ::= PROGRAM ID:i typelistrec:tlr multmultdecl:d funclist:fl BEGIN statem
     ProgramNode root = new ProgramNode(v, (ArrayList<RecordNode>)tlr, d,(ArrayList<Object>)fl,(ArrayList<Object>)sl);
     if(!errorFlag){
         String json = root.printNode(0);
-        System.out.println("\nJson Arbol: \n\n" + json);
-        try (Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("arbolito.txt"), "utf-8"))) {
-            writer.write(json);
+        JSONParser parser = new JSONParser();
+        JSONObject obj = (JSONObject)parser.parse(json);
+        System.out.println("\nJson Arbol: \n\n" + obj.toString());
+        try (ObjectOutputStream writer = new ObjectOutputStream(new FileOutputStream("./Semantico/arbolito.bebe"))) {
+            writer.writeObject(root);
         }
     }
     RESULT = root;

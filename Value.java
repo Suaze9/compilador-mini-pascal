@@ -1,4 +1,6 @@
-public class Value{
+import java.io.Serializable;
+
+public class Value implements Serializable{
     
     final int NUM = 1;
     final int BOOL = 2;

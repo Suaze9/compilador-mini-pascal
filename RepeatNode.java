@@ -1,6 +1,7 @@
 import java.util.ArrayList;
+import java.io.Serializable;
 
-public class RepeatNode{
+public class RepeatNode implements Serializable{
   final int VALUE = 1;
   final int BOOL = 2;
   final int BOOLMATH = 3;

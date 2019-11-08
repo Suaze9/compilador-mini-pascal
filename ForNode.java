@@ -1,6 +1,7 @@
 import java.util.ArrayList;
+import java.io.Serializable;
 
-public class ForNode{
+public class ForNode implements Serializable{
   final int VALUE = 1;
   final int MATH = 2;
   final int MULT = 3;

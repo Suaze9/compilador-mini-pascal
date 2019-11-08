@@ -1,4 +1,6 @@
-public class AttrNode{
+import java.io.Serializable;
+
+public class AttrNode implements Serializable{
   final int STR = 1;
   final int CHAR = 2;
   final int VALUE = 3;

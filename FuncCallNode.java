@@ -1,6 +1,7 @@
 import java.util.ArrayList;
+import java.io.Serializable;
 
-public class FuncCallNode{
+public class FuncCallNode implements Serializable{
 
 
   Value id;

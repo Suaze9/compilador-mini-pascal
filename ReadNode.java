@@ -1,4 +1,6 @@
-public class ReadNode{
+import java.io.Serializable;
+
+public class ReadNode implements Serializable{
   Value id;
 
   public ReadNode(Value id){

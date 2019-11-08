@@ -1,4 +1,6 @@
-public class MathNode{
+import java.io.Serializable;
+
+public class MathNode implements Serializable{
   final int VALUE = 1;
   final int MATH = 2;
   final int MULT = 3;

@@ -1,6 +1,7 @@
 import java.util.ArrayList;
+import java.io.Serializable;
 
-public class FunctionNode{
+public class FunctionNode implements Serializable{
   final int DECLNODE = 1;
   final int DECLARRAY = 2;
 

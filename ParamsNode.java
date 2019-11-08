@@ -1,6 +1,7 @@
 import java.util.ArrayList;
+import java.io.Serializable;
 
-public class ParamsNode{
+public class ParamsNode implements Serializable{
   ArrayList<Value> ids;
   String type;
 

@@ -1,6 +1,7 @@
 import java.util.ArrayList;
+import java.io.Serializable;
 
-public class ProcedureNode{
+public class ProcedureNode implements Serializable{
   final int DECLNODE = 1;
   final int DECLARRAY = 2;
   

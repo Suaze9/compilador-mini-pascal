@@ -1,4 +1,6 @@
-public class BoolAndNode{
+import java.io.Serializable;
+
+public class BoolAndNode implements Serializable{
   final int VALUE = 1;
   final int BOOLMATH = 2;
   final int BOOLAND = 3;

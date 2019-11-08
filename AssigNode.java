@@ -1,5 +1,7 @@
 import java.util.ArrayList;
-public class AssigNode{
+import java.io.Serializable;
+
+public class AssigNode implements Serializable{
 
   final int STR = 1;
   final int CHR = 2;

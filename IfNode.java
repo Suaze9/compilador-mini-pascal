@@ -1,6 +1,7 @@
 import java.util.ArrayList;
+import java.io.Serializable;
 
-public class IfNode{
+public class IfNode implements Serializable{
   final int VALUE= 1;
   final int BOOL = 2;
   final int BOOLMATH = 3;

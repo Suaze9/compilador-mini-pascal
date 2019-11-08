@@ -1,4 +1,6 @@
-public class BoolOrNode{
+import java.io.Serializable;
+
+public class BoolOrNode implements Serializable{
   final int VALUE = 1;
   final int BOOLOR = 2;
   final int BOOLAND = 3;

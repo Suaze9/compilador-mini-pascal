@@ -1,4 +1,6 @@
-public class WriteNode{
+import java.io.Serializable;
+
+public class WriteNode implements Serializable{
   final int STR = 1;
   final int STRID = 2;
 
