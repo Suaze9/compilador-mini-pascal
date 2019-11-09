@@ -7,13 +7,13 @@ public class FunctionNode implements Serializable{
   final int DECLNODE = 1;
   final int DECLARRAY = 2;
 
-  Value id;
-  ArrayList<ParamsNode> params;
-  Object declarations;
-  ArrayList<Object> statements;
-  String type;
+  public Value id;
+  public ArrayList<ParamsNode> params;
+  public Object declarations;
+  public ArrayList<Object> statements;
+  public String type;
 
-  int declarationType;
+  public int declarationType;
 
   public FunctionNode(Value id, ArrayList<ParamsNode> params, Object declarations, ArrayList<Object> statements, String type){
     this.id = id;

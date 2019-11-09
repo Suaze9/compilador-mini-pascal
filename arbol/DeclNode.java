@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.io.Serializable;
 
 public class DeclNode implements Serializable{
-  ArrayList<Value> ids; //ArrayList de todos los ids
-  String type;
+  public ArrayList<Value> ids; //ArrayList de todos los ids
+  public String type;
 
   public DeclNode(String type){
     this.type = type;

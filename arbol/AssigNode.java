@@ -17,9 +17,9 @@ public class AssigNode implements Serializable{
   final int BOOLAND = 9;
   final int BOOLOR = 10;
 
-  Value Id;
-  Object expr;
-  int type;
+  public Value Id;
+  public Object expr;
+  public int type;
 
   public AssigNode(Value Id, Object expr){
     this.Id = Id;
@@ -89,7 +89,7 @@ public class AssigNode implements Serializable{
             break;
         case CHR:
             json += "\"Char\": ";
-            json += (Character)this.expr;
+            json += "\"" + (Character)this.expr + "\"";
             break;
         case VALUE:
             json += "\"Value\": ";

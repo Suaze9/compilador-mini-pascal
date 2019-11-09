@@ -20,8 +20,21 @@ var
    result: integer;
 
 begin
-   if (num1 > num2) then begin
-      result := num1 + 2 * a;
+   if (olo()) then begin
+      result := 2 * a;
+      result := num2 - 4 / b;
+   end;
+   else
+      result := num2;
+   max := result;
+end;
+function maxa(num1a, num2a: integer): integer
+var
+   result: integer;
+
+begin
+   if (olo()) then begin
+      result := 2 * a;
       result := num2 - 4 / b;
    end;
    else
@@ -31,7 +44,7 @@ end;
 
 begin
    a := 100;
-   b := 200;
+   b := 'a';
    ret := max(a, b);
    
    write( 'Max value is : ', ret );

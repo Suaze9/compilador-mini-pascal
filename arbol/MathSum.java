@@ -10,11 +10,11 @@ public class MathSum implements Serializable{
   final int MATHSUM = 4;
   final int FUNCCALL = 5;
 
-  Object leftChild;
-  String operator;
-  Object rightChild;
-  int typeLeft;
-  int typeRight;
+  public Object leftChild;
+  public String operator;
+  public Object rightChild;
+  public int typeLeft;
+  public int typeRight;
 
   public MathSum(Object leftChild, String operator, Object rightChild){
     this.leftChild = leftChild;

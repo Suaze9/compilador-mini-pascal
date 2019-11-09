@@ -570,7 +570,7 @@ assig ::= ID:i ASSIG CONSTSTR:cs {:
         RESULT = new AssigNode(new Value((String)i),(String)cs);
     :}
     | ID:i ASSIG CONSTCHAR:cc {:
-        RESULT = new AssigNode(new Value((String)i),new Character(cc.charAt(0)));
+        RESULT = new AssigNode(new Value((String)i),new Character(cc.charAt(1)));
     :}
     | ID:i ASSIG rel:r {:
         RESULT = new AssigNode(new Value((String)i),r);
@@ -651,7 +651,7 @@ num ::= NUMS:n {:
     RESULT = new Value((String)i);
 :}
 | funccall:fc {:
-    RESULT = (FuncCallNode)fc;
+    RESULT = new Value((FuncCallNode)fc);
 :};
 
 /*
