@@ -9,9 +9,9 @@ public class Value implements Serializable{
     final int ID = 3;
     final int FUNCCALL = 4;
     
-    Object content;
-    int type;
-    boolean not;
+    public Object content;
+    public int type;
+    public boolean not;
 
   public Value(Object content){
     this.content = content;

@@ -2342,7 +2342,7 @@ class CUP$parser$actions {
 		int ccright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		String cc = (String)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
-        RESULT = new AssigNode(new Value((String)i),new Character(cc.charAt(0)));
+        RESULT = new AssigNode(new Value((String)i),new Character(cc.charAt(1)));
     
               CUP$parser$result = parser.getSymbolFactory().newSymbol("assig",21, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-2)), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
@@ -2505,7 +2505,7 @@ class CUP$parser$actions {
 		int fcright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		Object fc = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
-    RESULT = (FuncCallNode)fc;
+    RESULT = new Value((FuncCallNode)fc);
 
               CUP$parser$result = parser.getSymbolFactory().newSymbol("num",2, ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }

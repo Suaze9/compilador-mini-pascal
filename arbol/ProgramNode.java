@@ -140,28 +140,29 @@ public class ProgramNode implements Serializable{
             
             //System.out.println("Functions: ");
             
-            json += ", \"Functions/Procedures\" :  {";
+            json += ", \"Functions/Procedures\" :  [";
 
             int index = 0;
             for( Object O : functions){
                 for (int i = 0; i <= depth; i++){
                     //System.out.print("|  ");
                 }
-                
                 //System.out.print("|-- ");
                 if(O instanceof FunctionNode){
+                    json +="{";
                     json += "\"FunctionNode\" : ";
-                    json += ((FunctionNode)O).printNode(depth + 1) + ",";
+                    json += ((FunctionNode)O).printNode(depth + 1) + "},";
                 }else if (O instanceof ProcedureNode){
+                    json +="{";
                     json += "\"ProcedureNode\" : ";
-                    json += ((ProcedureNode)O).printNode(depth + 1) + ",";
+                    json += ((ProcedureNode)O).printNode(depth + 1) + "},";
                 }else{
                     //System.out.println("ERROR EN FUNCION/PROCEDIMIENTO " + index + " EN \"ProgramNode\"");
                 }
                 index ++;
             }
             json = json.substring(0, json.length()-1);
-            json += "}";
+            json += "]";
         }
 
         json += ", \"Statements\" : [";
