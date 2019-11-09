@@ -1,0 +1,735 @@
+import java_cup.runtime.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.io.ObjectOutputStream;
+import java.io.FileOutputStream;
+import org.json.simple.*;
+import org.json.simple.parser.*;
+
+import arbol.*;
+
+parser code {:
+
+    boolean errorFlag = false;
+        
+    @Override
+	public void report_error(String message, Object info) {
+        System.err.print("Syntax error: " ); 
+        expected();
+        System.err.println("pero se encontro el token \'" + ((Symbol)info).value + "\' en la Linea: " + (((Symbol)info).left + 1) + ", Columna: " + (((Symbol)info).right + 1) + ". " ); 
+        errorFlag = true;
+    }
+
+    @Override
+	public void syntax_error(Symbol s){
+        System.err.println("\nError Sintactico: " ); 
+        expected();
+        System.err.println("      pero se encontro el token \'" + sym.terminalNames[s.sym] + "\' en la Linea: " + (s.left + 1) + ", Columna: " + (s.right + 1) + ". \n" ); 
+        errorFlag = true;
+	}
+
+    public void expected(){
+        List<Integer> token_list = this.expected_token_ids();
+        if (token_list.size() <= 0){
+                token_list = this.expected_token_ids();
+        }
+        String expected_tokens = "";
+        for (int i = 0 ; i < token_list.size(); i++){
+                int id = token_list.get(i);
+                if (id == 1){ 
+                    continue;
+                }
+                String terminal_name = sym.terminalNames[id];
+                if (i == token_list.size() - 1){
+                    expected_tokens += terminal_name;
+                }else{
+                    expected_tokens += terminal_name + " , ";
+                }
+        }
+        System.err.println("      Se esperaba uno de los siguientes tokens: [" + expected_tokens + "] ");
+    }
+
+    public void report_fatal_error(String message, Object info) {
+        errorFlag = true;
+        throw new Error("Error Fatal:\nNo se pudo recuperar del problema.");
+    }
+
+    public void unrecovered_syntax_error(Symbol s) {
+        errorFlag = true;
+    }
+
+    @Override
+    public int error_sync_size(){
+        errorFlag = true;
+        return 1;
+    }
+    
+:};
+
+
+terminal String CONSTSTR, CONSTCHAR, NUMS;
+terminal PROGRAM, FUNCTION, PROCEDURE, DO, VAR, TYPE, BEGIN, END, FOR,
+    WHILE, REPEAT, IF, ELSE, TRUE,
+    FALSE, PARIZQ, READ, WRITE,
+    PARDER, OPSUM, OPMULT, OPAND, OPOR, OPREL, ASSIG,
+    COLON, INT, CHAR, BOOLEAN, RECORD, STRING, THEN,
+    TO, UNTIL, ID, COMA, SEMCOLON, NOT;
+        
+non terminal Object math, sum, num;
+non terminal Object mult;         //Math multiplication operations
+non terminal Object multmultdecl;
+non terminal Object bool, boolmath, rel, booland, boolor;  //boolean operations
+non terminal Object statement;          //Statement
+non terminal Object statementlist;      //Statement List
+non terminal Object sinmultstatement;      //Statement List
+non terminal Object if;                 //If block
+//non terminal Object ifun;               //If block unmatched
+non terminal Object while;              //While cycle
+non terminal Object for;                //For cycle
+non terminal Object repeat;             //repeat cycle
+non terminal Object read;               //read function
+non terminal Object write;              //write function
+non terminal Object decl;               //variable declaration
+non terminal Object multdecl;           //multiple variable declaration
+non terminal Object assig;              //assign value to variable
+non terminal Object program;            //program start
+non terminal Object function;           //function declaration
+non terminal Object procedure;          //procedure declaration
+non terminal Object funclist;           //list of function and procedure declarations
+non terminal Object funccall;           //call a function
+non terminal Object params;             //function or procedure parameters
+non terminal Object attr;               //function or procedure attributes
+non terminal Object type;               //variable type declaration
+non terminal Object typelistrec;               //variable type declaration
+non terminal Object recordlst;               //variable type declaration
+non terminal Object records;               //variable type declaration
+non terminal Object multmultdeclrec;               //variable type declaration
+
+precedence left error;
+precedence left ELSE;
+
+program ::= PROGRAM ID:i typelistrec:tlr multmultdecl:d funclist:fl BEGIN statementlist:sl END SEMCOLON {:
+    Value v = new Value((String)i);
+    ProgramNode root = new ProgramNode(v, (ArrayList<RecordNode>)tlr, d,(ArrayList<Object>)fl,(ArrayList<Object>)sl);
+    if(!errorFlag){
+        String json = root.printNode(0);
+        JSONParser parser = new JSONParser();
+        JSONObject obj = (JSONObject)parser.parse(json);
+        System.out.println("\nJson Arbol: \n\n" + obj.toString());
+        try (ObjectOutputStream writer = new ObjectOutputStream(new FileOutputStream("../Semantico/arbolito.bebe"))) {
+            writer.writeObject(root);
+        }
+    }
+    RESULT = root;
+:}
+| PROGRAM error typelistrec:tlr multmultdecl:d funclist:fl BEGIN statementlist:sl END SEMCOLON
+| PROGRAM ID:i typelistrec:tlr multmultdecl:d funclist:fl error statementlist:sl END SEMCOLON
+| PROGRAM ID:i typelistrec:tlr multmultdecl:d funclist:fl BEGIN statementlist:sl;
+
+funclist ::= function:f funclist:fl {:
+    ArrayList<Object> funlist = (ArrayList<Object>) fl;
+    funlist.add(0, f);
+    RESULT = funlist;
+:}
+| procedure:p funclist:fl {:
+    ArrayList<Object> funlist = (ArrayList<Object>) fl;
+    funlist.add(0, p);
+    RESULT = funlist;
+:}
+| {:
+    RESULT = new ArrayList<Object>();
+:};
+
+/*
+    FuncListNode
+        ArrayList<Object> todos los funciones y procedures
+
+funclist := ArrayList<Object>
+
+*/
+
+procedure ::= PROCEDURE ID:i PARIZQ params:p multmultdecl:d BEGIN statementlist:s END SEMCOLON {:
+    Value v = new Value((String)i);
+    if(d != null){
+        RESULT = new ProcedureNode(v,(ArrayList<ParamsNode>)p,d,(ArrayList<Object>)s);
+    }else{
+        ArrayList<Object> declarations = new ArrayList<Object>();
+        RESULT = new ProcedureNode(v,(ArrayList<ParamsNode>)p,declarations,(ArrayList<Object>)s);
+    }
+:}
+    | PROCEDURE ID:i PARIZQ PARDER multmultdecl:d BEGIN statementlist:s END SEMCOLON {:
+        Value v = new Value((String)i);
+        ArrayList<ParamsNode> params = new ArrayList<ParamsNode>();
+        if(d != null){
+            RESULT = new ProcedureNode(v,params,d,(ArrayList<Object>)s);
+        }else{
+            ArrayList<Object> declarations = new ArrayList<Object>();
+            RESULT = new ProcedureNode(v,params,declarations,(ArrayList<Object>)s);
+        }   
+    :}
+    | PROCEDURE ID:i PARIZQ error multmultdecl:d BEGIN statementlist:s END SEMCOLON
+    | PROCEDURE ID:i PARIZQ params:p error multmultdecl:d BEGIN statementlist:s END SEMCOLON;
+
+/*
+    ProcedureNode
+        Value id
+        ParamsNode params ó ArrayList<ParamsNode>
+        DeclNode declaration
+        ArrayList<DeclNode> declarations
+        ArrayList<Object> statements
+
+
+*/
+
+function ::= FUNCTION ID:i PARIZQ params:p COLON type:t multmultdecl:d BEGIN statementlist:s END SEMCOLON {:
+    Value v = new Value((String)i);
+    if(d != null){
+        RESULT = new FunctionNode(v,(ArrayList<ParamsNode>)p,d,(ArrayList<Object>)s,(String)t);
+    }else{
+        ArrayList<Object> declarations = new ArrayList<Object>();
+        RESULT = new FunctionNode(v,(ArrayList<ParamsNode>)p,declarations,(ArrayList<Object>)s,(String)t);
+    }
+:}
+    | FUNCTION ID:i PARIZQ PARDER COLON type:t multmultdecl:d BEGIN statementlist:s END SEMCOLON {:
+        Value v = new Value((String)i);
+        ArrayList<ParamsNode> params = new ArrayList<ParamsNode>();
+        if(d != null){
+            RESULT = new FunctionNode(v,params,d,(ArrayList<Object>)s,(String)t);
+        }else{
+            ArrayList<Object> declarations = new ArrayList<Object>();
+            RESULT = new FunctionNode(v,params,declarations,(ArrayList<Object>)s,(String)t); 
+
+        }
+    :}
+    |FUNCTION error PARIZQ params:p COLON type:t multmultdecl:d BEGIN statementlist:s END SEMCOLON
+    |FUNCTION error PARIZQ PARDER COLON type:t multmultdecl:d BEGIN statementlist:s END SEMCOLON
+    |FUNCTION ID:i PARIZQ error COLON type:t multmultdecl:d BEGIN statementlist:s END SEMCOLON
+    |FUNCTION ID:i PARIZQ params:p error type:t multmultdecl:d BEGIN statementlist:s END SEMCOLON
+    |FUNCTION ID:i PARIZQ PARDER error type:t multmultdecl:d BEGIN statementlist:s END SEMCOLON;
+
+/*
+    FunctionNode
+        Value id
+        ParamsNode params ó ArrayList<ParamsNode>
+        DeclNode declaration
+        ArrayList<DeclNode> declarations
+        ArrayList<Object> statements
+        String type;
+*/
+
+
+funccall ::= ID:i PARIZQ attr:at{:
+    RESULT = new FuncCallNode(new Value((String)i),(ArrayList<Object>)at);
+:}
+| ID:i PARIZQ PARDER {:RESULT = new FuncCallNode(new Value((String)i),new ArrayList<Object>());:};
+
+//excelente 糞 <- mire, ahí ta
+/*
+
+⠀⠀⠀⣠⣾⣿⣿⣿⣷⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣾⣿⣿⣿⣿⣷⣄⠀
+⠀⠀⠀⣿⣿⡇⠀⠀⢸⣿⢰⣿⡆⠀⣾⣿⡆⠀⣾⣷⠀⣿⣿⡇⠀⠀⢸⣿⣿⠀
+⠀⠀⠀⣿⣿⡇⠀⠀⢸⣿⠘⣿⣿⣤⣿⣿⣿⣤⣿⡇⠀⢻⣿⡇⠀⠀⢸⣿⣿⠀
+⠀⠀⠀⣿⣿⡇⠀⠀⢸⡿⠀⢹⣿⣿⣿⣿⣿⣿⣿⠁⠀⢸⣿⣇⠀⠀⢸⣿⣿⠀
+⠀⠀⠀⠙⢿⣷⣶⣶⡿⠁⠀⠈⣿⣿⠟⠀⣿⣿⠇⠀⠀⠈⠻⣿⣿⣿⣿⡿⠋
+
+*/
+
+
+attr ::= rel:r COMA attr:a {:
+    ArrayList<AttrNode> attrlst = (ArrayList<AttrNode>) a;
+    attrlst.add(0, new AttrNode( r ));
+    RESULT = attrlst;
+:}
+| CONSTCHAR:cc COMA attr:a {:
+    ArrayList<AttrNode> attrlst = (ArrayList<AttrNode>) a;
+    attrlst.add(0, new AttrNode(new Character( ((String) cc).charAt(0) ) ));
+    RESULT = attrlst;
+:}
+| CONSTSTR:cc COMA attr:a {:
+    ArrayList<AttrNode> attrlst = (ArrayList<AttrNode>) a;
+    attrlst.add(0, new AttrNode( (String)cc ));
+    RESULT = attrlst;
+:}
+| rel:r PARDER {:
+    ArrayList<AttrNode> attrlst = new ArrayList<AttrNode>();
+    attrlst.add(0, new AttrNode( r ));
+    RESULT = attrlst;
+:}
+| CONSTCHAR:cc PARDER{:
+    ArrayList<AttrNode> attrlst = new ArrayList<AttrNode>();
+    attrlst.add(0, new AttrNode(new Character( ((String) cc).charAt(0) ) ));
+    RESULT = attrlst;
+:}
+| CONSTSTR:cc PARDER{:
+    ArrayList<AttrNode> attrlst = new ArrayList<AttrNode>();
+    attrlst.add(0, new AttrNode( (String)cc ));
+    RESULT = attrlst;
+:}
+| rel error attr:a
+| CONSTCHAR error attr:a
+| CONSTSTR error attr:a;
+
+/*
+
+FuncCallNode
+    Value id
+    ArrayList<AttrNode> args
+
+funccal := FuncCallNode
+
+AttrNode
+    Object String, Char, Value, MathNode, MathMult, MathSum, BoolNode, BoolMathNode, BoolAndNode, BoolOrNode
+
+attr := ArrayList <AttrNode>
+
+*/
+
+params ::= ID:i COMA params:p {:
+    ArrayList<ParamsNode> paramlst = (ArrayList<ParamsNode>)p;
+    paramlst.get(0).push( (String)i );
+    RESULT = paramlst;
+:}
+| ID:i COLON type:t COMA params:p {:
+    ArrayList<ParamsNode> paramlst = (ArrayList<ParamsNode>)p;
+    paramlst.add( 0, new ParamsNode( (String)t ) );
+    paramlst.get(0).push( (String)i );
+    RESULT = paramlst;
+:}
+| ID:i COLON type:t PARDER {:
+    ArrayList<ParamsNode> paramlst = new ArrayList<ParamsNode>();
+    paramlst.add( new ParamsNode( (String)t ) );
+    paramlst.get(0).push( (String)i );
+    RESULT = paramlst;
+:}
+| error COMA params:p
+| error COLON type:t COMA params:p
+| error COLON type:t PARDER
+| ID:i COLON type:t;
+
+/*
+
+ParamsNode
+    ArrayList<Value> ids
+    String type
+
+params := ArrayList<ParamsNode>
+
+*/
+
+type ::= INT {:RESULT = "INT";:}
+    | CHAR {:RESULT = "CHAR";:}
+    | BOOLEAN {:RESULT = "BOOLEAN";:}
+    | STRING {:RESULT = "STRING";:}
+    | ID:i {:RESULT = (String)i;:}
+    | error;
+
+/*
+
+type := String (INT, CHAR, BOOLEAN, RECORD, STRNIG)
+
+*/
+
+statement ::= 
+      if:i {:
+        RESULT = (IfNode)i;
+      :}
+    | while:w {:
+        RESULT = (WhileNode)w;
+    :}
+    | for:f {:
+        RESULT = (ForNode)f;
+    :}
+    | repeat:r {:
+        RESULT = (RepeatNode)r;
+    :}
+    | read:r SEMCOLON{:
+        RESULT = (ReadNode)r;
+    :}
+    | write:w SEMCOLON{:
+        RESULT = (WriteNode)w;
+    :}
+    | assig:a SEMCOLON {:
+        RESULT = (AssigNode)a;
+    :}
+    | funccall:fc SEMCOLON {:
+        RESULT = (FuncCallNode)fc;
+    :}
+    | error;
+
+statementlist ::= statementlist:sl statement:s {:
+    ((ArrayList<Object>)sl).add(s);
+    RESULT = ((ArrayList<Object>)sl);
+:}
+| {:
+    RESULT = new ArrayList<Object>();
+:};
+
+sinmultstatement ::= BEGIN statementlist:sl END SEMCOLON {:
+    RESULT = ((ArrayList<Object>)sl);
+:}
+| statement:st {:
+    ArrayList<Object> retVal = new ArrayList<Object>();
+    retVal.add(st);
+    RESULT = retVal;
+:};
+
+/*
+
+statement en los arraylist es IfNode, WhileNode, ForNode, RepeatNode, ReadNode, WriteNode y AssigNode
+Si solo hay un statement, retornar un ArrayList con una sola entrada
+
+statement := ArrayList<Object>
+
+*/
+
+if ::= IF rel:r THEN sinmultstatement:sl {:
+    RESULT = new IfNode(r,(ArrayList<Object>)sl);
+:}
+| IF rel:r THEN sinmultstatement:sl ELSE sinmultstatement:s {:
+        RESULT = new IfNode(r,(ArrayList<Object>)sl,(ArrayList<Object>)s);
+    :}
+| IF rel:r error sinmultstatement:sl;
+
+while ::= WHILE rel:r DO sinmultstatement:sl {:
+    RESULT = new WhileNode(r,(ArrayList<Object>)sl);
+:}
+| WHILE rel:r error sinmultstatement:sl;
+
+for ::= FOR ID:i ASSIG math:ma TO math:ml DO sinmultstatement:sl {:
+    AssigNode assig = new AssigNode(new Value((String)i),ma);
+    RESULT = new ForNode(assig, ml, (ArrayList<Object>)sl);    
+:}
+| FOR error ASSIG math:ma TO math:ml DO sinmultstatement:sl
+| FOR ID:i error math:ma TO math:ml DO sinmultstatement:sl
+| FOR ID:i ASSIG math:ma error math:ml DO sinmultstatement:sl
+| FOR ID:i ASSIG math:ma TO math:ml error sinmultstatement:sl;
+
+repeat ::= REPEAT sinmultstatement:sl UNTIL rel:r {:
+    RESULT = new RepeatNode((ArrayList<Object>)sl,r);
+:}
+| REPEAT sinmultstatement:sl error rel:r;
+
+/*
+
+IfNode
+    Obj Value, BoolNode, BoolMathNode, BoolAndNode, BoolOrNode ... , MathNode , MathMult , MathSum
+    ArrayList<Statement> statements  //Son arreglos de objetos :v
+    ArrayList<Statement> else statements
+    int type
+
+if := IfNode
+
+WhileNode
+    Obj Value, BoolNode, BoolMathNode, BoolAndNode, BoolOrNode ... , MathNode , MathMult , MathSum
+    ArrayList<Statement> statements
+
+while := WhileNode
+
+ForNode
+    AssigNode assig
+    Object Value, MathNode, MathMult, MathSum
+    ArrayList<Statement> statements
+
+for := ForNode
+
+RepeatNode
+    ArrayList<Statement> statements
+    Obj Value, BoolNode, BoolMathNode, BoolAndNode, BoolOrNode ... , MathNode , MathMult , MathSum 
+
+repeat := RepeatNode
+
+*/
+
+read ::= READ PARIZQ ID:i PARDER {:
+    RESULT = new ReadNode(new Value((String)i));
+:}
+| READ error ID:i PARDER
+| READ PARIZQ error PARDER;
+
+write ::= WRITE PARIZQ CONSTSTR:s PARDER {:
+        RESULT = new WriteNode((String)s);
+    :}
+| WRITE PARIZQ CONSTSTR:s COMA ID:id PARDER {:
+        RESULT = new WriteNode((String)s, new Value((String)id));
+    :}
+| WRITE error CONSTSTR:s PARDER
+| WRITE error CONSTSTR:s COMA ID:id PARDER
+| WRITE PARIZQ CONSTSTR:s error ID:id PARDER
+| WRITE PARIZQ CONSTSTR:s COMA error PARDER;
+
+/*
+
+ReadNode
+    Value Id
+
+read := ReadNode
+
+WriteNode
+    String conststr
+    Value Id
+
+write := WriteNode
+
+*/
+
+decl ::= ID:i multdecl:m{:
+    ((DeclNode)m).push((String)i);
+    RESULT = (DeclNode)m;
+:};
+
+multdecl ::= COMA ID:i multdecl:m {:
+    ((DeclNode)m).push((String)i);
+    DeclNode retVal = (DeclNode)m;
+    RESULT = retVal;
+:}
+| COLON type:t SEMCOLON {:
+    RESULT = new DeclNode((String) t);
+:};
+
+typelistrec ::= TYPE recordlst:r END SEMCOLON {:
+    RESULT = (ArrayList<RecordNode>) r;
+:}
+| {:
+    RESULT = null;
+:};
+
+recordlst ::= records:r recordlst:rl {:
+    ArrayList<RecordNode> records = (ArrayList<RecordNode>) rl;
+    records.add(0, (RecordNode) r);
+    RESULT = records;
+:}
+| records:r{:
+    ArrayList<RecordNode> records = new ArrayList<RecordNode>();
+    records.add(0, (RecordNode) r);
+    RESULT = records;
+:};
+
+records ::= ID:id ASSIG RECORD BEGIN multmultdeclrec:mmd END SEMCOLON {:
+    RESULT = new RecordNode((String) id, (ArrayList<DeclNode>)mmd);
+:};
+
+multmultdeclrec ::= multmultdeclrec:mmd decl:d {:
+    if(mmd != null){
+        if(mmd instanceof DeclNode){
+            ArrayList<DeclNode> declarations = new ArrayList<DeclNode>();
+            declarations.add((DeclNode)mmd);
+            declarations.add((DeclNode)d);
+            RESULT = declarations;
+        }else if(mmd instanceof ArrayList){
+            ((ArrayList<DeclNode>)mmd).add((DeclNode)d);
+            RESULT = (ArrayList<DeclNode>)mmd;
+        }
+    }else{
+        ArrayList<DeclNode> declarations = new ArrayList<DeclNode>();
+        declarations.add((DeclNode)d);
+        RESULT = declarations;
+    }
+:}
+| {:
+    RESULT = null;
+:};
+
+multmultdecl ::= multmultdecl:mmd decl:d {:
+    if(mmd != null){
+        if(mmd instanceof DeclNode){
+            ArrayList<DeclNode> declarations = new ArrayList<DeclNode>();
+            declarations.add((DeclNode)mmd);
+            declarations.add((DeclNode)d);
+            RESULT = declarations;
+        }else if(mmd instanceof ArrayList){
+            ((ArrayList<DeclNode>)mmd).add((DeclNode)d);
+            RESULT = (ArrayList<DeclNode>)mmd;
+        }
+    }else{
+        RESULT = null;
+    }
+:}
+| VAR decl:d {:
+    RESULT = (DeclNode)d;
+:}
+| {:
+    RESULT = null;
+:};
+
+/*
+
+DeclNode
+    ArrayList<Value id> ids
+    String type
+
+decl := DeclNode
+
+multdecl := ArrayList<Value id>
+
+multmultdecl := DeclNode | ArrayList<DeclNode> | null
+
+*/
+
+
+assig ::= ID:i ASSIG CONSTSTR:cs {:
+        RESULT = new AssigNode(new Value((String)i),(String)cs);
+    :}
+    | ID:i ASSIG CONSTCHAR:cc {:
+        RESULT = new AssigNode(new Value((String)i),new Character(cc.charAt(0)));
+    :}
+    | ID:i ASSIG rel:r {:
+        RESULT = new AssigNode(new Value((String)i),r);
+    :};
+
+/*
+
+AssigNode
+    Value id
+    Object String, Char, Value, MathNode, MathMult, MathSum, BoolNode, BoolMathNode, BoolAndNode, BoolOrNode 
+
+assig := AssigNode
+*/
+
+math ::= sum:s {:
+    RESULT = new MathNode(s);
+:};
+
+sum ::= sum:s OPSUM:o mult:m {:
+    //System.out.print("llego a sum");
+    RESULT = new MathSum(s, (String)o, m);
+:} 
+| mult:m {:
+    RESULT = m;
+:};
+
+/*
+
+Value
+    Obj num, bool, funccal, Id
+    boolean not
+
+num := Value | MathNode
+
+MathMult
+    Obj Value, MathNode, MathMult
+    op
+    Obj Value, MathNode, MathMult
+
+mult := Value | MathNode | MathMult
+
+MathSum
+    Obj Value, MathNode, MathMult, MathSum
+    op
+    Obj Value, MathNode, MathMult, MathSum
+
+sum := Value | MathNode | MathMult | MathSum
+
+MathNode
+    Obj Value, MathNode, MathMult, MathSum
+    
+math := Value | MathNode | MathMult | MathSum
+
+*/
+
+
+mult ::= mult:m OPMULT:o num:n {:
+    RESULT = new MathMult(m,(String)o,n);
+
+:}
+| num:n {:
+    RESULT = n;
+:};
+
+num ::= NUMS:n {:
+    RESULT = new Value(new Integer((String)n));
+:}  
+| PARIZQ math:m PARDER {:
+    //////////////// AQUI SE DEBE VER QUE RETORNA MATH, SI ES UN MathNode RETORNAR MISMO MATHNODE, SINO, CREAR UN NUEVO MathNode DANDO COMO PARAMETRO m ////////////////
+    if(m instanceof MathNode){
+        RESULT = m;
+    }else{
+        RESULT = new MathNode(m);
+    }
+:}
+| ID:i {:
+    // ID 
+    RESULT = new Value((String)i);
+:}
+| funccall:fc {:
+    RESULT = (FuncCallNode)fc;
+:};
+
+/*
+
+BoolMathNode
+    Object Value, MathNode, MathMult, MathSum
+    String oprel
+    Object Value, MathNode, MathMult, MathSum
+    
+boolmath::= BoolMathNode ... | Value | MathNode | MathMult | MathSum
+
+Value
+    Obj num, bool, funccal, Id
+    boolean not
+
+bool := Value | BoolNode | BoolMathNode ... | MathNode | MathMult | MathSum
+
+BoolAndNode
+    Object  Value, BoolNode, BoolMathNode, BoolAndNode ... , MathNode , MathMult , MathSum
+    String operator
+    Object  Value, BoolNode, BoolMathNode, BoolAndNode ... , MathNode , MathMult , MathSum
+
+booland := Value | BoolNode | BoolMathNode | BoolAndNode ... | MathNode | MathMult | MathSum
+
+BoolOrNode
+    Object Value, BoolNode, BoolMathNode, BoolAndNode, BoolOrNode ... , MathNode , MathMult , MathSum
+    String operator
+    Object Value, BoolNode, BoolMathNode, BoolAndNode, BoolOrNode ... , MathNode , MathMult , MathSum
+
+boolor := Value | BoolNode | BoolMathNode | BoolAndNode | BoolOrNode ... | MathNode | MathMult | MathSum
+
+BoolNode
+    Object Value, BoolNode, BoolMathNode, BoolAndNode, BoolOrNode ... , MathNode , MathMult , MathSum
+
+rel := Value | BoolNode | BoolMathNode | BoolAndNode | BoolOrNode ... | MathNode | MathMult | MathSum
+
+*/
+
+
+rel ::= boolor:b {:
+    RESULT = b;
+:};
+
+boolor ::= boolor:r OPOR booland:b {:
+    RESULT = new BoolOrNode(r,"OR",b);
+:}
+| booland:b {:
+    RESULT = b;
+:};
+
+booland ::= booland:br OPAND bool:bl {:
+    RESULT = new BoolAndNode(br, "AND", bl);
+:}
+| bool:b {:
+    RESULT = b;
+:};
+
+bool ::= TRUE {:
+    RESULT = new Value(new Boolean(true));
+:} 
+| FALSE {:
+    RESULT = new Value(new Boolean(false));
+:}
+| NOT bool:b {:
+    RESULT = new Value(b, true);
+:}
+| PARIZQ rel:r PARDER {:
+    RESULT = r;
+:}
+| boolmath:b {:
+    RESULT = b;
+:}
+| error;
+
+boolmath ::= sum:b OPREL:o sum:m{:
+    RESULT = new BoolMathNode(b, (String)o, m);
+    //<>|=|>|<|>=|<=
+:}
+| math:m {:
+    RESULT = ((MathNode)m).content;
+:};
