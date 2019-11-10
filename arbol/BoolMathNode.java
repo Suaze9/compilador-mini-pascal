@@ -10,11 +10,11 @@ public class BoolMathNode implements Serializable{
   final int FUNCCALL = 5;
   
   
-  Object leftChild;
-  String operator;
-  Object rightChild;
-  int typeLeft;
-  int typeRight;
+  public Object leftChild;
+  public String operator;
+  public Object rightChild;
+  public int typeLeft;
+  public int typeRight;
 
   public BoolMathNode(Object leftChild, String operator, Object rightChild){
     this.leftChild = leftChild;

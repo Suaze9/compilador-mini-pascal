@@ -13,11 +13,11 @@ public class BoolAndNode implements Serializable{
   final int MULT = 7;
   final int SUM = 8;
   
-  Object leftChild;
-  String operator;
-  Object rightChild;
-  int typeLeft;
-  int typeRight;
+  public Object leftChild;
+  public String operator;
+  public Object rightChild;
+  public int typeLeft;
+  public int typeRight;
 
   public BoolAndNode(Object leftChild, String operator, Object rightChild){
     this.leftChild = leftChild;

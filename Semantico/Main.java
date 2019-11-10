@@ -277,7 +277,7 @@ public class Main {
             return true;
         } else if(assignNode.type == 3){
             Value val = (Value)assigNode.expr;
-            if(val.type == 1 && tipo.equals("INTEGER")){
+            if(val.type == 1 && tipo.equals("INT")){
                 return true;
             }else if(val.type == 2 && tipo.equals("BOOLEAN")){
                 return true;
@@ -288,13 +288,13 @@ public class Main {
                 return false;
             }
         } else if(assigNode.type == 5){
-            if(tipo.equals("INTEGER") && verifyMultTypes((MathMult)assigNode.expr)){
+            if(tipo.equals("INT") && verifyMultTypes((MathMult)assigNode.expr)){
                 return true;
             }else{
                 return false;
             }
         } else if(assigNode.type == 6){
-            if(tipo.equals("INTEGER") && verifySumTypes((MathSum)assigNode.expr)){
+            if(tipo.equals("INT") && verifySumTypes((MathSum)assigNode.expr)){
                 return true;
             }else{
                 return false;
@@ -323,19 +323,262 @@ public class Main {
     }
 
     public static boolean verifyBoolMathTypes(BoolMathNode boolNode){
+        /*  
+            Constantes de BoolMathNode
+            final int VALUE = 1;
+            final int MATH = 2;
+            final int MULT = 3;
+            final int SUM = 4;
+            final int FUNCCALL = 5;
+
+            Constantes de Value
+            final int NUM = 1;
+            final int BOOL = 2;
+            final int ID = 3;
+            final int FUNCCALL = 4;
+        */
+        //Si es diferente o igual, a fuerza deben ser el mismo tipo
+        boolean retVal = false;
+        String leftType;
+        String rightType;
+        if(boolNode.operator.equals("<>") || boolNode.operator.equals("=")){
+            //Verificación de la izquierda
+            if(boolNode.typeLeft == 1){
+                Value val = (Value)boolNode.leftChild;
+                if(val.type == 1){
+                    leftType = "INT";
+                } else if(val.type == 2){
+                    leftType = "BOOLEAN";
+                } else if(val.type == 3 || val.type == 4){
+                    //buscar el tipo el la tabla de simbolos y asignarlo a leftType
+                } else {
+                    return false;
+                }
+            }else if(boolNode.typeLeft == 2 && verifyMathType((MathNode)boolNode.leftChild)){
+                leftType = "INT";
+            }else if(boolNode.typeLeft == 3 && verifyMultTypes((MathMult)boolNode.leftChild)){
+                leftType = "INT";
+            }else if(boolNode.typeLeft == 4 && verifySumTypes((MathSum)boolNode.leftChild)){
+                leftType = "INT";
+            }else if(boolNode.typeLeft == 5){
+                //Buscar el tipo en la tabla de simbolos y asignarlo a leftType
+            }else{
+                return false;
+            }
+
+            //Verificación de la der
+            if(boolNode.typeRight == 1){
+                Value val = (Value)boolNode.rightChild;
+                if(val.type == 1){
+                    rightType = "INT";
+                } else if(val.type == 2){
+                    rightType = "BOOLEAN";
+                } else if(val.type == 3 || val.type == 4){
+                    //buscar el tipo el la tabla de simbolos y asignarlo a leftType
+                } else {
+                    return false;
+                }
+            }else if(boolNode.typeRight == 2 && verifyMathType((MathNode)boolNode.rightChild)){
+                rightType = "INT";
+            }else if(boolNode.typeRight == 3 && verifyMultTypes((MathMult)boolNode.rightChild)){
+                rightType = "INT";
+            }else if(boolNode.typeRight == 4 && verifySumTypes((MathSum)boolNode.rightChild)){
+                rightType = "INT";
+            }else if(boolNode.typeRight == 5){
+                //Buscar el tipo en la tabla de simbolos y asignarlo a leftType
+            }else{
+                return false;
+            }
+
+            if(leftType.equals(rightType)){
+                retVal = true;
+            }
+        }else{
+            //Si no, deben ser solamente int. No deberia decir true < 10
+            //Verificación de la izquierda
+            if(boolNode.typeLeft == 1){
+                Value val = (Value)boolNode.leftChild;
+                if(val.type == 1){
+                    leftType = "INT";
+                } else if(val.type == 2){
+                    return false;
+                } else if(val.type == 3 || val.type == 4){
+                    //buscar el tipo el la tabla de simbolos y asignarlo a leftType
+                } else {
+                    return false;
+                }
+            }else if(boolNode.typeLeft == 2 && verifyMathType((MathNode)boolNode.leftChild)){
+                leftType = "INT";
+            }else if(boolNode.typeLeft == 3 && verifyMultTypes((MathMult)boolNode.leftChild)){
+                leftType = "INT";
+            }else if(boolNode.typeLeft == 4 && verifySumTypes((MathSum)boolNode.leftChild)){
+                leftType = "INT";
+            }else if(boolNode.typeLeft == 5){
+                //Buscar el tipo en la tabla de simbolos y asignarlo a leftType
+            }else{
+                return false;
+            }
+
+            //Verificación de la der
+            if(boolNode.typeRight == 1){
+                Value val = (Value)boolNode.rightChild;
+                if(val.type == 1){
+                    rightType = "INT";
+                } else if(val.type == 2){
+                    return false;
+                } else if(val.type == 3 || val.type == 4){
+                    //buscar el tipo el la tabla de simbolos y asignarlo a leftType
+                } else {
+                    return false;
+                }
+            }else if(boolNode.typeRight == 2 && verifyMathType((MathNode)boolNode.rightChild)){
+                rightType = "INT";
+            }else if(boolNode.typeRight == 3 && verifyMultTypes((MathMult)boolNode.rightChild)){
+                rightType = "INT";
+            }else if(boolNode.typeRight == 4 && verifySumTypes((MathSum)boolNode.rightChild)){
+                rightType = "INT";
+            }else if(boolNode.typeRight == 5){
+                //Buscar el tipo en la tabla de simbolos y asignarlo a leftType
+            }else{
+                return false;
+            }
+
+            if(leftType.equals(rightType)){
+                retVal = true;
+            }
+        }
+        return retVal;
 
     }
 
     public static boolean verifyBoolAndTypes(BoolAndNode boolNode){
+        /*
+            final int VALUE = 1;
+            final int BOOLMATH = 2;
+            final int BOOLAND = 3;
+            final int BOOL = 4;
+            final int FUNCCALL = 5;
+
+            final int MATH = 6;
+            final int MULT = 7;
+            final int SUM = 8;
+        */
+        
+        boolean checkLeft = false;
+        boolean checkRight = false;
+
+        //Verifica el tipo de la izquierda del operador
+        if(boolNode.typeLeft == 1){
+            Value val = (Value)boolNode.leftChild;
+            if(val.type == 1){
+                return false;
+            }else if(val.type == 2){
+                checkLeft = true;
+            }else if(val.type == 3 || val.type == 4){
+                //buscar en la tabla el ID y compara los tipos
+            } else {
+                checkLeft = false;
+            }
+        } else if(boolNode.typeLeft == 2 && verifyBoolMathTypes((BoolMathNode)boolNode.leftChild)){
+            checkLeft = true;
+        } else if(boolNode.typeLeft == 3 && verifyBoolAndTypes((BoolAndNode)boolNode.leftChild)){
+            checkLeft = true;
+        } else if(boolNode.typeLeft == 5){
+            //buscar en la tabla de simbolos el id de la función
+        } else {
+            return false;
+        }
+
+        //Verifica el tipo de la derecha del operador
+        if(boolNode.typeRight == 1){
+            Value val = (Value)boolNode.rightChild;
+            if(val.type == 1){
+                return false;
+            }else if(val.type == 2){
+                checkRight = true;
+            }else if(val.type == 3 || val.type == 4){
+                //buscar en la tabla el ID y compara los tipos
+            } else {
+                checkRight = false;
+            }
+        } else if(boolNode.typeRight == 2 && verifyBoolMathTypes((BoolMathNode)boolNode.rightChild)){
+            checkRight = true;
+        } else if(boolNode.typeRight == 3 && verifyBoolAndTypes((BoolAndNode)boolNode.rightChild)){
+            checkRight = true;
+        } else if(boolNode.typeRight == 5){
+            //buscar en la tabla de simbolos el id de la función
+        } else {
+            return false;
+        }
+
+        return checkLeft && checkRight;
 
     }
 
     public static boolean verifyBoolOrTypes(BoolOrNode boolNode){
-        
+        /*
+            final int VALUE = 1;
+            final int BOOLOR = 2;
+            final int BOOLAND = 3;
+            final int BOOLMATH = 4;
+            final int BOOL = 5;
+            final int FUNCCALL = 6;
+
+            final int MATH = 7;
+            final int MULT = 8;
+            final int SUM = 9;
+        */
+        boolean checkLeft = false;
+        boolean checkRight = false;
+
+        //Verifica el tipo de la izquierda del operador
+        if(boolNode.typeLeft == 1){
+            Value val = (Value)boolNode.leftChild;
+            if(val.type == 1){
+                return false;
+            }else if(val.type == 2){
+                checkLeft = true;
+            }else if(val.type == 3 || val.type == 4){
+                //buscar en la tabla el ID y compara los tipos
+            } else {
+                checkLeft = false;
+            }
+        } else if(boolNode.typeLeft == 2 && verifyBoolOrTypes((BoolOrNode)boolNode.leftChild)){
+            checkLeft = true;
+        } else if(boolNode.typeLeft == 3 && verifyBoolAndTypes((BoolAndNode)boolNode.leftChild)){
+            checkLeft = true;
+        } else if(boolNode.typeLeft == 4 && verifyBoolMathTypes((BoolMathNode)boolNode.leftChild)){
+            checkLeft = true;
+        } else if(boolNode.typeLeft ==6){
+            //buscar en la tabla de simbolos el id de la función
+        }else{
+            return false;
+        }
+
+        //Verifica el tipo de la derecha del operador
+        if(boolNode.typeLeft == 1){
+            Value val = (Value)boolNode.rightChild;
+            if(val.type == 1){
+                return false;
+            }else if(val.type == 2){
+                checkRight = true;
+            }else if(val.type == 3 || val.type == 4){
+                //buscar en la tabla el ID y compara los tipos
+            } else {
+                checkRight = false;
+            }
+        } else if(boolNode.typeLeft == 2 && verifyBoolOrTypes((BoolOrNode)boolNode.rightChild)){
+            checkRight = true;
+        } else if(boolNode.typeLeft == 3 && verifyBoolAndTypes((BoolAndNode)boolNode.rightChild)){
+            checkRight = true;
+        } else if(boolNode.typeLeft == 4 && verifyBoolMathTypes((BoolMathNode)boolNode.rightChild)){
+            checkRight = true;
+        } else if(boolNode.typeLeft ==6){
+            //buscar en la tabla de simbolos el id de la función
+        }else{
+            return false;
+        }
+
+        return checkLeft && checkRight;     
     }
-
-
-
-    
-
 }
