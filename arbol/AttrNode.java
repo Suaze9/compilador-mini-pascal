@@ -3,7 +3,7 @@ package arbol;
 import java.io.Serializable;
 
 
-public class AttrNode implements Serializable{
+public class AttrNode implements Serializable extends Node{
   final int STR = 1;
   final int CHAR = 2;
   final int VALUE = 3;
@@ -15,10 +15,12 @@ public class AttrNode implements Serializable{
   final int BOOLAND = 9;
   final int BOOLOR = 10;
   
-  Object attr;
-  int type;
+  public Object attr;
+  public int type;
 
-  public AttrNode(Object attr){
+  public AttrNode(Object attr, int fila, int columna){
+    super(fila,columna);
+
     this.attr = attr;
     
     if(attr instanceof String){
