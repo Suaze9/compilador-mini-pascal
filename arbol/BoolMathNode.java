@@ -2,7 +2,7 @@ package arbol;
 
 import java.io.Serializable;
 
-public class BoolMathNode implements Serializable{
+public class BoolMathNode implements Serializable extends Node{
   final int VALUE = 1;
   final int MATH = 2;
   final int MULT = 3;
@@ -16,7 +16,9 @@ public class BoolMathNode implements Serializable{
   public int typeLeft;
   public int typeRight;
 
-  public BoolMathNode(Object leftChild, String operator, Object rightChild){
+  public BoolMathNode(Object leftChild, String operator, Object rightChild, int fila, int columna){
+    super(fila,columna);
+
     this.leftChild = leftChild;
     this.operator = operator;
     this.rightChild = rightChild;

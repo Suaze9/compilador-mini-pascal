@@ -2,7 +2,7 @@ package arbol;
 
 import java.io.Serializable;
 
-public class BoolNode implements Serializable{
+public class BoolNode implements Serializable extends Node{
   final int VALUE = 1;
   final int BOOLOR = 2;
   final int BOOLAND = 3;
@@ -14,10 +14,12 @@ public class BoolNode implements Serializable{
   final int MULT = 8;
   final int SUM = 9;
 
-  Object content;
-  int type;
+  public Object content;
+  public int type;
 
-  public BoolNode(Object content){
+  public BoolNode(Object content, int fila, int columna){
+    super(fila,columna);
+
     this.content = content;
 
     if(content instanceof Value){

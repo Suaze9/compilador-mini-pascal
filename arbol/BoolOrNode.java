@@ -2,7 +2,7 @@ package arbol;
 
 import java.io.Serializable;
 
-public class BoolOrNode implements Serializable{
+public class BoolOrNode implements Serializable extends Node{
   final int VALUE = 1;
   final int BOOLOR = 2;
   final int BOOLAND = 3;
@@ -20,7 +20,9 @@ public class BoolOrNode implements Serializable{
   public int typeLeft;
   public int typeRight;
 
-  public BoolOrNode(Object leftChild, String operator, Object rightChild){
+  public BoolOrNode(Object leftChild, String operator, Object rightChild, int fila, int columna){
+    super(fila,columna);
+
     this.leftChild = leftChild;
     this.operator = operator;
     this.rightChild = rightChild;
