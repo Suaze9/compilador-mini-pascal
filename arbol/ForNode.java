@@ -3,7 +3,7 @@ package arbol;
 import java.util.ArrayList;
 import java.io.Serializable;
 
-public class ForNode implements Serializable{
+public class ForNode extends Node implements Serializable{
   final int VALUE = 1;
   final int MATH = 6;
   final int MULT = 7;
@@ -15,7 +15,9 @@ public class ForNode implements Serializable{
 
   public int conditionType;
 
-  public ForNode(AssigNode assig, Object condition, ArrayList<Object> statements){
+  public ForNode(AssigNode assig, Object condition, ArrayList<Object> statements, int fila, int columna){
+    super(fila,columna);
+
     this.assig = assig;
     this.condition = condition;
     this.statements = statements;

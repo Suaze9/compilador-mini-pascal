@@ -3,7 +3,7 @@ package arbol;
 import java.util.ArrayList;
 import java.io.Serializable;
 
-public class WhileNode implements Serializable{
+public class WhileNode extends Node implements Serializable{
   final int VALUE = 1;
   final int BOOL = 2;
   final int BOOLMATH = 3;
@@ -18,7 +18,9 @@ public class WhileNode implements Serializable{
   public ArrayList<Object> statements;
   public int conditionType;
 
-  public WhileNode(Object condition, ArrayList<Object> statements){
+  public WhileNode(Object condition, ArrayList<Object> statements, int fila, int columna){
+    super(fila,columna);
+
     this.condition = condition;
     this.statements = statements;
 

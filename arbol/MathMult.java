@@ -2,22 +2,24 @@ package arbol;
 
 import java.io.Serializable;
 
-public class MathMult implements Serializable{
+public class MathMult extends Node implements Serializable{
 
   final int VALUE = 1;
   final int MATHNODE = 2;
   final int MATHMULT = 3;
   final int FUNCCALL = 4;
 
-  Object leftChild;
-  String operator;
-  Object rightChild;
-  int typeLeft;
-  int typeRight;
+  public Object leftChild;
+  public String operator;
+  public Object rightChild;
+  public int typeLeft;
+  public int typeRight;
   
   //1 for operation, 2 for a direct value
 
-  public MathMult(Object leftChild, String operator, Object rightChild){
+  public MathMult(Object leftChild, String operator, Object rightChild, int fila, int columna){
+    super(fila, columna);
+
     this.leftChild = leftChild;
     this.operator = operator;
     this.rightChild = rightChild;

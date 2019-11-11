@@ -3,7 +3,7 @@ package arbol;
 import java.io.Serializable;
 
 
-public class AttrNode implements Serializable extends Node{
+public class AttrNode extends Node implements Serializable{
   final int STR = 1;
   final int CHAR = 2;
   final int VALUE = 3;

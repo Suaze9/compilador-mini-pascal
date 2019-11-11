@@ -3,11 +3,12 @@ package arbol;
 import java.util.ArrayList;
 import java.io.Serializable;
 
-public class RecordNode implements Serializable{
-  ArrayList<DeclNode> decls; //ArrayList de todos los decls
-  String name;
+public class RecordNode extends Node implements Serializable{
+  public ArrayList<DeclNode> decls; //ArrayList de todos los decls
+  public String name;
 
-  public RecordNode(String name, ArrayList<DeclNode> nodes){
+  public RecordNode(String name, ArrayList<DeclNode> nodes, int fila, int columna){
+    super(fila,columna);
     this.name = name;
     this.decls = nodes;
   }

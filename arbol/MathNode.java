@@ -2,7 +2,7 @@ package arbol;
 
 import java.io.Serializable;
 
-public class MathNode implements Serializable{
+public class MathNode extends Node implements Serializable{
   final int VALUE = 1;
   final int MATH = 2;
   final int MULT = 3;
@@ -10,9 +10,11 @@ public class MathNode implements Serializable{
   final int FUNCCALL = 6;
   
   public Object content;
-  int type;
+  public int type;
 
-  public MathNode(Object content){
+  public MathNode(Object content, int fila, int columna){
+      super(fila,columna);
+
     this.content = content;
     
     if (content instanceof Value)

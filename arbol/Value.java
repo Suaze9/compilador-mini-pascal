@@ -2,18 +2,20 @@ package arbol;
 
 import java.io.Serializable;
 
-public class Value implements Serializable{
+public class Value extends Node implements Serializable{
     
     final int NUM = 1;
     final int BOOL = 2;
     final int ID = 3;
     final int FUNCCALL = 4;
+    final int CHAR = 5;
     
     public Object content;
     public int type;
     public boolean not;
 
-  public Value(Object content){
+  public Value(Object content, int fila, int columna){
+    super(fila,columna);
     this.content = content;
 
     if (content instanceof Integer)
@@ -24,6 +26,8 @@ public class Value implements Serializable{
         this.type = ID;
     else if (content instanceof FuncCallNode)
         this.type = FUNCCALL;
+    else if (content instanceof Character)
+        this.type = CHAR;
     else{
         //System.out.println("TIPO NO VALIDO ENTREGADO A NODO \"VALUE\"!!! ");
         this.type = 0;
@@ -31,7 +35,8 @@ public class Value implements Serializable{
     this.not = false;
   }
 
-  public Value(Object content, boolean not){
+  public Value(Object content, boolean not, int fila, int columna){
+    super(fila,columna);
     this.content = content;
 
     if (content instanceof Integer)
@@ -42,6 +47,8 @@ public class Value implements Serializable{
         this.type = ID;
     else if (content instanceof FuncCallNode)
         this.type = FUNCCALL;
+    else if (content instanceof Character)
+        this.type = CHAR;
     else{
         //System.out.println("TIPO NO VALIDO ENTREGADO A NODO \"VALUE\"!!! ");
         this.type = 0;
@@ -77,6 +84,9 @@ public class Value implements Serializable{
         }
         json += "\"FuncCallNode\": ";
         json += ((FuncCallNode)this.content).printNode(depth + 1);
+        break;
+      case CHAR:
+        json += "\"CHAR \" : \"" + (Character)this.content  + "\"";
         break;
       default:
         //System.out.println("ERROR NODO de \"Value\"");

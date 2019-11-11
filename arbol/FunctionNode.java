@@ -3,7 +3,7 @@ package arbol;
 import java.util.ArrayList;
 import java.io.Serializable;
 
-public class FunctionNode implements Serializable{
+public class FunctionNode extends Node implements Serializable{
   final int DECLNODE = 1;
   final int DECLARRAY = 2;
 
@@ -15,7 +15,9 @@ public class FunctionNode implements Serializable{
 
   public int declarationType;
 
-  public FunctionNode(Value id, ArrayList<ParamsNode> params, Object declarations, ArrayList<Object> statements, String type){
+  public FunctionNode(Value id, ArrayList<ParamsNode> params, Object declarations, ArrayList<Object> statements, String type, int fila, int columna){
+      super(fila,columna);
+
     this.id = id;
     this.params = params;
     this.declarations = declarations;

@@ -39,12 +39,10 @@ public class TablaSym{
 
     public Object[] buscarTuplaFunc(String id, String type, int prof){
         for(Tupla tup: tuplas){
-            System.out.println("TIP:" + tup.id);
             if(tup.id.equals(id)){
-                int index = tup.id.indexOf(" -> ");
+                int index = tup.type.indexOf(" -> ");
                 if(index >= 0){
                     String funcAttr = tup.type.substring(0, index);
-                    System.out.println("funcAttr: " + funcAttr);
                     if(funcAttr.equals(type)){
                         Object[] obj = new Object[2];
                         obj[0] = tup;

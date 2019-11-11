@@ -96,9 +96,9 @@ semcolon = ;
 
 letra = [a-zA-Z_]
 
-
 %%
 <YYINITIAL>{
+  {constchar}     {return symbol("CONSTCHAR", sym.CONSTCHAR, yytext());}            
   {comentarioIn}  {yybegin(COMMENT);}            
   {espacios}      {}
   {comillas}      {texto = "";yybegin(TEXT);}            
@@ -142,7 +142,6 @@ letra = [a-zA-Z_]
   {id}            {return symbol("ID", sym.ID, yytext().toLowerCase());}            
   {coma}          {return symbol("COMA", sym.COMA);}
   {semcolon}      {return symbol("SEMCOLON", sym.SEMCOLON);}
-  {constchar}     {return symbol("CONSTCHAR", sym.CONSTCHAR, yytext());}            
   .               {System.out.println("Error Lexico:\nSimbolo no reconocido: " + yytext() + " en la linea " + yyline + ", columna " + yycolumn);}
 }
 

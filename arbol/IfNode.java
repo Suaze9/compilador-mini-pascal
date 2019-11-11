@@ -3,7 +3,7 @@ package arbol;
 import java.util.ArrayList;
 import java.io.Serializable;
 
-public class IfNode implements Serializable{
+public class IfNode extends Node implements Serializable{
   final int VALUE= 1;
   final int BOOL = 2;
   final int BOOLMATH = 3;
@@ -23,7 +23,9 @@ public class IfNode implements Serializable{
   public int ifType;
   public int conditionType;
 
-  public IfNode(Object condition, ArrayList<Object> ifStatements){
+  public IfNode(Object condition, ArrayList<Object> ifStatements, int fila, int columna){
+    super(fila,columna);
+
     this.condition = condition;
     this.ifStatements = ifStatements;
 
@@ -50,7 +52,9 @@ public class IfNode implements Serializable{
     this.ifType = SIMPLEIF;
 }
 
-  public IfNode(Object condition, ArrayList<Object> ifStatements, ArrayList<Object> elseStatements){
+  public IfNode(Object condition, ArrayList<Object> ifStatements, ArrayList<Object> elseStatements, int fila, int columna){
+    super(fila,columna);
+
     this.condition = condition;
     this.ifStatements = ifStatements;
     this.elseStatements = elseStatements;

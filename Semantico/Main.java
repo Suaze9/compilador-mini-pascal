@@ -4,6 +4,7 @@ import java.io.FileInputStream;
 import java.io.ObjectInputStream;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.ArrayList;
 
 public class Main {
 
@@ -27,6 +28,7 @@ public class Main {
         tiposInv.put(3, "ID");
         offset = 0;
         leerArbol();
+        crearTabla();
     }
 
     public static void leerArbol(){
@@ -56,12 +58,35 @@ public class Main {
         comprobacionTipos(root.statements);
     }
 
-    public static void comprobacionTipos(){
-        
+    public static boolean comprobacionTipos(ArrayList<Object> states){
+        boolean valid = true;
+        for(Object obj : states){
+            if(obj instanceof IfNode){
+                valid = valid && verifyIf((IfNode)obj);
+            }else if(obj instanceof WhileNode){
+                valid = valid && verifyWhile((WhileNode)obj);
+            }else if(obj instanceof ForNode){
+                valid = valid && verifyFor((ForNode)obj);
+            }else if(obj instanceof RepeatNode){
+                valid = valid && verifyRepeat((RepeatNode)obj);
+            }else if(obj instanceof ReadNode){
+                valid = valid && verifyRead((ReadNode)obj);
+            }else if(obj instanceof WriteNode){
+                valid = valid && verifyWrite((WriteNode)obj);
+            }else if(obj instanceof AssigNode){
+                valid = valid && verifyAsignType((AssigNode)obj);
+            }else if(obj instanceof FuncCallNode){
+                valid = valid && !verifyFuncCall((FuncCallNode)obj).equals("ERROR");
+            }else{
+                System.out.println("Error comprobacion Tipos");
+                valid = false;
+            }
+        }
+        return valid;
     }
 
     public static void records(ArrayList<RecordNode> recs){
-
+        
     }
     
     public static void funciones(ArrayList<Object> funcs){
@@ -72,23 +97,25 @@ public class Main {
             ArrayList<Object> statements;
             String funcprocType = "";
 
-            if(func instanceof FunctionNode){
+            if(funcproc instanceof FunctionNode){
                 FunctionNode func = (FunctionNode)funcproc;
                 id = func.id;
                 params = func.params;
                 declarations = func.declarations;
                 statements = func.statements;
                 funcprocType = func.type;
-            }else if (func instanceof ProcedureNode){
+            }else if (funcproc instanceof ProcedureNode){
                 ProcedureNode proc = (ProcedureNode)funcproc;
                 id = proc.id;
                 params = proc.params;
                 declarations = proc.declarations;
                 statements = proc.statements;
                 funcprocType = "NULL";
+            }else{
+                return;
             }
             String type = "(";
-            for(ParamsNode params : params){
+            for(ParamsNode param : params){
                 /*
                     final int NUM = 1;
                     final int BOOL = 2;
@@ -96,15 +123,15 @@ public class Main {
                     final int FUNCCALL = 4;
                 */
 
-                String tipo = params.type;
+                String tipo = param.type;
                 int size = tipos.get(tipo);
 
-                for(Value val : params.ids){
+                for(Value val : param.ids){
                     String idval = (String)val.content;
                     Tupla tuplita = new Tupla(idval, tipo, offset);
                     offset += size;
 
-                    if(func.indexOf(params) != func.size() - 1 && params.ids.idenxOf(val) != params.ids.size() - 1){
+                    if(params.indexOf(param) != params.size() - 1 && param.ids.indexOf(val) != param.ids.size() - 1){
                         type += tipo + " x ";
                     }else{
                         type += tipo;
@@ -115,16 +142,28 @@ public class Main {
             }
             type += ") -> " + funcprocType;
             
-            int tempOffset = offset;
 
-            tabla.add(id, type, -1);
+            tabla.add((String)id.content, type, -1);
 
         }
         for(Object funcproc : funcs){
             Object declarations;
             ArrayList<Object> statements;
+
+
+            if(funcproc instanceof FunctionNode){
+                FunctionNode func = (FunctionNode)funcproc;
+                declarations = func.declarations;
+                statements = func.statements;
+            }else if (funcproc instanceof ProcedureNode){
+                ProcedureNode proc = (ProcedureNode)funcproc;
+                declarations = proc.declarations;
+                statements = proc.statements;
+            }else{
+                return;
+            }
             
-            offset = tempOffset;
+            int tempOffset = offset;
             offset = 0;
 
             tabla = new TablaSym(tabla);
@@ -174,8 +213,8 @@ public class Main {
                 final int BOOLOR = 10;
                 */
 
-                Object o = attr.attr;
-                int tipo = attr.type;
+                Object o = ((AttrNode)attr).attr;
+                int tipo = ((AttrNode)attr).type;
 
                 switch(tipo){
                     case 1:{
@@ -193,9 +232,16 @@ public class Main {
                         } else if(val.type == 2){
                             type += "BOOLEAN";
                         } else if(val.type == 3){
-                            /////////buscar el tipo en la tabla de simbolos
+                            Object[] tup = tabla.buscarTupla((String)val.content, 0);
+                            if(tup != null){
+                                type += ((Tupla)tup[0]).type;
+                            }else{
+                                type += "ERROR";
+                            }
                         } else if(val.type == 4){
-                            verifyFuncCall((FuncCallNode)val.content);
+                            type += verifyFuncCall((FuncCallNode)val.content);
+                        } else if(val.type == 5){
+                            type += "CHAR";
                         } else {
                             return "ERROR";
                         }
@@ -236,7 +282,7 @@ public class Main {
                         break;
                     }
                     case 9:{
-                        if(verifyBoolAndTypes((BoolOrNode)o)){
+                        if(verifyBoolAndTypes((BoolAndNode)o)){
                             type += "BOOLEAN";
                         }else{
                             type += "ERROR";
@@ -244,7 +290,7 @@ public class Main {
                         break;
                     }
                     case 10:{
-                        if(verifyBoolOrTypes((BoolAndNode)o)){
+                        if(verifyBoolOrTypes((BoolOrNode)o)){
                             type += "BOOLEAN";
                         }else{
                             type += "ERROR";
@@ -255,7 +301,7 @@ public class Main {
 
             }
 
-            if(val.args.indexOf(obj) != val.args.size() - 1){
+            if(args.indexOf(attr) != args.size() - 1){
                 type += " x ";
             }
 
@@ -268,7 +314,7 @@ public class Main {
                 Tupla tuplita = new Tupla(idval, tipo, offset);
                 offset += size;
 
-                if(func.indexOf(params) != func.size() - 1 && params.ids.idenxOf(val) != params.ids.size() - 1){
+                if(func.indexOf(params) != func.size() - 1 && params.ids.indexOf(val) != params.ids.size() - 1){
                     type += tipo + " x ";
                 }else{
                     type += tipo;
@@ -314,7 +360,7 @@ public class Main {
     }
 
     public static boolean verifyConditionBool(int condtype, Object condition){
-
+        boolean  condicion = false;
         switch(condtype){
             case 1:{
                 Value val = (Value)condition;
@@ -326,6 +372,8 @@ public class Main {
                     //buscar en la tabla de simbolos
                 }else if(val.type == 4){
                     //buscar en la tabla de simbolos
+                }else if(val.type == 5){
+                    condicion = false;
                 }else{
                     System.out.println("Buscando el tipo, algo salió mal en condicion IF");
                     condicion = false;
@@ -374,9 +422,12 @@ public class Main {
     public static boolean verifyIf(IfNode ifn){
         boolean condicion = false;
         boolean tiposState = false;
+        boolean tiposStateElse = true;
         condicion = verifyConditionBool(ifn.conditionType, ifn.condition);
-        tiposState = comprobacionTipos(ifn.statements);
-        return condicion && tiposState;
+        tiposState = comprobacionTipos(ifn.ifStatements);
+        if(ifn.ifType == 2)
+            tiposStateElse = comprobacionTipos(ifn.elseStatements);
+        return condicion && tiposState && tiposStateElse;
     }
 
     public static boolean verifyWhile(WhileNode whileNode){
@@ -395,43 +446,91 @@ public class Main {
             //Imprimir error, el tipo no es valido.
         }else{
             switch(forNode.conditionType){
-                case 1:
+                case 1:{
                     Value val = (Value)forNode.condition;
                     if(val.type == 1){
                         validCondition =  true;
                     }else if(val.type == 2){
                         validCondition = false;
                     }else if(val.type == 3){
-                        //buscar en la tabla de simbolos
+                        Object[] tup = tabla.buscarTupla((String)val.content, 0);
+                        if(tup != null){
+                           validCondition = ((Tupla)tup[0]).type.equals("INT");
+                        }else{
+                            validCondition = false;
+                        }
                     }else if(val.type == 4){
-                        //buscar en la tabla de simbolos
+                        if(verifyFuncCall((FuncCallNode)val.content).equals("INT")){
+                            validCondition = true;
+                        }else{
+                            validCondition = false;
+                        }
+                    }else if(val.type == 5){
+                        validCondition = false;
                     }else{
                         System.out.println("Buscando el tipo, algo salió mal en condicion IF");
                         validCondition = false;
                     }
                     break;
-                case 6:
+                }case 6:{
                     //validCondition = 
                     //no hay MathNode
                     break;
-                case 7:
+                }case 7:{
                     validCondition = verifyMultTypes((MathMult)forNode.condition);
                     break;
-                case 8:
+                }case 8:{
                     validCondition = verifySumTypes((MathSum)forNode.condition);
                     break;
-                default:
+                }default:{
                     validCondition = false;
+                }
             }
-            return validAssignation && validCondition;
         }
 
+        return validAssignation && validCondition;
         
     }
 
     public static boolean verifyRepeat(RepeatNode repeatNode){
         boolean validCondition = verifyConditionBool(repeatNode.conditionType, repeatNode.condition);
         return validCondition;
+    }
+
+    public static boolean verifyRead(ReadNode readNode){
+        boolean validVariable = false;
+        
+        Object[] tup = tabla.buscarTupla((String)readNode.id.content, 0);
+        if(tup != null){
+            validVariable = ((Tupla)tup[0]).type.equals("INT") || ((Tupla)tup[0]).type.equals("CHAR");
+        }else{
+            validVariable = false;
+        }
+        return validVariable;
+    }
+
+    public static boolean verifyWrite(WriteNode writeNode){
+        boolean validWrite = false;
+        if(writeNode.type == 1){
+            validWrite = true;
+        }else{
+            Value val = (Value)writeNode.id;
+            if(val.type == 1){
+                validWrite = true;
+            }else if(val.type == 3){
+                Object[] tup = tabla.buscarTupla((String)val.content, 0);
+                if(tup != null){
+                    validWrite = ((Tupla)tup[0]).type.equals("INT") || ((Tupla)tup[0]).type.equals("CHAR");
+                }else{
+                    validWrite = false;
+                }
+            }else if(val.type == 5){
+                validWrite = true;
+            }else{
+                validWrite = false;
+            }
+        }
+        return validWrite;
     }
 
 
@@ -455,63 +554,99 @@ public class Main {
         boolean checkLeft = false;
         boolean checkRight = false;
         switch(sumNode.typeLeft){
-            case 1:
+            case 1:{
                 Value val = (Value)sumNode.leftChild;
                 if(val.type == 1){
                     checkLeft = true;
                 }else if(val.type == 2){
                     return false;
-                }else if(val.type == 3 || val.type == 4){
-                    //buscar en la tabla de simbolos
+                }else if(val.type == 3){
+                    Object[] tup = tabla.buscarTupla((String)val.content, 0);
+                    if(tup != null){
+                        checkLeft = ((Tupla)tup[0]).type.equals("INT") || ((Tupla)tup[0]).type.equals("CHAR");
+                    }else{
+                        checkLeft = false;
+                    }
+                }else if(val.type == 4){
+                    if(verifyFuncCall((FuncCallNode)val.content).equals("INT")){
+                        checkLeft = true;
+                    }else{
+                        checkLeft = false;
+                    }
+                }else if(val.type == 5){
+                    return false;
                 }else{
                     return false;
                 }
                 break;
-            case 2:
+            }case 2:{
                 System.out.println("Se recibió un MathNode...que ondas");
                 //ya no se usa MATHNODE
                 break;
-            case 3:
+            }case 3:{
                 checkLeft = verifyMultTypes((MathMult)sumNode.leftChild);
                 break;
-            case 4:
+            }case 4:{
                 checkLeft = verifySumTypes((MathSum)sumNode.leftChild);
                 break;
-            case 5:
-                //busacrlo en la tabla de simbolos
+            }case 5:{
+                if(verifyFuncCall((FuncCallNode)sumNode.leftChild).equals("INT")){
+                    checkLeft = true;
+                }else{
+                    checkLeft = false;
+                }
                 break;
-            default:
+            }default:{
                 return false;
+            }
         }
 
-        switch(sumNode.rightChild){
-            case 1:
+        switch(sumNode.typeRight){
+            case 1:{
                 Value val = (Value)sumNode.rightChild;
                 if(val.type == 1){
                     checkRight = true;
                 }else if(val.type == 2){
                     return false;
-                }else if(val.type == 3 || val.type == 4){
-                    //buscar en la tabla de simbolos
+                }else if(val.type == 3){
+                    Object[] tup = tabla.buscarTupla((String)val.content, 0);
+                    if(tup != null){
+                        checkRight = ((Tupla)tup[0]).type.equals("INT") || ((Tupla)tup[0]).type.equals("CHAR");
+                    }else{
+                        checkRight = false;
+                    }
+                }else if(val.type == 4){
+                    if(verifyFuncCall((FuncCallNode)val.content).equals("INT")){
+                        checkRight = true;
+                    }else{
+                        checkRight = false;
+                    }
+                }else if(val.type == 5){
+                    return false;
                 }else{
                     return false;
                 }
                 break;
-            case 2:
+            }case 2:{
                 System.out.println("Se recibió un MathNode...que ondas");
                 //ya no se usa MATHNODE
                 break;
-            case 3:
+            }case 3:{
                 checkRight = verifyMultTypes((MathMult)sumNode.rightChild);
                 break;
-            case 4:
+            }case 4:{
                 checkRight = verifySumTypes((MathSum)sumNode.rightChild);
                 break;
-            case 5:
-                //busacrlo en la tabla de simbolos
+            }case 5:{
+                if(verifyFuncCall((FuncCallNode)sumNode.rightChild).equals("INT")){
+                    checkRight = true;
+                }else{
+                    checkRight = false;
+                }
                 break;
-            default:
+            }default:{
                 return false;
+            }
         }
         return checkLeft && checkRight;
     }
@@ -535,61 +670,95 @@ public class Main {
         boolean checkRight = false;
         //Verificar el hijo de la izquierda
         switch(multNode.typeLeft){
-            case 1:
+            case 1:{
                 Value val = (Value)multNode.leftChild;
                 if(val.type == 1){
                     checkLeft = true;
                 }else if(val.type == 2){
                     //Type mismatch, bool no se puede multiplicar con int
                     return false;
-                }else if(val.type == 3 || val.type == 4){
-                    //buscar en la tabla de simbolos
+                }else if(val.type == 3){
+                    Object[] tup = tabla.buscarTupla((String)val.content, 0);
+                    if(tup != null){
+                        checkLeft = ((Tupla)tup[0]).type.equals("INT") || ((Tupla)tup[0]).type.equals("CHAR");
+                    }else{
+                        checkLeft = false;
+                    }
+                }else if(val.type == 4){
+                    if(verifyFuncCall((FuncCallNode)val.content).equals("INT")){
+                        checkLeft = true;
+                    }else{
+                        checkLeft = false;
+                    }
+                }else if(val.type == 5){
+                    return false;
                 }else{
                     return false;
                 }
                 break;
-            case 2:
+            }case 2:{
                 System.out.println("Se recibió un MathNode...que ondas");
                 //ya no se usa MATHNODE
                 break;
-            case 3:
-                checkLeft = verifyMultTypes((MathMult)sumNode.leftChild);
+            }case 3:{
+                checkLeft = verifyMultTypes((MathMult)multNode.leftChild);
                 break;
-            case 4:
-                //function call
-                //busacrlo en la tabla de simbolos
+            }case 4:{
+                if(verifyFuncCall((FuncCallNode)multNode.leftChild).equals("INT")){
+                    checkLeft = true;
+                }else{
+                    checkLeft = false;
+                }
                 break;
-            default:
+            }default:{
                 return false;
+            }
         }
 
         //Verificar el hijo de la derecha
         switch(multNode.typeRight){
-            case 1:
+            case 1:{
                 Value val = (Value)multNode.rightChild;
                 if(val.type == 1){
                     checkRight = true;
                 }else if(val.type == 2){
                     return false;
-                }else if(val.type == 3 || val.type == 4){
-                    //buscar en la tabla de simbolos
+                }else if(val.type == 3){
+                    Object[] tup = tabla.buscarTupla((String)val.content, 0);
+                    if(tup != null){
+                        checkRight = ((Tupla)tup[0]).type.equals("INT") || ((Tupla)tup[0]).type.equals("CHAR");
+                    }else{
+                        checkRight = false;
+                    }
+                }else if(val.type == 4){
+                    if(verifyFuncCall((FuncCallNode)val.content).equals("INT")){
+                        checkRight = true;
+                    }else{
+                        checkRight = false;
+                    }
+                }else if(val.type == 5){
+                    return false;
                 }else{
                     return false;
                 }
                 break;
-            case 2:
+            }case 2:{
                 System.out.println("Se recibió un MathNode...que ondas");
                 //ya no se usa MATHNODE
                 break;
-            case 3:
-                checkRight = verifyMultTypes((MathMult)sumNode.rightChild);
+            }case 3:{
+                checkRight = verifyMultTypes((MathMult)multNode.rightChild);
                 break;
-            case 4:
-                //function call
-                //busacrlo en la tabla de simbolos
+            }case 4:{
+                if(verifyFuncCall((FuncCallNode)multNode.rightChild).equals("INT")){
+                    checkRight = true;
+                }else{
+                    checkRight = false;
+                }
                 break;
-            default:
+            }default:{
                 return false;
+            }
         }
         return checkLeft && checkRight;
     }
@@ -606,15 +775,31 @@ public class Main {
         }
         if(assigNode.type == 2 && tipo.equals("CHAR")){
             return false;
-        } else if(assignNode.type == 3){
+        } else if(assigNode.type == 3){
             Value val = (Value)assigNode.expr;
             if(val.type == 1 && tipo.equals("INT")){
                 return true;
             }else if(val.type == 2 && tipo.equals("BOOLEAN")){
                 return false;
-            }else if(val.type == 3 || val.type == 4){
-                //Buscar el id de value en la tabla de simbolos
-                //Si los tipos son INT, devolver verdadero
+            }else if(val.type == 3){
+                Object[] tup = tabla.buscarTupla((String)val.content, 0);
+                if(tup != null){
+                    if(((Tupla)tup[0]).type.equals("INT") || ((Tupla)tup[0]).type.equals("CHAR")){
+                        return true;
+                    }else{
+                        return false;
+                    }
+                }else{
+                    return false;
+                }
+            }else if(val.type == 4){
+                if(verifyFuncCall((FuncCallNode)val.content).equals("INT")){
+                    return true;
+                }else{
+                    return false;
+                }
+            }else if(val.type == 5){
+                return false;
             }else{
                 return false;
             }
@@ -664,18 +849,37 @@ public class Main {
             final int BOOLOR = 10;
         */
         String tipo;
+        Object[] tuplita = tabla.buscarTupla((String)assigNode.Id.content, 0);
+        tipo = ((Tupla)tuplita[0]).type;
+
         //tipo = buscarID((String) assigNode.Id.content);
         if(assigNode.type == 2 && tipo.equals("CHAR")){
             return true;
-        } else if(assignNode.type == 3){
+        } else if(assigNode.type == 3){
             Value val = (Value)assigNode.expr;
             if(val.type == 1 && tipo.equals("INT")){
                 return true;
             }else if(val.type == 2 && tipo.equals("BOOLEAN")){
                 return true;
-            }else if(val.type == 3 || val.type == 4){
-                //Buscar el id de value en la tabla de simbolos
-                //Si los tipos son iguales, devolver verdadero
+            }else if(val.type == 3){
+                Object[] tup = tabla.buscarTupla((String)val.content, 0);
+                if(tup != null){
+                    if(((Tupla)tup[0]).type.equals(tipo)){
+                        return true;
+                    }else{
+                        return false;
+                    }
+                }else{
+                    return false;
+                }
+            }else if(val.type == 4){
+                if(verifyFuncCall((FuncCallNode)val.content).equals(tipo)){
+                    return true;
+                }else{
+                    return false;
+                }
+            }else if(val.type == 5){
+                return false;
             }else{
                 return false;
             }
@@ -730,8 +934,8 @@ public class Main {
             final int FUNCCALL = 4;
         */
         boolean retVal = false;
-        String leftType;
-        String rightType;
+        String leftType = "?";
+        String rightType = "¿";
         //Si es diferente o igual, a fuerza deben ser el mismo tipo
         if(boolNode.operator.equals("<>") || boolNode.operator.equals("=")){
             //Verificación de la izquierda
@@ -741,19 +945,39 @@ public class Main {
                     leftType = "INT";
                 } else if(val.type == 2){
                     leftType = "BOOLEAN";
-                } else if(val.type == 3 || val.type == 4){
-                    //buscar el tipo el la tabla de simbolos y asignarlo a leftType
-                } else {
+                } else if(val.type == 3){
+                    Object[] tuplita = tabla.buscarTupla((String)val.content, 0);
+                    if(tuplita != null){
+                        leftType = ((Tupla)tuplita[0]).type;
+                    }else{
+                        //Variable no encontrada;
+                        return false;
+                    }
+                }else if(val.type == 4){
+                    String tipo = verifyFuncCall((FuncCallNode)val.content);
+                    if(tipo.equals("ERROR")){
+                        return false;
+                    }else{
+                        leftType = tipo;
+                    }
+                } else if(val.type == 5){
+                    leftType = "CHAR";
+                }else{
                     return false;
                 }
-            }else if(boolNode.typeLeft == 2 &&){
+            }else if(boolNode.typeLeft == 2){
                 return false;
             }else if(boolNode.typeLeft == 3 && verifyMultTypes((MathMult)boolNode.leftChild)){
                 leftType = "INT";
             }else if(boolNode.typeLeft == 4 && verifySumTypes((MathSum)boolNode.leftChild)){
                 leftType = "INT";
             }else if(boolNode.typeLeft == 5){
-                //Buscar el tipo en la tabla de simbolos y asignarlo a leftType
+                String tipo = verifyFuncCall((FuncCallNode)boolNode.leftChild);
+                if(tipo.equals("ERROR")){
+                    return false;
+                }else{
+                    leftType = tipo;
+                }
             }else{
                 return false;
             }
@@ -765,9 +989,24 @@ public class Main {
                     rightType = "INT";
                 } else if(val.type == 2){
                     rightType = "BOOLEAN";
-                } else if(val.type == 3 || val.type == 4){
-                    //buscar el tipo el la tabla de simbolos y asignarlo a rightType
-                } else {
+                } else if(val.type == 3){
+                    Object[] tuplita = tabla.buscarTupla((String)val.content, 0);
+                    if(tuplita != null){
+                        rightType = ((Tupla)tuplita[0]).type;
+                    }else{
+                        //Variable no encontrada;
+                        return false;
+                    }
+                } else if (val.type == 4){
+                    String tipo = verifyFuncCall((FuncCallNode)val.content);
+                    if(tipo.equals("ERROR")){
+                        return false;
+                    }else{
+                        rightType = tipo;
+                    }                    
+                } else if(val.type == 5){
+                    rightType = "CHAR";
+                }else{
                     return false;
                 }
             }else if(boolNode.typeRight == 2){
@@ -777,7 +1016,12 @@ public class Main {
             }else if(boolNode.typeRight == 4 && verifySumTypes((MathSum)boolNode.rightChild)){
                 rightType = "INT";
             }else if(boolNode.typeRight == 5){
-                //Buscar el tipo en la tabla de simbolos y asignarlo a rightType
+                String tipo = verifyFuncCall((FuncCallNode)boolNode.rightChild);
+                if(tipo.equals("ERROR")){
+                    return false;
+                }else{
+                    rightType = tipo;
+                }
             }else{
                 return false;
             }
@@ -794,9 +1038,27 @@ public class Main {
                     leftType = "INT";
                 } else if(val.type == 2){
                     return false;
-                } else if(val.type == 3 || val.type == 4){
-                    //buscar el tipo el la tabla de simbolos y asignarlo a leftType
-                } else {
+                } else if(val.type == 3){
+                    Object[] tuplita = tabla.buscarTupla((String)val.content, 0);
+                    if(tuplita != null){
+                        leftType = ((Tupla)tuplita[0]).type;
+                        if(!leftType.equals("INT")){
+                            return false;
+                        }
+                    }else{
+                        //Variable no encontrada;
+                        return false;
+                    }
+                }else if(val.type == 4){
+                    String tipo = verifyFuncCall((FuncCallNode)val.content);
+                    if(!tipo.equals("INT")){
+                        return false;
+                    }else{
+                        leftType = tipo;
+                    }
+                } else if(val.type == 5){
+                    return false;
+                }else{
                     return false;
                 }
             }else if(boolNode.typeLeft == 2){
@@ -818,9 +1080,27 @@ public class Main {
                     rightType = "INT";
                 } else if(val.type == 2){
                     return false;
-                } else if(val.type == 3 || val.type == 4){
-                    //buscar el tipo el la tabla de simbolos y asignarlo a rightType
-                } else {
+                } else if(val.type == 3){
+                    Object[] tuplita = tabla.buscarTupla((String)val.content, 0);
+                    if(tuplita != null){
+                        rightType = ((Tupla)tuplita[0]).type;
+                        if(!rightType.equals("INT")){
+                            return false;
+                        }
+                    }else{
+                        //Variable no encontrada;
+                        return false;
+                    }
+                }else if(val.type == 4){
+                    String tipo = verifyFuncCall((FuncCallNode)val.content);
+                    if(!tipo.equals("INT")){
+                        return false;
+                    }else{
+                        rightType = tipo;
+                    }                    
+                } else if(val.type == 5){
+                    return false;
+                }else{
                     return false;
                 }
             }else if(boolNode.typeRight == 2){
@@ -866,9 +1146,30 @@ public class Main {
                 return false;
             }else if(val.type == 2){
                 checkLeft = true;
-            }else if(val.type == 3 || val.type == 4){
-                //buscar en la tabla el ID y compara los tipos
-            } else {
+            }else if(val.type == 3){                
+                Object[] tuplita = tabla.buscarTupla((String)val.content, 0);
+                if(tuplita != null){
+                    if(((Tupla)tuplita[0]).type.equals("BOOLEAN")){
+                        checkLeft = true;
+                    }else{
+                        checkLeft = false; 
+                    }
+                }else{
+                    //Variable no encontrada;
+                    checkLeft = false;
+                }
+            }else if(val.type == 4){
+                String tipo = verifyFuncCall((FuncCallNode)val.content);
+                if(tipo.equals("ERROR")){
+                    checkLeft = false;
+                }else if(tipo.equals("BOOLEAN")){
+                    checkLeft = true;
+                }else{
+                    checkLeft = false;
+                }                
+            } else if(val.type == 5){
+                return false;
+            }else{
                 return false;
             }
         } else if(boolNode.typeLeft == 2 && verifyBoolMathTypes((BoolMathNode)boolNode.leftChild)){
@@ -888,9 +1189,30 @@ public class Main {
                 return false;
             }else if(val.type == 2){
                 checkRight = true;
-            }else if(val.type == 3 || val.type == 4){
-                //buscar en la tabla el ID y compara los tipos
-            } else {
+            }else if(val.type == 3){
+                Object[] tuplita = tabla.buscarTupla((String)val.content, 0);
+                if(tuplita != null){
+                    if(((Tupla)tuplita[0]).type.equals("BOOLEAN")){
+                        checkRight = true;
+                    }else{
+                        checkRight = false; 
+                    }
+                }else{
+                    //Variable no encontrada;
+                    checkRight = false;
+                }
+            }else if(val.type == 4){
+                String tipo = verifyFuncCall((FuncCallNode)val.content);
+                if(tipo.equals("ERROR")){
+                    checkRight = false;
+                }else if(tipo.equals("BOOLEAN")){
+                    checkRight = true;
+                }else{
+                    checkRight = false;
+                }
+            } else if(val.type == 5){
+                checkRight = false;
+            }else{
                 checkRight = false;
             }
         } else if(boolNode.typeRight == 2 && verifyBoolMathTypes((BoolMathNode)boolNode.rightChild)){
@@ -929,9 +1251,30 @@ public class Main {
                 return false;
             }else if(val.type == 2){
                 checkLeft = true;
-            }else if(val.type == 3 || val.type == 4){
-                //buscar en la tabla el ID y compara los tipos
-            } else {
+            }else if(val.type == 3){
+                Object[] tuplita = tabla.buscarTupla((String)val.content, 0);
+                if(tuplita != null){
+                    if(((Tupla)tuplita[0]).type.equals("BOOLEAN")){
+                        checkLeft = true;
+                    }else{
+                        checkLeft = false; 
+                    }
+                }else{
+                    //Variable no encontrada;
+                    checkLeft = false;
+                }
+            } else if(val.type == 4){
+                String tipo = verifyFuncCall((FuncCallNode)val.content);
+                if(tipo.equals("ERROR")){
+                    checkLeft = false;
+                }else if(tipo.equals("BOOLEAN")){
+                    checkLeft = true;
+                }else{
+                    checkLeft = false;
+                }   
+            } else if(val.type == 5){
+                checkLeft = false;
+            }else{
                 checkLeft = false;
             }
         } else if(boolNode.typeLeft == 2 && verifyBoolOrTypes((BoolOrNode)boolNode.leftChild)){
@@ -953,9 +1296,30 @@ public class Main {
                 return false;
             }else if(val.type == 2){
                 checkRight = true;
-            }else if(val.type == 3 || val.type == 4){
-                //buscar en la tabla el ID y compara los tipos
-            } else {
+            }else if(val.type == 3){
+                Object[] tuplita = tabla.buscarTupla((String)val.content, 0);
+                if(tuplita != null){
+                    if(((Tupla)tuplita[0]).type.equals("BOOLEAN")){
+                        checkRight = true;
+                    }else{
+                        checkRight = false; 
+                    }
+                }else{
+                    //Variable no encontrada;
+                    checkRight = false;
+                }
+            } else if(val.type == 4){
+                String tipo = verifyFuncCall((FuncCallNode)val.content);
+                if(tipo.equals("ERROR")){
+                    checkRight = false;
+                }else if(tipo.equals("BOOLEAN")){
+                    checkRight = true;
+                }else{
+                    checkRight = false;
+                }   //buscar en la tabla el ID y compara los tipos
+            } else if(val.type == 5){
+                checkRight = false;
+            }else{
                 checkRight = false;
             }
         } else if(boolNode.typeRight == 2 && verifyBoolOrTypes((BoolOrNode)boolNode.rightChild)){

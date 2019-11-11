@@ -2,7 +2,7 @@ package arbol;
 
 import java.io.Serializable;
 
-public class MathSum implements Serializable{
+public class MathSum extends Node implements Serializable{
 
   final int VALUE = 1;
   final int MATHNODE = 2;
@@ -16,7 +16,9 @@ public class MathSum implements Serializable{
   public int typeLeft;
   public int typeRight;
 
-  public MathSum(Object leftChild, String operator, Object rightChild){
+  public MathSum(Object leftChild, String operator, Object rightChild, int fila, int columna){
+    super(fila,columna);
+
     this.leftChild = leftChild;
     this.operator = operator;
     this.rightChild = rightChild;

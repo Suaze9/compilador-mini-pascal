@@ -3,7 +3,7 @@ package arbol;
 import java.util.ArrayList;
 import java.io.Serializable;
 
-public class ProgramNode implements Serializable{
+public class ProgramNode extends Node implements Serializable{
   final int DECLNODE = 1;
   final int DECLARRAY = 2;
   final int DECLNULL = 3;
@@ -23,7 +23,9 @@ public class ProgramNode implements Serializable{
   public int declarationType;
   public int recordType;
 
-  public ProgramNode(Value id, ArrayList<RecordNode> records, Object declarations, ArrayList<Object> functions, ArrayList<Object> statements){
+  public ProgramNode(Value id, ArrayList<RecordNode> records, Object declarations, ArrayList<Object> functions, ArrayList<Object> statements, int fila, int columna){
+    super(fila,columna);
+    
     this.id = id;
     this.records = records;
     this.declarations = declarations;

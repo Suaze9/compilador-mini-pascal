@@ -2,10 +2,11 @@ package arbol;
 
 import java.io.Serializable;
 
-public class ReadNode implements Serializable{
-  Value id;
+public class ReadNode extends Node implements Serializable{
+  public Value id;
 
-  public ReadNode(Value id){
+  public ReadNode(Value id, int fila, int columna){
+    super(fila,columna);
     this.id = id;
   }
 

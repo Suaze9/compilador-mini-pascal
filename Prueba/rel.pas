@@ -26,7 +26,7 @@ end;
 begin
   a := 10;
   b := 20;
-  c := 15;
+  c := 40;
   d := 30;
   f := true;
 
@@ -38,7 +38,7 @@ begin
       c := c + 1;
       d := d - 1;
       end;
-    until ( 2 + 3 > a + 2 or nada())
+    until ( 2 + 3 > a + 2 or true)
   end;
 
 end;

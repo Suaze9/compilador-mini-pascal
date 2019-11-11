@@ -2,7 +2,7 @@ package arbol;
 
 import java.io.Serializable;
 
-public class BoolOrNode implements Serializable extends Node{
+public class BoolOrNode extends Node implements Serializable{
   final int VALUE = 1;
   final int BOOLOR = 2;
   final int BOOLAND = 3;

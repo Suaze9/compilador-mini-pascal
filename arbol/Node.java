@@ -1,6 +1,7 @@
 package arbol;
+import java.io.Serializable;
 
-public class Node{
+public class Node implements Serializable{
     public int fila;
     public int columna;
 

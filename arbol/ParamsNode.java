@@ -3,17 +3,18 @@ package arbol;
 import java.util.ArrayList;
 import java.io.Serializable;
 
-public class ParamsNode implements Serializable{
-  ArrayList<Value> ids;
-  String type;
+public class ParamsNode extends Node implements Serializable{
+  public ArrayList<Value> ids;
+  public String type;
 
-  public ParamsNode(String type){
+  public ParamsNode(String type, int fila, int columna){
+    super(fila,columna);
     this.ids = new ArrayList<Value>();
     this.type = type;
   }
 
-  public void push(String id){
-    Value v = new Value(id);
+  public void push(String id, int fila, int columna){
+    Value v = new Value(id, fila, columna);
     ids.add(0,v);
   }
 

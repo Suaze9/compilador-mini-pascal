@@ -2,20 +2,22 @@ package arbol;
 
 import java.io.Serializable;
 
-public class WriteNode implements Serializable{
+public class WriteNode extends Node implements Serializable{
   final int STR = 1;
   final int STRID = 2;
 
-  String conststr;
-  Value id;
-  int type;
+  public String conststr;
+  public Value id;
+  public int type;
 
-  public WriteNode(String conststr){
+  public WriteNode(String conststr, int fila, int columna){
+    super(fila,columna);
     this.conststr = conststr;
     this.type = STR;
   }
 
-  public WriteNode(String conststr, Value id){
+  public WriteNode(String conststr, Value id, int fila, int columna){
+    super(fila,columna);
     this.conststr = conststr;
     this.id = id;
     this.type = STRID;

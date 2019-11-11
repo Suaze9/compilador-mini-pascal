@@ -18,8 +18,8 @@ parser code {:
     @Override
     public Symbol scan() throws java.lang.Exception{
         Symbol sym = getScanner().next_token();
-        fila = sym.right;
-        columna = sym.left;
+        fila = sym.left + 1;
+        columna = sym.right + 1;
         return sym;
     }
         
@@ -35,7 +35,7 @@ parser code {:
 	public void syntax_error(Symbol s){
         System.err.println("\nError Sintactico: " ); 
         expected();
-        System.err.println("      pero se encontro el token \'" + sym.terminalNames[s.sym] + "\' en la Linea: " + (s.left + 1) + ", Columna: " + (s.right + 1) + ". \n" ); 
+        System.err.println("\tpero se encontro el token \'" + sym.terminalNames[s.sym] + "\'\n\tLinea: " + (s.left + 1) + "\tColumna: " + (s.right + 1) + "\n" ); 
         errorFlag = true;
 	}
 
@@ -57,7 +57,7 @@ parser code {:
                     expected_tokens += terminal_name + " , ";
                 }
         }
-        System.err.println("      Se esperaba uno de los siguientes tokens: [" + expected_tokens + "] ");
+        System.err.println("\tSe esperaba uno de los siguientes tokens: [" + expected_tokens + "] ");
     }
 
     public void report_fatal_error(String message, Object info) {
@@ -120,13 +120,13 @@ precedence left error;
 precedence left ELSE;
 
 program ::= PROGRAM ID:i typelistrec:tlr multmultdecl:d funclist:fl BEGIN statementlist:sl END SEMCOLON {:
-    Value v = new Value((String)i);
-    ProgramNode root = new ProgramNode(v, (ArrayList<RecordNode>)tlr, d,(ArrayList<Object>)fl,(ArrayList<Object>)sl);
+    Value v = new Value((String)i, fila, columna);
+    ProgramNode root = new ProgramNode(v, (ArrayList<RecordNode>)tlr, d,(ArrayList<Object>)fl,(ArrayList<Object>)sl, fila, columna);
     if(!errorFlag){
         String json = root.printNode(0);
         JSONParser parser = new JSONParser();
         JSONObject obj = (JSONObject)parser.parse(json);
-        System.out.println("\nJson Arbol: \n\n" + obj.toString());
+        //System.out.println("\nJson Arbol: \n\n" + obj.toString());
         try (ObjectOutputStream writer = new ObjectOutputStream(new FileOutputStream("../Semantico/arbolito.bebe"))) {
             writer.writeObject(root);
         }
@@ -160,22 +160,22 @@ funclist := ArrayList<Object>
 */
 
 procedure ::= PROCEDURE ID:i PARIZQ params:p multmultdecl:d BEGIN statementlist:s END SEMCOLON {:
-    Value v = new Value((String)i);
+    Value v = new Value((String)i, fila, columna);
     if(d != null){
-        RESULT = new ProcedureNode(v,(ArrayList<ParamsNode>)p,d,(ArrayList<Object>)s);
+        RESULT = new ProcedureNode(v,(ArrayList<ParamsNode>)p,d,(ArrayList<Object>)s, fila, columna);
     }else{
         ArrayList<Object> declarations = new ArrayList<Object>();
-        RESULT = new ProcedureNode(v,(ArrayList<ParamsNode>)p,declarations,(ArrayList<Object>)s);
+        RESULT = new ProcedureNode(v,(ArrayList<ParamsNode>)p,declarations,(ArrayList<Object>)s, fila, columna);
     }
 :}
     | PROCEDURE ID:i PARIZQ PARDER multmultdecl:d BEGIN statementlist:s END SEMCOLON {:
-        Value v = new Value((String)i);
+        Value v = new Value((String)i, fila, columna);
         ArrayList<ParamsNode> params = new ArrayList<ParamsNode>();
         if(d != null){
-            RESULT = new ProcedureNode(v,params,d,(ArrayList<Object>)s);
+            RESULT = new ProcedureNode(v,params,d,(ArrayList<Object>)s, fila, columna);
         }else{
             ArrayList<Object> declarations = new ArrayList<Object>();
-            RESULT = new ProcedureNode(v,params,declarations,(ArrayList<Object>)s);
+            RESULT = new ProcedureNode(v,params,declarations,(ArrayList<Object>)s, fila, columna);
         }   
     :}
     | PROCEDURE ID:i PARIZQ error multmultdecl:d BEGIN statementlist:s END SEMCOLON
@@ -193,22 +193,22 @@ procedure ::= PROCEDURE ID:i PARIZQ params:p multmultdecl:d BEGIN statementlist:
 */
 
 function ::= FUNCTION ID:i PARIZQ params:p COLON type:t multmultdecl:d BEGIN statementlist:s END SEMCOLON {:
-    Value v = new Value((String)i);
+    Value v = new Value((String)i, fila, columna);
     if(d != null){
-        RESULT = new FunctionNode(v,(ArrayList<ParamsNode>)p,d,(ArrayList<Object>)s,(String)t);
+        RESULT = new FunctionNode(v,(ArrayList<ParamsNode>)p,d,(ArrayList<Object>)s,(String)t, fila, columna);
     }else{
         ArrayList<DeclNode> declarations = new ArrayList<DeclNode>();
-        RESULT = new FunctionNode(v,(ArrayList<ParamsNode>)p,declarations,(ArrayList<Object>)s,(String)t);
+        RESULT = new FunctionNode(v,(ArrayList<ParamsNode>)p,declarations,(ArrayList<Object>)s,(String)t, fila, columna);
     }
 :}
     | FUNCTION ID:i PARIZQ PARDER COLON type:t multmultdecl:d BEGIN statementlist:s END SEMCOLON {:
-        Value v = new Value((String)i);
+        Value v = new Value((String)i, fila, columna);
         ArrayList<ParamsNode> params = new ArrayList<ParamsNode>();
         if(d != null){
-            RESULT = new FunctionNode(v,params,d,(ArrayList<Object>)s,(String)t);
+            RESULT = new FunctionNode(v,params,d,(ArrayList<Object>)s,(String)t, fila, columna);
         }else{
             ArrayList<DeclNode> declarations = new ArrayList<DeclNode>();
-            RESULT = new FunctionNode(v,params,declarations,(ArrayList<Object>)s,(String)t); 
+            RESULT = new FunctionNode(v,params,declarations,(ArrayList<Object>)s,(String)t, fila, columna); 
 
         }
     :}
@@ -230,9 +230,9 @@ function ::= FUNCTION ID:i PARIZQ params:p COLON type:t multmultdecl:d BEGIN sta
 
 
 funccall ::= ID:i PARIZQ attr:at{:
-    RESULT = new FuncCallNode(new Value((String)i),(ArrayList<Object>)at);
+    RESULT = new FuncCallNode(new Value((String)i, fila, columna),(ArrayList<Object>)at, fila, columna);
 :}
-| ID:i PARIZQ PARDER {:RESULT = new FuncCallNode(new Value((String)i),new ArrayList<Object>());:};
+| ID:i PARIZQ PARDER {:RESULT = new FuncCallNode(new Value((String)i, fila, columna),new ArrayList<Object>(), fila, columna);:};
 
 //excelente 糞 <- mire, ahí ta
 /*
@@ -248,32 +248,32 @@ funccall ::= ID:i PARIZQ attr:at{:
 
 attr ::= rel:r COMA attr:a {:
     ArrayList<AttrNode> attrlst = (ArrayList<AttrNode>) a;
-    attrlst.add(0, new AttrNode( r ));
+    attrlst.add(0, new AttrNode( r , fila, columna));
     RESULT = attrlst;
 :}
 | CONSTCHAR:cc COMA attr:a {:
     ArrayList<AttrNode> attrlst = (ArrayList<AttrNode>) a;
-    attrlst.add(0, new AttrNode(new Character( ((String) cc).charAt(0) ) ));
+    attrlst.add(0, new AttrNode(new Character( ((String) cc).charAt(0)) , fila, columna));
     RESULT = attrlst;
 :}
 | CONSTSTR:cc COMA attr:a {:
     ArrayList<AttrNode> attrlst = (ArrayList<AttrNode>) a;
-    attrlst.add(0, new AttrNode( (String)cc ));
+    attrlst.add(0, new AttrNode( (String)cc , fila, columna));
     RESULT = attrlst;
 :}
 | rel:r PARDER {:
     ArrayList<AttrNode> attrlst = new ArrayList<AttrNode>();
-    attrlst.add(0, new AttrNode( r ));
+    attrlst.add(0, new AttrNode( r , fila, columna));
     RESULT = attrlst;
 :}
 | CONSTCHAR:cc PARDER{:
     ArrayList<AttrNode> attrlst = new ArrayList<AttrNode>();
-    attrlst.add(0, new AttrNode(new Character( ((String) cc).charAt(0) ) ));
+    attrlst.add(0, new AttrNode(new Character( ((String) cc).charAt(0) ) , fila, columna));
     RESULT = attrlst;
 :}
 | CONSTSTR:cc PARDER{:
     ArrayList<AttrNode> attrlst = new ArrayList<AttrNode>();
-    attrlst.add(0, new AttrNode( (String)cc ));
+    attrlst.add(0, new AttrNode( (String)cc , fila, columna));
     RESULT = attrlst;
 :}
 | rel error attr:a
@@ -297,19 +297,19 @@ attr := ArrayList <AttrNode>
 
 params ::= ID:i COMA params:p {:
     ArrayList<ParamsNode> paramlst = (ArrayList<ParamsNode>)p;
-    paramlst.get(0).push( (String)i );
+    paramlst.get(0).push( (String)i , fila, columna);
     RESULT = paramlst;
 :}
 | ID:i COLON type:t COMA params:p {:
     ArrayList<ParamsNode> paramlst = (ArrayList<ParamsNode>)p;
-    paramlst.add( 0, new ParamsNode( (String)t ) );
-    paramlst.get(0).push( (String)i );
+    paramlst.add( 0, new ParamsNode( (String)t , fila, columna) );
+    paramlst.get(0).push( (String)i , fila, columna);
     RESULT = paramlst;
 :}
 | ID:i COLON type:t PARDER {:
     ArrayList<ParamsNode> paramlst = new ArrayList<ParamsNode>();
-    paramlst.add( new ParamsNode( (String)t ) );
-    paramlst.get(0).push( (String)i );
+    paramlst.add( new ParamsNode( (String)t , fila, columna) );
+    paramlst.get(0).push( (String)i , fila, columna);
     RESULT = paramlst;
 :}
 | error COMA params:p
@@ -394,21 +394,21 @@ statement := ArrayList<Object>
 */
 
 if ::= IF rel:r THEN sinmultstatement:sl {:
-    RESULT = new IfNode(r,(ArrayList<Object>)sl);
+    RESULT = new IfNode(r,(ArrayList<Object>)sl, fila, columna);
 :}
 | IF rel:r THEN sinmultstatement:sl ELSE sinmultstatement:s {:
-        RESULT = new IfNode(r,(ArrayList<Object>)sl,(ArrayList<Object>)s);
+        RESULT = new IfNode(r,(ArrayList<Object>)sl,(ArrayList<Object>)s, fila, columna);
     :}
 | IF rel:r error sinmultstatement:sl;
 
 while ::= WHILE rel:r DO sinmultstatement:sl {:
-    RESULT = new WhileNode(r,(ArrayList<Object>)sl);
+    RESULT = new WhileNode(r,(ArrayList<Object>)sl, fila, columna);
 :}
 | WHILE rel:r error sinmultstatement:sl;
 
 for ::= FOR ID:i ASSIG math:ma TO math:ml DO sinmultstatement:sl {:
-    AssigNode assig = new AssigNode(new Value((String)i),ma);
-    RESULT = new ForNode(assig, ml, (ArrayList<Object>)sl);    
+    AssigNode assig = new AssigNode(new Value((String)i, fila, columna),ma, fila, columna);
+    RESULT = new ForNode(assig, ml, (ArrayList<Object>)sl, fila, columna);    
 :}
 | FOR error ASSIG math:ma TO math:ml DO sinmultstatement:sl
 | FOR ID:i error math:ma TO math:ml DO sinmultstatement:sl
@@ -416,7 +416,7 @@ for ::= FOR ID:i ASSIG math:ma TO math:ml DO sinmultstatement:sl {:
 | FOR ID:i ASSIG math:ma TO math:ml error sinmultstatement:sl;
 
 repeat ::= REPEAT sinmultstatement:sl UNTIL rel:r {:
-    RESULT = new RepeatNode((ArrayList<Object>)sl,r);
+    RESULT = new RepeatNode((ArrayList<Object>)sl,r, fila, columna);
 :}
 | REPEAT sinmultstatement:sl error rel:r;
 
@@ -452,16 +452,16 @@ repeat := RepeatNode
 */
 
 read ::= READ PARIZQ ID:i PARDER {:
-    RESULT = new ReadNode(new Value((String)i));
+    RESULT = new ReadNode(new Value((String)i, fila, columna), fila, columna);
 :}
 | READ error ID:i PARDER
 | READ PARIZQ error PARDER;
 
 write ::= WRITE PARIZQ CONSTSTR:s PARDER {:
-        RESULT = new WriteNode((String)s);
+        RESULT = new WriteNode((String)s, fila, columna);
     :}
 | WRITE PARIZQ CONSTSTR:s COMA ID:id PARDER {:
-        RESULT = new WriteNode((String)s, new Value((String)id));
+        RESULT = new WriteNode((String)s, new Value((String)id, fila, columna), fila, columna);
     :}
 | WRITE error CONSTSTR:s PARDER
 | WRITE error CONSTSTR:s COMA ID:id PARDER
@@ -484,17 +484,17 @@ write := WriteNode
 */
 
 decl ::= ID:i multdecl:m{:
-    ((DeclNode)m).push((String)i);
+    ((DeclNode)m).push((String)i, fila, columna);
     RESULT = (DeclNode)m;
 :};
 
 multdecl ::= COMA ID:i multdecl:m {:
-    ((DeclNode)m).push((String)i);
+    ((DeclNode)m).push((String)i, fila, columna);
     DeclNode retVal = (DeclNode)m;
     RESULT = retVal;
 :}
 | COLON type:t SEMCOLON {:
-    RESULT = new DeclNode((String) t);
+    RESULT = new DeclNode((String) t, fila, columna);
 :};
 
 typelistrec ::= TYPE recordlst:r END SEMCOLON {:
@@ -516,7 +516,7 @@ recordlst ::= records:r recordlst:rl {:
 :};
 
 records ::= ID:id ASSIG RECORD BEGIN multmultdeclrec:mmd END SEMCOLON {:
-    RESULT = new RecordNode((String) id, (ArrayList<DeclNode>)mmd);
+    RESULT = new RecordNode((String) id, (ArrayList<DeclNode>)mmd, fila, columna);
 :};
 
 multmultdeclrec ::= multmultdeclrec:mmd decl:d {:
@@ -580,13 +580,10 @@ multmultdecl := DeclNode | ArrayList<DeclNode> | null
 
 
 assig ::= ID:i ASSIG CONSTSTR:cs {:
-        RESULT = new AssigNode(new Value((String)i),(String)cs);
-    :}
-    | ID:i ASSIG CONSTCHAR:cc {:
-        RESULT = new AssigNode(new Value((String)i),new Character(cc.charAt(1)));
+        RESULT = new AssigNode(new Value((String)i, fila, columna),(String)cs, fila, columna);
     :}
     | ID:i ASSIG rel:r {:
-        RESULT = new AssigNode(new Value((String)i),r);
+        RESULT = new AssigNode(new Value((String)i, fila, columna),r, fila, columna);
     :};
 
 /*
@@ -599,12 +596,12 @@ assig := AssigNode
 */
 
 math ::= sum:s {:
-    RESULT = new MathNode(s);
+    RESULT = new MathNode(s, fila, columna);
 :};
 
 sum ::= sum:s OPSUM:o mult:m {:
     //System.out.print("llego a sum");
-    RESULT = new MathSum(s, (String)o, m);
+    RESULT = new MathSum(s, (String)o, m, fila, columna);
 :} 
 | mult:m {:
     RESULT = m;
@@ -641,7 +638,7 @@ math := Value | MathNode | MathMult | MathSum
 
 
 mult ::= mult:m OPMULT:o num:n {:
-    RESULT = new MathMult(m,(String)o,n);
+    RESULT = new MathMult(m,(String)o,n, fila, columna);
 
 :}
 | num:n {:
@@ -649,22 +646,21 @@ mult ::= mult:m OPMULT:o num:n {:
 :};
 
 num ::= NUMS:n {:
-    RESULT = new Value(new Integer((String)n));
+    RESULT = new Value(new Integer((String)n), fila, columna);
 :}  
-| PARIZQ math:m PARDER {:
+| CONSTCHAR:cc {:
+    RESULT = new Value(new Character(((String)cc).charAt(0)), fila, columna);
+:}
+| PARIZQ sum:m PARDER {:
     //////////////// AQUI SE DEBE VER QUE RETORNA MATH, SI ES UN MathNode RETORNAR MISMO MATHNODE, SINO, CREAR UN NUEVO MathNode DANDO COMO PARAMETRO m ////////////////
-    if(m instanceof MathNode){
-        RESULT = m;
-    }else{
-        RESULT = new MathNode(m);
-    }
+    RESULT = m;
 :}
 | ID:i {:
     // ID 
-    RESULT = new Value((String)i);
+    RESULT = new Value((String)i, fila, columna);
 :}
 | funccall:fc {:
-    RESULT = new Value((FuncCallNode)fc);
+    RESULT = new Value((FuncCallNode)fc, fila, columna);
 :};
 
 /*
@@ -709,27 +705,27 @@ rel ::= boolor:b {:
 :};
 
 boolor ::= boolor:r OPOR booland:b {:
-    RESULT = new BoolOrNode(r,"OR",b);
+    RESULT = new BoolOrNode(r,"OR",b, fila, columna);
 :}
 | booland:b {:
     RESULT = b;
 :};
 
 booland ::= booland:br OPAND bool:bl {:
-    RESULT = new BoolAndNode(br, "AND", bl);
+    RESULT = new BoolAndNode(br, "AND", bl, fila, columna);
 :}
 | bool:b {:
     RESULT = b;
 :};
 
 bool ::= TRUE {:
-    RESULT = new Value(new Boolean(true));
+    RESULT = new Value(new Boolean(true), fila, columna);
 :} 
 | FALSE {:
-    RESULT = new Value(new Boolean(false));
+    RESULT = new Value(new Boolean(false), fila, columna);
 :}
 | NOT bool:b {:
-    RESULT = new Value(b, true);
+    RESULT = new Value(b, true, fila, columna);
 :}
 | PARIZQ rel:r PARDER {:
     RESULT = r;
@@ -740,9 +736,9 @@ bool ::= TRUE {:
 | error;
 
 boolmath ::= sum:b OPREL:o sum:m{:
-    RESULT = new BoolMathNode(b, (String)o, m);
+    RESULT = new BoolMathNode(b, (String)o, m, fila, columna);
     //<>|=|>|<|>=|<=
 :}
-| math:m {:
-    RESULT = ((MathNode)m).content;
+| sum:m {:
+    RESULT = m;
 :};

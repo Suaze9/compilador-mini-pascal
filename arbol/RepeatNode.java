@@ -3,7 +3,7 @@ package arbol;
 import java.util.ArrayList;
 import java.io.Serializable;
 
-public class RepeatNode implements Serializable{
+public class RepeatNode extends Node implements Serializable{
   final int VALUE = 1;
   final int BOOL = 2;
   final int BOOLMATH = 3;
@@ -18,7 +18,9 @@ public class RepeatNode implements Serializable{
   public Object condition;
   public int conditionType;
 
-  public RepeatNode(ArrayList<Object> statements, Object condition){
+  public RepeatNode(ArrayList<Object> statements, Object condition, int fila, int columna){
+    super(fila, columna);
+
     this.statements = statements;
     this.condition = condition;
 

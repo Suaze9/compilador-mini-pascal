@@ -3,18 +3,20 @@ package arbol;
 import java.util.ArrayList;
 import java.io.Serializable;
 
-public class ProcedureNode implements Serializable{
+public class ProcedureNode extends Node implements Serializable{
   final int DECLNODE = 1;
   final int DECLARRAY = 2;
   
-  Value id;
-  ArrayList<ParamsNode> params; 
-  Object declarations; //   DeclNode | ArrayList<DeclNode>
-  ArrayList<Object> statements;
+  public Value id;
+  public ArrayList<ParamsNode> params; 
+  public Object declarations; //   DeclNode | ArrayList<DeclNode>
+  public ArrayList<Object> statements;
 
-  int type;
+  public int type;
 
-  public ProcedureNode(Value id,ArrayList<ParamsNode> params, Object declarations, ArrayList<Object> statements){
+  public ProcedureNode(Value id,ArrayList<ParamsNode> params, Object declarations, ArrayList<Object> statements, int fila, int columna){
+    super(fila, columna);
+    
     this.id = id;
     this.params = params;
     this.declarations = declarations;

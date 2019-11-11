@@ -3,17 +3,18 @@ package arbol;
 import java.util.ArrayList;
 import java.io.Serializable;
 
-public class DeclNode implements Serializable{
+public class DeclNode extends Node implements Serializable{
   public ArrayList<Value> ids; //ArrayList de todos los ids
   public String type;
 
-  public DeclNode(String type){
+  public DeclNode(String type, int fila, int columna){
+    super(fila,columna);
     this.type = type;
     this.ids = new ArrayList<Value>();
   }
 
-  public void push(String id){
-    ids.add(0, new Value(id));
+  public void push(String id, int fila, int columna){
+    ids.add(0, new Value(id, fila, columna));
   }
 
   public String printNode(int depth){

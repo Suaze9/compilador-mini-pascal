@@ -3,15 +3,17 @@ package arbol;
 import java.util.ArrayList;
 import java.io.Serializable;
 
-public class FuncCallNode implements Serializable{
+public class FuncCallNode extends Node implements Serializable{
 
 
-  Value id;
-  ArrayList<Object> args;
+  public Value id;
+  public ArrayList<Object> args;
 
   //Puede recibir MathNode, BoolNode, conststr, constchar
 
-  public FuncCallNode(Value id, ArrayList<Object> args){
+  public FuncCallNode(Value id, ArrayList<Object> args, int fila, int columna){
+    super(fila,columna);
+
     this.id = id;
     this.args = args;
   }
