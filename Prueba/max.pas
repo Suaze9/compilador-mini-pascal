@@ -38,14 +38,14 @@ begin
       result := num2 - 4 / b;
    end;
    else
-      result := num2;
+      result := maxa(a);
    max := result;
 end;
 
 begin
    a := 100;
    b := 'a';
-   ret := max(a, b);
+   ret := max(' ', '   ', c, 1+2, 5<7, a AND b, a or c);
    
    write( 'Max value is : ', ret );
 end;

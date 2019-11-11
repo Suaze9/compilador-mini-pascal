@@ -5,15 +5,15 @@ import java.io.Serializable;
 
 public class ForNode implements Serializable{
   final int VALUE = 1;
-  final int MATH = 2;
-  final int MULT = 3;
-  final int SUM = 4;
+  final int MATH = 6;
+  final int MULT = 7;
+  final int SUM = 8;
   
-  AssigNode assig;
-  Object condition;
-  ArrayList<Object> statements;
+  public AssigNode assig;
+  public Object condition;
+  public ArrayList<Object> statements;
 
-  int conditionType;
+  public int conditionType;
 
   public ForNode(AssigNode assig, Object condition, ArrayList<Object> statements){
     this.assig = assig;

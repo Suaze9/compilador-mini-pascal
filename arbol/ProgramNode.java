@@ -14,14 +14,14 @@ public class ProgramNode implements Serializable{
   final int RECORDS = 5;
   final int RECNULL = 6;
     
-  Value id;
-  ArrayList<RecordNode> records;
-  Object declarations;
-  ArrayList<Object> functions;
-  ArrayList<Object> statements;
+  public Value id;
+  public ArrayList<RecordNode> records;
+  public Object declarations;
+  public ArrayList<Object> functions;
+  public ArrayList<Object> statements;
 
-  int declarationType;
-  int recordType;
+  public int declarationType;
+  public int recordType;
 
   public ProgramNode(Value id, ArrayList<RecordNode> records, Object declarations, ArrayList<Object> functions, ArrayList<Object> statements){
     this.id = id;

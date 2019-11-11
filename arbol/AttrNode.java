@@ -61,11 +61,11 @@ public class AttrNode implements Serializable{
     switch(this.type){
         case STR:
             json += "\"String\": ";
-            json += (String)this.attr;
+            json += "\"" + (String)this.attr + "\"";
             break;
         case CHAR:
             json += "\"Char\": ";
-            json += (Character)this.attr;
+            json += "\"" + (Character)this.attr + "\"";
             break;
         case VALUE:
             json += "\"Value\": ";

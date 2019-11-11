@@ -715,6 +715,17 @@ public class parser extends java_cup.runtime.lr_parser {
 
 
     boolean errorFlag = false;
+
+    int fila;
+    int columna;
+
+    @Override
+    public Symbol scan() throws java.lang.Exception{
+        Symbol sym = getScanner().next_token();
+        fila = sym.right;
+        columna = sym.left;
+        return sym;
+    }
         
     @Override
 	public void report_error(String message, Object info) {
@@ -1082,7 +1093,7 @@ class CUP$parser$actions {
     if(d != null){
         RESULT = new FunctionNode(v,(ArrayList<ParamsNode>)p,d,(ArrayList<Object>)s,(String)t);
     }else{
-        ArrayList<Object> declarations = new ArrayList<Object>();
+        ArrayList<DeclNode> declarations = new ArrayList<DeclNode>();
         RESULT = new FunctionNode(v,(ArrayList<ParamsNode>)p,declarations,(ArrayList<Object>)s,(String)t);
     }
 
@@ -1112,7 +1123,7 @@ class CUP$parser$actions {
         if(d != null){
             RESULT = new FunctionNode(v,params,d,(ArrayList<Object>)s,(String)t);
         }else{
-            ArrayList<Object> declarations = new ArrayList<Object>();
+            ArrayList<DeclNode> declarations = new ArrayList<DeclNode>();
             RESULT = new FunctionNode(v,params,declarations,(ArrayList<Object>)s,(String)t); 
 
         }
@@ -2297,7 +2308,9 @@ class CUP$parser$actions {
 		int dright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		Object d = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
-    RESULT = (DeclNode)d;
+    ArrayList<DeclNode> declarations = new ArrayList<DeclNode>();
+    declarations.add((DeclNode)d);
+    RESULT = declarations;
 
               CUP$parser$result = parser.getSymbolFactory().newSymbol("multmultdecl",4, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-1)), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }

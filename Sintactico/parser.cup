@@ -11,6 +11,17 @@ import arbol.*;
 parser code {:
 
     boolean errorFlag = false;
+
+    int fila;
+    int columna;
+
+    @Override
+    public Symbol scan() throws java.lang.Exception{
+        Symbol sym = getScanner().next_token();
+        fila = sym.right;
+        columna = sym.left;
+        return sym;
+    }
         
     @Override
 	public void report_error(String message, Object info) {
@@ -186,7 +197,7 @@ function ::= FUNCTION ID:i PARIZQ params:p COLON type:t multmultdecl:d BEGIN sta
     if(d != null){
         RESULT = new FunctionNode(v,(ArrayList<ParamsNode>)p,d,(ArrayList<Object>)s,(String)t);
     }else{
-        ArrayList<Object> declarations = new ArrayList<Object>();
+        ArrayList<DeclNode> declarations = new ArrayList<DeclNode>();
         RESULT = new FunctionNode(v,(ArrayList<ParamsNode>)p,declarations,(ArrayList<Object>)s,(String)t);
     }
 :}
@@ -196,7 +207,7 @@ function ::= FUNCTION ID:i PARIZQ params:p COLON type:t multmultdecl:d BEGIN sta
         if(d != null){
             RESULT = new FunctionNode(v,params,d,(ArrayList<Object>)s,(String)t);
         }else{
-            ArrayList<Object> declarations = new ArrayList<Object>();
+            ArrayList<DeclNode> declarations = new ArrayList<DeclNode>();
             RESULT = new FunctionNode(v,params,declarations,(ArrayList<Object>)s,(String)t); 
 
         }
@@ -545,7 +556,9 @@ multmultdecl ::= multmultdecl:mmd decl:d {:
     }
 :}
 | VAR decl:d {:
-    RESULT = (DeclNode)d;
+    ArrayList<DeclNode> declarations = new ArrayList<DeclNode>();
+    declarations.add((DeclNode)d);
+    RESULT = declarations;
 :}
 | {:
     RESULT = null;

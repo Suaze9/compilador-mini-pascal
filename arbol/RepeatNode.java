@@ -14,9 +14,9 @@ public class RepeatNode implements Serializable{
   final int MULT = 7;
   final int SUM = 8;
 
-  ArrayList<Object> statements;
-  Object condition;
-  int conditionType;
+  public ArrayList<Object> statements;
+  public Object condition;
+  public int conditionType;
 
   public RepeatNode(ArrayList<Object> statements, Object condition){
     this.statements = statements;

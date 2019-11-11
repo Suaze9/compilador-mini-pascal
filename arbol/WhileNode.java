@@ -14,9 +14,9 @@ public class WhileNode implements Serializable{
   final int MULT = 7;
   final int SUM = 8;
 
-  Object condition;
-  ArrayList<Object> statements;
-  int conditionType;
+  public Object condition;
+  public ArrayList<Object> statements;
+  public int conditionType;
 
   public WhileNode(Object condition, ArrayList<Object> statements){
     this.condition = condition;

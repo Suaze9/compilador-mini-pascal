@@ -17,6 +17,6 @@ public class Tupla{
     }
 
     public void printTupla(){
-        System.out.print(this.id + " | " + this.type + " | " + this.offset);
+        System.out.print(this.id + "\t\t|\t\t" + this.type + "\t\t|\t\t" + this.offset);
     }
 }

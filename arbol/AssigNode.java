@@ -3,8 +3,7 @@ package arbol;
 import java.util.ArrayList;
 import java.io.Serializable;
 
-
-public class AssigNode implements Serializable{
+public class AssigNode extends Node implements Serializable{
 
   final int STR = 1;
   final int CHR = 2;
@@ -21,7 +20,10 @@ public class AssigNode implements Serializable{
   public Object expr;
   public int type;
 
-  public AssigNode(Value Id, Object expr){
+  public AssigNode(Value Id, Object expr, int fila, int columna){
+
+    super(fila, columna);
+
     this.Id = Id;
     this.expr = expr;
 

@@ -17,11 +17,11 @@ public class IfNode implements Serializable{
   final int SIMPLEIF = 1;
   final int IFELSE = 2;
 
-  Object condition;
-  ArrayList<Object> ifStatements;
-  ArrayList<Object> elseStatements;
-  int ifType;
-  int conditionType;
+  public Object condition;
+  public ArrayList<Object> ifStatements;
+  public ArrayList<Object> elseStatements;
+  public int ifType;
+  public int conditionType;
 
   public IfNode(Object condition, ArrayList<Object> ifStatements){
     this.condition = condition;
