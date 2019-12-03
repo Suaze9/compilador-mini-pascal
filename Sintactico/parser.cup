@@ -84,7 +84,7 @@ terminal PROGRAM, FUNCTION, PROCEDURE, DO, VAR, TYPE, BEGIN, END, FOR,
     FALSE, PARIZQ, READ, WRITE,
     PARDER, OPSUM, OPMULT, OPAND, OPOR, OPREL, ASSIG,
     COLON, INT, CHAR, BOOLEAN, RECORD, STRING, THEN,
-    TO, UNTIL, ID, COMA, SEMCOLON, NOT;
+    TO, UNTIL, ID, COMA, PERIOD, SEMCOLON, NOT;
         
 non terminal Object math, sum, num;
 non terminal Object mult;         //Math multiplication operations
@@ -126,7 +126,7 @@ program ::= PROGRAM ID:i typelistrec:tlr multmultdecl:d funclist:fl BEGIN statem
         String json = root.printNode(0);
         JSONParser parser = new JSONParser();
         JSONObject obj = (JSONObject)parser.parse(json);
-        //System.out.println("\nJson Arbol: \n\n" + obj.toString());
+        System.out.println("\nJson Arbol: \n\n" + obj.toString());
         try (ObjectOutputStream writer = new ObjectOutputStream(new FileOutputStream("../Semantico/arbolito.bebe"))) {
             writer.writeObject(root);
         }
@@ -454,6 +454,10 @@ repeat := RepeatNode
 read ::= READ PARIZQ ID:i PARDER {:
     RESULT = new ReadNode(new Value((String)i, fila, columna), fila, columna);
 :}
+| READ PARIZQ ID:i PERIOD ID:id PARDER {:
+    String rec = ((String)i) + "." + ((String)id);
+    RESULT = new ReadNode(new Value(rec, fila, columna), fila, columna);
+:}
 | READ error ID:i PARDER
 | READ PARIZQ error PARDER;
 
@@ -462,6 +466,10 @@ write ::= WRITE PARIZQ CONSTSTR:s PARDER {:
     :}
 | WRITE PARIZQ CONSTSTR:s COMA ID:id PARDER {:
         RESULT = new WriteNode((String)s, new Value((String)id, fila, columna), fila, columna);
+    :}
+| WRITE PARIZQ CONSTSTR:s COMA ID:i PERIOD ID:id PARDER {:
+        String rec = ((String)i) + "." + ((String)id);
+        RESULT = new WriteNode((String)s, new Value(rec, fila, columna), fila, columna);
     :}
 | WRITE error CONSTSTR:s PARDER
 | WRITE error CONSTSTR:s COMA ID:id PARDER
@@ -584,6 +592,14 @@ assig ::= ID:i ASSIG CONSTSTR:cs {:
     :}
     | ID:i ASSIG rel:r {:
         RESULT = new AssigNode(new Value((String)i, fila, columna),r, fila, columna);
+    :}
+    | ID:i PERIOD ID:id ASSIG CONSTSTR:cs {:
+        String rec = ((String)i) + "." + ((String)id);
+        RESULT = new AssigNode(new Value(rec, fila, columna),(String)cs, fila, columna);
+    :}
+    | ID:i PERIOD ID:id ASSIG rel:r {:
+        String rec = ((String)i) + "." + ((String)id);
+        RESULT = new AssigNode(new Value(rec, fila, columna),r, fila, columna);
     :};
 
 /*
@@ -658,6 +674,10 @@ num ::= NUMS:n {:
 | ID:i {:
     // ID 
     RESULT = new Value((String)i, fila, columna);
+:}
+| ID:i PERIOD ID:id {:
+    String rec = ((String)i) + "." + ((String)id);
+    RESULT = new Value(rec, fila, columna);
 :}
 | funccall:fc {:
     RESULT = new Value((FuncCallNode)fc, fila, columna);

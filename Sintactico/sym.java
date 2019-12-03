@@ -8,15 +8,16 @@ public class sym {
   /* terminals */
   public static final int FUNCTION = 6;
   public static final int OPSUM = 24;
-  public static final int SEMCOLON = 41;
+  public static final int SEMCOLON = 42;
   public static final int CHAR = 32;
   public static final int ASSIG = 29;
+  public static final int PERIOD = 41;
   public static final int NUMS = 4;
   public static final int REPEAT = 15;
   public static final int INT = 31;
   public static final int FOR = 13;
   public static final int WRITE = 22;
-  public static final int NOT = 42;
+  public static final int NOT = 43;
   public static final int RECORD = 34;
   public static final int TYPE = 10;
   public static final int BEGIN = 11;
@@ -91,6 +92,7 @@ public class sym {
   "UNTIL",
   "ID",
   "COMA",
+  "PERIOD",
   "SEMCOLON",
   "NOT"
   };

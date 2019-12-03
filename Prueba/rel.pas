@@ -1,8 +1,14 @@
 program relOpp
-
+type
+  ana := record begin
+    intestinos:char;
+    corazon, rinon:integer;
+  end;
+end;
 var
 a, b, c, d, e: integer;
 f, g : Boolean;
+an:ana;
 function comparacion(x, y:integer):Boolean
 begin
     if(x <= 30) then
@@ -14,6 +20,7 @@ begin
         while (x <= x) do
         begin
           x := x + 1;
+          c := an.corazon;
           write('while multilinea');
         end;
     else

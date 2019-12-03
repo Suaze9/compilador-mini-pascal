@@ -72,7 +72,7 @@ public class Main {
 
     public static void crearTabla(){
         tabla = new TablaSym();
-        //records
+        records(root.records);
         declaraciones((ArrayList<DeclNode>)root.declarations);
         funciones(root.functions);
         comprobacionTipos(root.statements);
@@ -106,7 +106,18 @@ public class Main {
     }
 
     public static void records(ArrayList<RecordNode> recs){
-        
+        for(RecordNode record : recs){
+
+            String nom = record.name;
+            ArrayList<DeclNode> decls = record.decls;
+
+            tabla.add(nom, "RECORD", -1);
+
+            declaracionesRecord(decls, nom);
+            
+            tabla.print(0);
+
+        }
     }
     
     public static void funciones(ArrayList<Object> funcs){
@@ -239,6 +250,38 @@ public class Main {
               size = -2;
             }
 
+
+            for(Value val : decl.ids){
+
+                String id = (String)val.content;
+                System.out.println("Id: " + id);
+                tabla.add(id, type, offset);
+                offset += size;
+
+            }
+        }
+        tabla.print(0);
+    }
+
+    public static void declaracionesRecord(ArrayList<DeclNode> decls, String nom){
+
+        for(DeclNode decl : decls){
+
+            String type = nom + "." + decl.type;
+            
+            int size = 0;
+
+            if(type.equals("INT")){
+              size = 4;
+            }else if(type.equals("BOOLEAN")){
+              size = 1;
+            }else if(type.equals("CHAR")){
+              size = 4;
+            }else{
+              size = -2;
+            }
+
+            type = nom + "." + decl.type;
 
             for(Value val : decl.ids){
 
