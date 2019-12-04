@@ -2,7 +2,7 @@ package arbol;
 
 import java.io.Serializable;
 
-public class BoolOrNode extends Node implements Serializable{
+public class BoolOrNode extends BoolPap implements Serializable{
   final int VALUE = 1;
   final int BOOLOR = 2;
   final int BOOLAND = 3;
@@ -22,6 +22,78 @@ public class BoolOrNode extends Node implements Serializable{
 
   public BoolOrNode(Object leftChild, String operator, Object rightChild, int fila, int columna){
     super(fila,columna);
+
+    this.leftChild = leftChild;
+    this.operator = operator;
+    this.rightChild = rightChild;
+
+    if(leftChild instanceof Value){
+      this.typeLeft = VALUE;
+    }
+    else if (leftChild instanceof BoolOrNode){
+      this.typeLeft = BOOLOR;
+    }
+    else if (leftChild instanceof BoolAndNode){
+      this.typeLeft = BOOLAND;
+    }
+    else if (leftChild instanceof BoolMathNode){
+      this.typeLeft = BOOLMATH;
+    }
+    else if (leftChild instanceof BoolNode){
+      this.typeLeft = BOOL;
+    }
+    else if (leftChild instanceof FuncCallNode){
+      this.typeLeft = FUNCCALL;
+    }
+    else if (leftChild instanceof MathNode){
+      this.typeLeft = MATH;
+    }
+    else if (leftChild instanceof MathMult){
+      this.typeLeft = MULT;
+    }
+    else if (leftChild instanceof MathSum){
+      this.typeLeft = SUM;
+    }
+    else{
+      //System.out.println("TIPO NO VALIDO ENTREGADO AL HIJO IZQ DE  NODO \"BoolOrNode\"!!! ");
+      this.typeLeft = 0;
+    }
+
+    if(rightChild instanceof Value){
+      this.typeRight = VALUE;
+    }
+    else if (rightChild instanceof BoolOrNode){
+      this.typeRight = BOOLOR;
+    }
+    else if (rightChild instanceof BoolAndNode){
+      this.typeRight = BOOLAND;
+    }
+    else if (rightChild instanceof BoolMathNode){
+      this.typeRight = BOOLMATH;
+    }
+    else if (rightChild instanceof BoolNode){
+      this.typeRight = BOOL;
+    }
+    else if (rightChild instanceof FuncCallNode){
+      this.typeRight = FUNCCALL;
+    }
+    else if (rightChild instanceof MathNode){
+      this.typeRight = MATH;
+    }
+    else if (rightChild instanceof MathMult){
+      this.typeRight = MULT;
+    }
+    else if (rightChild instanceof MathSum){
+      this.typeRight = SUM;
+    }
+    else{
+      //System.out.println("TIPO NO VALIDO ENTREGADO AL HIJO DER DE  NODO \"BoolOrNode\"!!! ");
+      this.typeRight = 0;
+    }
+  }
+
+  public BoolOrNode(boolean not, Object leftChild, String operator, Object rightChild, int fila, int columna){
+    super(not, fila,columna);
 
     this.leftChild = leftChild;
     this.operator = operator;

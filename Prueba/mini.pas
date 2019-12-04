@@ -8,9 +8,9 @@ begin
 
     res := (9 + 3 - 5) * z;
 
-    while(z > 10) do begin
+    while(not( z > 10 and x > 3)) do begin
         x:= 5;
-        x:= 5;
+        x:= y;
         y := 10 * 55;
         z := x + 10 * (3*5+33);
     end;
@@ -22,9 +22,9 @@ begin
         x:= 5;
         x:= 5;
         y := 10 * 55;
-        z := x + 10 * (3*5+33);
+        z := x + 10 * not(3*5+33);
         end;
-    until (x < 15 + 2);
+    until (not (x < 15 + 2)) ;
 
     for i := 0 to 10 do
         begin

@@ -1,7 +1,7 @@
 package arbol;
 import java.io.Serializable;
 
-public class Node implements Serializable{
+public abstract class Node implements Serializable{
     public int fila;
     public int columna;
 
@@ -9,4 +9,6 @@ public class Node implements Serializable{
         fila = fil;
         columna = col;
     }
+
+    public abstract String printNode(int depth);
 }

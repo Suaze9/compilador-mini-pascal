@@ -673,10 +673,16 @@ public class CodInt {
     }
 
     private void genBoolMath(BoolMathNode boolNode, String verdadero, String falso){
+        if(boolNode.not){
+            String t = verdadero;
+            verdadero = falso;
+            falso = t;
+        }
         
         String term1 = "";
         String op = "";
         String term2 = "";
+
         
         //Verificación de la izquierda
         if(boolNode.typeLeft == 1){
@@ -793,6 +799,11 @@ public class CodInt {
     }
 
     private void genOr(BoolOrNode boolNode, String verdadero, String falso){
+        if(boolNode.not){
+            String t = verdadero;
+            verdadero = falso;
+            falso = t;
+        }
        
         String e1Verdadero = verdadero;
         String e1Falso = newEtiq();
@@ -803,6 +814,11 @@ public class CodInt {
         //Verifica el tipo de la izquierda del operador
         if(boolNode.typeLeft == 1){
             Value val = (Value)boolNode.leftChild;
+            if(val.not){
+                String t = e1Verdadero;
+                e1Verdadero = e1Falso;
+                e1Falso = t;
+            }
             if(val.type == 1){
                 //FALSE
                 //printError("BOOLEAN","INT",boolNode.fila, boolNode.columna);
@@ -880,6 +896,11 @@ public class CodInt {
         //Verifica el tipo de la derecha del operador
         if(boolNode.typeRight == 1){
             Value val = (Value)boolNode.rightChild;
+            if(val.not){
+                String t = e2Verdadero;
+                e2Verdadero = e1Falso;
+                e2Falso = t;
+            }
             if(val.type == 1){
                 //FALSE
                 //printError("BOOLEAN", "INT", boolNode.fila, boolNode.columna);
@@ -956,6 +977,12 @@ public class CodInt {
     }
 
     private void genAnd(BoolAndNode boolNode, String verdadero, String falso){
+        if(boolNode.not){
+            String t = verdadero;
+            verdadero = falso;
+            falso = t;
+            //System.out.println("ENTROOOOOOOOOOOOOOOOOOOO");
+        }
         
         //propragacion de etiquetas
         String e1Verdadero = newEtiq();
@@ -964,8 +991,14 @@ public class CodInt {
         String e2Verdadero = verdadero;
         String e2Falso = falso;
 
+
         if(boolNode.typeLeft == 1){
             Value val = (Value)boolNode.leftChild;
+            if(val.not){
+                String t = e1Verdadero;
+                e1Verdadero = e1Falso;
+                e1Falso = t;
+            }
             if(val.type == 1){
                 //FALSE
                 //printError("BOOLEAN", "INT", boolNode.fila, boolNode.columna);
@@ -1031,6 +1064,11 @@ public class CodInt {
         //Verifica el tipo de la derecha del operador
         if(boolNode.typeRight == 1){
             Value val = (Value)boolNode.rightChild;
+            if(val.not){
+                String t = e2Verdadero;
+                e2Verdadero = e2Falso;
+                e2Falso = t;
+            }
             if(val.type == 1){
                 //FALSE
                 //printError("BOOLEAN", "INT", boolNode.fila, boolNode.columna);

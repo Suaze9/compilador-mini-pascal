@@ -130,6 +130,8 @@ program ::= PROGRAM ID:i typelistrec:tlr multmultdecl:d funclist:fl BEGIN statem
         try (ObjectOutputStream writer = new ObjectOutputStream(new FileOutputStream("../Semantico/arbolito.bebe"))) {
             writer.writeObject(root);
         }
+    }else{
+        root.valido = false;
     }
     RESULT = root;
 :}
@@ -744,14 +746,38 @@ bool ::= TRUE {:
 | FALSE {:
     RESULT = new Value(new Boolean(false), fila, columna);
 :}
-| NOT bool:b {:
-    RESULT = new Value(b, true, fila, columna);
+| NOT TRUE {:
+    RESULT = new Value(new Boolean(false), fila, columna);
+:}
+| NOT FALSE {:
+    RESULT = new Value(new Boolean(true), fila, columna);
+    //RESULT = new Value(b, true, fila, columna);
 :}
 | PARIZQ rel:r PARDER {:
     RESULT = r;
 :}
+| NOT PARIZQ rel:r PARDER {:
+    if(r instanceof Value){
+        ((Value)r).not = true;
+        RESULT = r;
+    }else{
+        BoolPap b = (BoolPap)r;
+        b.not = true;
+        RESULT = b;
+    }
+:}
 | boolmath:b {:
     RESULT = b;
+:}
+| NOT boolmath:r {:
+    if(r instanceof Value){
+        ((Value)r).not = true;
+        RESULT = r;
+    }else{
+        BoolPap b = (BoolPap)r;
+        b.not = true;
+        RESULT = b;
+    }
 :}
 | error;
 

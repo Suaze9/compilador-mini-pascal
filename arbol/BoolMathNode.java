@@ -2,7 +2,7 @@ package arbol;
 
 import java.io.Serializable;
 
-public class BoolMathNode extends Node implements Serializable{
+public class BoolMathNode extends BoolPap implements Serializable{
   final int VALUE = 1;
   final int MATH = 2;
   final int MULT = 3;
@@ -18,6 +18,44 @@ public class BoolMathNode extends Node implements Serializable{
 
   public BoolMathNode(Object leftChild, String operator, Object rightChild, int fila, int columna){
     super(fila,columna);
+
+    this.leftChild = leftChild;
+    this.operator = operator;
+    this.rightChild = rightChild;
+
+    if(leftChild instanceof Value){
+      this.typeLeft = VALUE;
+    }else if(leftChild instanceof MathNode){
+      this.typeLeft = MATH;
+    }else if(leftChild instanceof MathMult){
+      this.typeLeft = MULT;
+    }else if(leftChild instanceof MathSum){
+      this.typeLeft = SUM;
+    }else if(leftChild instanceof FuncCallNode){
+      this.typeLeft = FUNCCALL;
+    }else{
+      //System.out.println("TIPO NO VALIDO ENTREGADO AL HIJO IZQ DE  NODO \"BoolMathNode\"!!! ");
+      this.typeLeft = 0;
+    }
+
+    if(rightChild instanceof Value){
+      this.typeRight = VALUE;
+    }else if(rightChild instanceof MathNode){
+      this.typeRight = MATH;
+    }else if(rightChild instanceof MathMult){
+      this.typeRight = MULT;
+    }else if(rightChild instanceof MathSum){
+      this.typeRight = SUM;
+    }else if(rightChild instanceof FuncCallNode){
+      this.typeRight = FUNCCALL;
+    }else{
+      //System.out.println("TIPO NO VALIDO ENTREGADO AL HIJO DER DE  NODO \"BoolMathNode\"!!! ");
+      this.typeRight = 0;
+    }
+  }
+
+  public BoolMathNode(boolean not, Object leftChild, String operator, Object rightChild, int fila, int columna){
+    super(not, fila,columna);
 
     this.leftChild = leftChild;
     this.operator = operator;

@@ -13,9 +13,11 @@ public class Main {
   public static Map<Integer, String> tiposInv;
 
   public static int offset;
+  public static boolean loaded;
 
   static public void main(String argv[]) {    
     /* Start the parser */
+    loaded = false;
     try {
       parser p = new parser(new lexer(new FileReader(argv[0])));
       p.parse();
@@ -29,8 +31,11 @@ public class Main {
       tiposInv.put(2, "BOOL");
       tiposInv.put(3, "ID");
       offset = 0;
+
       leerArbol();
-      crearTabla();
+      if(loaded){
+          crearTabla();
+      }
 
     } catch (Exception e) {
       e.printStackTrace();
@@ -53,9 +58,15 @@ public class Main {
     public static void leerArbol(){
         try(ObjectInputStream oi = new ObjectInputStream(new FileInputStream(new File("../Semantico/arbolito.bebe")))){
             root = (ProgramNode) oi.readObject();
+            if(root.valido){
+                loaded = true;
+            }else{
+                loaded = false;
+            }
             //System.out.println("Olo: \n\n" + root.printNode(1));
         }catch(Exception e){
-            e.printStackTrace();
+            loaded = false;
+            System.out.println("--");
         }
     }
 
@@ -1117,6 +1128,10 @@ public class Main {
         } else if(assigNode.type == 3){
             Value val = (Value)assigNode.expr;
             if(val.type == 1){
+                if(val.not){
+                    printError("INT","BOOLEAN", assigNode.fila, assigNode.columna);
+                    return false;
+                }
                 if(tipo.equals("INT")){
                     return true;
                 }else{
@@ -1133,6 +1148,10 @@ public class Main {
                 Object[] tup = tabla.buscarTupla((String)val.content, 0);
                 if(tup != null){
                     if(((Tupla)tup[0]).type.equals(tipo)){
+                        if(!tipo.equals("BOOLEAN") && val.not){
+                            printError(tipo,"BOOLEAN", assigNode.fila, assigNode.columna);
+                            return false;
+                        }
                         return true;
                     }else{
                         printError(tipo, ((Tupla)tup[0]).type, assigNode.fila, assigNode.columna );
@@ -1145,6 +1164,10 @@ public class Main {
             }else if(val.type == 4){
                 String funcType = verifyFuncCall((FuncCallNode)val.content);
                 if(funcType.equals(tipo)){
+                    if(!tipo.equals("BOOLEAN") && val.not){
+                        printError(tipo,"BOOLEAN", assigNode.fila, assigNode.columna);
+                        return false;
+                    }
                     return true;
                 }else if(funcType.equals("ERROR")){
                     return false;
@@ -1154,6 +1177,10 @@ public class Main {
                 }
             }else if(val.type == 5){
                 if(tipo.equals("CHAR")){
+                    if(val.not){
+                        printError("CHAR","BOOLEAN", assigNode.fila, assigNode.columna);
+                        return false;
+                    }
                     return true;
                 }else{
                     printError(tipo, "CHAR", assigNode.fila, assigNode.columna);
@@ -1253,6 +1280,10 @@ public class Main {
             if(boolNode.typeLeft == 1){
                 Value val = (Value)boolNode.leftChild;
                 if(val.type == 1){
+                    if(val.not){
+                        printError("INT","BOOLEAN", boolNode.fila, boolNode.columna);
+                        return false;
+                    }
                     leftType = "INT";
                 } else if(val.type == 2){
                     leftType = "BOOLEAN";
@@ -1260,6 +1291,10 @@ public class Main {
                     Object[] tuplita = tabla.buscarTupla((String)val.content, 0);
                     if(tuplita != null){
                         leftType = ((Tupla)tuplita[0]).type;
+                        if(!leftType.equals("BOOLEAN") && val.not){
+                            printError(leftType,"BOOLEAN", boolNode.fila, boolNode.columna);
+                            return false;
+                        }
                     }else{
                         printErrorId((String)val.content, boolNode.fila, boolNode.columna);
                         return false;
@@ -1270,9 +1305,17 @@ public class Main {
                         return false;
                     }else{
                         leftType = tipo;
+                        if(!leftType.equals("BOOLEAN") && val.not){
+                            printError(leftType,"BOOLEAN", boolNode.fila, boolNode.columna);
+                            return false;
+                        }
                     }
                 } else if(val.type == 5){
                     leftType = "CHAR";
+                    if(val.not){
+                        printError("CHAR","BOOLEAN", boolNode.fila, boolNode.columna);
+                        return false;
+                    }
                 }else{
                     return false;
                 }
@@ -1298,12 +1341,20 @@ public class Main {
                 Value val = (Value)boolNode.rightChild;
                 if(val.type == 1){
                     rightType = "INT";
+                    if(val.not){
+                        printError("INT","BOOLEAN", boolNode.fila, boolNode.columna);
+                        return false;
+                    }
                 } else if(val.type == 2){
                     rightType = "BOOLEAN";
                 } else if(val.type == 3){
                     Object[] tuplita = tabla.buscarTupla((String)val.content, 0);
                     if(tuplita != null){
                         rightType = ((Tupla)tuplita[0]).type;
+                        if(!rightType.equals("BOOLEAN") && val.not){
+                            printError(rightType,"BOOLEAN", boolNode.fila, boolNode.columna);
+                            return false;
+                        }
                     }else{
                         printErrorId((String)val.content, boolNode.fila, boolNode.columna);
                         return false;
@@ -1314,9 +1365,17 @@ public class Main {
                         return false;
                     }else{
                         rightType = tipo;
+                        if(!rightType.equals("BOOLEAN") && val.not){
+                            printError(rightType,"BOOLEAN", boolNode.fila, boolNode.columna);
+                            return false;
+                        }
                     }                    
                 } else if(val.type == 5){
                     rightType = "CHAR";
+                    if(val.not){
+                        printError("CHAR","BOOLEAN", boolNode.fila, boolNode.columna);
+                        return false;
+                    }
                 }else{
                     return false;
                 }
@@ -1348,6 +1407,10 @@ public class Main {
             //Verificación de la izquierda
             if(boolNode.typeLeft == 1){
                 Value val = (Value)boolNode.leftChild;
+                if(val.not){
+                    printError("INT","BOOLEAN", boolNode.fila, boolNode.columna);
+                    return false;
+                }
                 if(val.type == 1){
                     leftType = "INT";
                 } else if(val.type == 2){
@@ -1400,6 +1463,10 @@ public class Main {
             //Verificación de la der
             if(boolNode.typeRight == 1){
                 Value val = (Value)boolNode.rightChild;
+                if(val.not){
+                    printError("INT","BOOLEAN", boolNode.fila, boolNode.columna);
+                    return false;
+                }
                 if(val.type == 1){
                     rightType = "INT";
                 } else if(val.type == 2){

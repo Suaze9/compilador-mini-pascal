@@ -23,6 +23,8 @@ public class ProgramNode extends Node implements Serializable{
   public int declarationType;
   public int recordType;
 
+  public boolean valido;
+
   public ProgramNode(Value id, ArrayList<RecordNode> records, Object declarations, ArrayList<Object> functions, ArrayList<Object> statements, int fila, int columna){
     super(fila,columna);
     
@@ -51,6 +53,7 @@ public class ProgramNode extends Node implements Serializable{
       //System.out.println("TIPO \"DECLARATIONS\" NO ACEPTADO POR PROGRAM NODE");
       this.declarationType = 0;
     }
+    this.valido = true;
   }
 
   public String printNode(int depth){
