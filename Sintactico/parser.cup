@@ -406,16 +406,16 @@ while ::= WHILE rel:r DO sinmultstatement:sl {:
 :}
 | WHILE rel:r error sinmultstatement:sl;
 
-for ::= FOR ID:i ASSIG math:ma TO math:ml DO sinmultstatement:sl {:
+for ::= FOR ID:i ASSIG sum:ma TO sum:ml DO sinmultstatement:sl {:
     AssigNode assig = new AssigNode(new Value((String)i, fila, columna),ma, fila, columna);
     RESULT = new ForNode(assig, ml, (ArrayList<Object>)sl, fila, columna);    
 :}
-| FOR error ASSIG math:ma TO math:ml DO sinmultstatement:sl
-| FOR ID:i error math:ma TO math:ml DO sinmultstatement:sl
-| FOR ID:i ASSIG math:ma error math:ml DO sinmultstatement:sl
-| FOR ID:i ASSIG math:ma TO math:ml error sinmultstatement:sl;
+| FOR error ASSIG sum:ma TO sum:ml DO sinmultstatement:sl
+| FOR ID:i error sum:ma TO sum:ml DO sinmultstatement:sl
+| FOR ID:i ASSIG sum:ma error sum:ml DO sinmultstatement:sl
+| FOR ID:i ASSIG sum:ma TO sum:ml error sinmultstatement:sl;
 
-repeat ::= REPEAT sinmultstatement:sl UNTIL rel:r {:
+repeat ::= REPEAT sinmultstatement:sl UNTIL PARIZQ rel:r PARDER SEMCOLON {:
     RESULT = new RepeatNode((ArrayList<Object>)sl,r, fila, columna);
 :}
 | REPEAT sinmultstatement:sl error rel:r;

@@ -1,5 +1,5 @@
 program test
-var x, y, z, res : integer;
+var x, y, z, i, res : integer;
 
 begin
     x := 3;
@@ -8,19 +8,29 @@ begin
 
     res := (9 + 3 - 5) * z;
 
-    if(y > 10) then begin
-        x:= 4;
-    end;
-
-    if(z > 10) then
-        begin
+    while(z > 10) do begin
         x:= 5;
         x:= 5;
-        end;
-    else begin
         y := 10 * 55;
         z := x + 10 * (3*5+33);
     end;
+
+    z := x + 10 * (3*5+33);
+
+    repeat 
+        begin
+        x:= 5;
+        x:= 5;
+        y := 10 * 55;
+        z := x + 10 * (3*5+33);
+        end;
+    until (x < 15 + 2);
+
+    for i := 0 to 10 do
+        begin
+            write('pene chiquito');
+            i:= i + 1;
+        end;
 
     write('',res);
     

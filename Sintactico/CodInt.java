@@ -287,10 +287,17 @@ public class CodInt {
         genAssig(fn.assig);
         String comienzo = newEtiq();
         String state = newEtiq();
+        String sum = newEtiq();
         genEtiq(comienzo);
         genCondFor(fn, state, sig);
         genEtiq(state);
-        statements(fn.statements, comienzo);
+        statements(fn.statements, sum);
+        genEtiq(sum);
+        String temp = newTemp();
+        codigo.add(new OpTer(temp, (String)fn.assig.Id.content, "+", "1"));
+        codigo.add(new OpBin((String)fn.assig.Id.content, temp));
+        genGoto(comienzo);
+    
     }
 
     private void genRepeat(RepeatNode repeatNode, String sig){
