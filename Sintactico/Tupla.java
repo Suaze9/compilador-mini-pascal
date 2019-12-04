@@ -17,6 +17,27 @@ public class Tupla{
     }
 
     public void printTupla(){
-        System.out.print(this.id + "\t\t|\t\t" + this.type + "\t\t|\t\t" + this.offset);
+        int spaces = 30;
+        System.out.print(this.id);
+        for (int i = spaces; i > this.id.length(); i--) {
+            System.out.print(" ");
+        }
+        System.out.print("|");
+        for (int i = spaces; i > this.type.length()/2; i--) {
+            System.out.print(" ");
+        }
+        System.out.print(this.type);
+        int lengthP = this.type.length() / 2;
+        if(this.type.length() % 2 == 0){
+            lengthP--;
+        }
+        for (int i = spaces; i > lengthP; i--) {
+            System.out.print(" ");
+        }
+        System.out.print("|");
+        for (int i = spaces; i > 0; i--) {
+            System.out.print(" ");
+        }
+        System.out.print(this.offset);
     }
 }

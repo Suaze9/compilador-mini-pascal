@@ -14,7 +14,6 @@ public class Main {
 
   public static int offset;
 
-
   static public void main(String argv[]) {    
     /* Start the parser */
     try {
@@ -75,7 +74,13 @@ public class Main {
         records(root.records);
         declaraciones((ArrayList<DeclNode>)root.declarations);
         funciones(root.functions);
-        comprobacionTipos(root.statements);
+        boolean b = comprobacionTipos(root.statements);
+        
+        if(b){
+            CodInt c = new CodInt(root);
+            c.crearCodigoInt();
+        }
+
     }
 
     public static boolean comprobacionTipos(ArrayList<Object> states){
@@ -106,329 +111,338 @@ public class Main {
     }
 
     public static void records(ArrayList<RecordNode> recs){
-        for(RecordNode record : recs){
-
-            String nom = record.name;
-            ArrayList<DeclNode> decls = record.decls;
-
-            tabla.add(nom, "RECORD", -1);
-
-            declaracionesRecord(decls, nom);
-            
-            tabla.print(0);
-
+        if(recs != null){
+            for(RecordNode record : recs){
+    
+                String nom = record.name;
+                ArrayList<DeclNode> decls = record.decls;
+    
+                tabla.add(nom, "RECORD", -1);
+    
+                declaracionesRecord(decls, nom);
+                
+                tabla.print(0);
+    
+            }
         }
     }
     
     public static void funciones(ArrayList<Object> funcs){
-        for(Object funcproc : funcs){
-            Value id;
-            ArrayList<ParamsNode> params;
-            Object declarations;
-            ArrayList<Object> statements;
-            String funcprocType = "";
-
-            if(funcproc instanceof FunctionNode){
-                FunctionNode func = (FunctionNode)funcproc;
-                id = func.id;
-                params = func.params;
-                declarations = func.declarations;
-                statements = func.statements;
-                funcprocType = func.type;
-            }else if (funcproc instanceof ProcedureNode){
-                ProcedureNode proc = (ProcedureNode)funcproc;
-                id = proc.id;
-                params = proc.params;
-                declarations = proc.declarations;
-                statements = proc.statements;
-                funcprocType = "NULL";
-            }else{
-                System.out.println("Error de tipo funcion");
-                return;
-            }
-            String type = "(";
-            for(ParamsNode param : params){
-                /*
-                    final int NUM = 1;
-                    final int BOOL = 2;
-                    final int ID = 3;
-                    final int FUNCCALL = 4;
-                */
-
-                String tipo = param.type;
-                int size = tipos.get(tipo);
-
-                for(Value val : param.ids){
-                    String idval = (String)val.content;
-                    Tupla tuplita = new Tupla(idval, tipo, offset);
-                    offset += size;
-
-                    if(!(params.indexOf(param) == params.size() - 1 && param.ids.indexOf(val) == param.ids.size() - 1)){
-                        type += tipo + " x ";
-                    }else{
-                        type += tipo;
+        if(funcs != null){
+            for(Object funcproc : funcs){
+                Value id;
+                ArrayList<ParamsNode> params;
+                Object declarations;
+                ArrayList<Object> statements;
+                String funcprocType = "";
+    
+                if(funcproc instanceof FunctionNode){
+                    FunctionNode func = (FunctionNode)funcproc;
+                    id = func.id;
+                    params = func.params;
+                    declarations = func.declarations;
+                    statements = func.statements;
+                    funcprocType = func.type;
+                }else if (funcproc instanceof ProcedureNode){
+                    ProcedureNode proc = (ProcedureNode)funcproc;
+                    id = proc.id;
+                    params = proc.params;
+                    declarations = proc.declarations;
+                    statements = proc.statements;
+                    funcprocType = "NULL";
+                }else{
+                    System.out.println("Error de tipo funcion");
+                    return;
+                }
+                String type = "(";
+                for(ParamsNode param : params){
+                    /*
+                        final int NUM = 1;
+                        final int BOOL = 2;
+                        final int ID = 3;
+                        final int FUNCCALL = 4;
+                    */
+    
+                    String tipo = param.type;
+                    int size = tipos.get(tipo);
+    
+                    for(Value val : param.ids){
+                        String idval = (String)val.content;
+                        Tupla tuplita = new Tupla(idval, tipo, offset);
+                        offset += size;
+    
+                        if(!(params.indexOf(param) == params.size() - 1 && param.ids.indexOf(val) == param.ids.size() - 1)){
+                            type += tipo + " x ";
+                        }else{
+                            type += tipo;
+                        }
+    
                     }
-
+    
                 }
-
+                type += ") -> " + funcprocType;
+                
+    
+                tabla.add((String)id.content, type, -1);
+    
             }
-            type += ") -> " + funcprocType;
-            
-
-            tabla.add((String)id.content, type, -1);
-
-        }
-        for(Object funcproc : funcs){
-            Object declarations;
-            ArrayList<ParamsNode> params;
-            ArrayList<Object> statements;
-
-
-            if(funcproc instanceof FunctionNode){
-                FunctionNode func = (FunctionNode)funcproc;
-                declarations = func.declarations;
-                params = func.params;
-                statements = func.statements;
-            }else if (funcproc instanceof ProcedureNode){
-                ProcedureNode proc = (ProcedureNode)funcproc;
-                declarations = proc.declarations;
-                params = proc.params;
-                statements = proc.statements;
-            }else{
-                return;
-            }
-            
-            int tempOffset = offset;
-            offset = 0;
-            
-            TablaSym ts = new TablaSym(tabla);
-            tabla = ts;
-
-            for(ParamsNode param : params){
-                /*
-                    final int NUM = 1;
-                    final int BOOL = 2;
-                    final int ID = 3;
-                    final int FUNCCALL = 4;
-                */
-
-                String tipo = param.type;
-                int size = tipos.get(tipo);
-
-                for(Value val : param.ids){
-                    String idval = (String)val.content;
-                    tabla.add(idval, tipo, offset);
-                    offset += size;
+            for(Object funcproc : funcs){
+                Object declarations;
+                ArrayList<ParamsNode> params;
+                ArrayList<Object> statements;
+    
+    
+                if(funcproc instanceof FunctionNode){
+                    FunctionNode func = (FunctionNode)funcproc;
+                    declarations = func.declarations;
+                    params = func.params;
+                    statements = func.statements;
+                }else if (funcproc instanceof ProcedureNode){
+                    ProcedureNode proc = (ProcedureNode)funcproc;
+                    declarations = proc.declarations;
+                    params = proc.params;
+                    statements = proc.statements;
+                }else{
+                    return;
                 }
-
+                
+                int tempOffset = offset;
+                offset = 0;
+                
+                TablaSym ts = new TablaSym(tabla);
+                tabla = ts;
+    
+                for(ParamsNode param : params){
+                    /*
+                        final int NUM = 1;
+                        final int BOOL = 2;
+                        final int ID = 3;
+                        final int FUNCCALL = 4;
+                    */
+    
+                    String tipo = param.type;
+                    int size = tipos.get(tipo);
+    
+                    for(Value val : param.ids){
+                        String idval = (String)val.content;
+                        tabla.add(idval, tipo, offset);
+                        offset += size;
+                    }
+    
+                }
+    
+                declaraciones((ArrayList<DeclNode>)declarations);
+    
+                comprobacionTipos(statements);
+    
+                if(stepBack())
+                    offset = tempOffset;
             }
-
-            declaraciones((ArrayList<DeclNode>)declarations);
-
-            comprobacionTipos(statements);
-
-            if(stepBack())
-                offset = tempOffset;
         }
     }
 
     public static void declaraciones(ArrayList<DeclNode> decls){
+        if(decls != null){
+            for(DeclNode decl : decls){
 
-        for(DeclNode decl : decls){
+                String type = decl.type;
+                
+                int size = 0;
 
-            String type = decl.type;
-            
-            int size = 0;
+                if(type.equals("INT")){
+                size = 4;
+                }else if(type.equals("BOOLEAN")){
+                size = 1;
+                }else if(type.equals("CHAR")){
+                size = 4;
+                }else{
+                size = -2;
+                }
 
-            if(type.equals("INT")){
-              size = 4;
-            }else if(type.equals("BOOLEAN")){
-              size = 1;
-            }else if(type.equals("CHAR")){
-              size = 4;
-            }else{
-              size = -2;
+
+                for(Value val : decl.ids){
+
+                    String id = (String)val.content;
+                    System.out.println("Id: " + id);
+                    tabla.add(id, type, offset);
+                    offset += size;
+
+                }
             }
-
-
-            for(Value val : decl.ids){
-
-                String id = (String)val.content;
-                System.out.println("Id: " + id);
-                tabla.add(id, type, offset);
-                offset += size;
-
-            }
+            tabla.print(0);
         }
-        tabla.print(0);
     }
 
     public static void declaracionesRecord(ArrayList<DeclNode> decls, String nom){
+        if(decls != null){
 
-        for(DeclNode decl : decls){
-
-            String type = nom + "." + decl.type;
-            
-            int size = 0;
-
-            if(type.equals("INT")){
-              size = 4;
-            }else if(type.equals("BOOLEAN")){
-              size = 1;
-            }else if(type.equals("CHAR")){
-              size = 4;
-            }else{
-              size = -2;
+            for(DeclNode decl : decls){
+    
+                String type = nom + "." + decl.type;
+                
+                int size = 0;
+    
+                if(type.equals("INT")){
+                  size = 4;
+                }else if(type.equals("BOOLEAN")){
+                  size = 1;
+                }else if(type.equals("CHAR")){
+                  size = 4;
+                }else{
+                  size = -2;
+                }
+    
+                type = nom + "." + decl.type;
+    
+                for(Value val : decl.ids){
+    
+                    String id = (String)val.content;
+                    tabla.add(id, type, offset);
+                    offset += size;
+    
+                }
             }
-
-            type = nom + "." + decl.type;
-
-            for(Value val : decl.ids){
-
-                String id = (String)val.content;
-                tabla.add(id, type, offset);
-                offset += size;
-
-            }
+            //tabla.print(0);
         }
-        //tabla.print(0);
     }
 
     public static String getFuncType(ArrayList<Object> args){
+        if(args != null){
 
-        String type = "(";
-        for(Object attr : args){
-
-            if(attr instanceof AttrNode){
-                /*
-                final int STR = 1;
-                final int CHAR = 2;
-                final int VALUE = 3;
-                final int MATHNODE = 4;
-                final int MATHMULT = 5;
-                final int MATHSUM = 6;
-                final int BOOL = 7;
-                final int BOOLMATH = 8;
-                final int BOOLAND = 9;
-                final int BOOLOR = 10;
-                */
-
-                Object o = ((AttrNode)attr).attr;
-                int tipo = ((AttrNode)attr).type;
-
-                switch(tipo){
-                    case 1:{
-                        type += "STR";
-                        break;
-                    }
-                    case 2:{
-                        type += "CHAR";
-                        break;
-                    }
-                    case 3:{
-                        Value val = (Value)o;
-                        if(val.type == 1){
-                            type += "INT";
-                        } else if(val.type == 2){
-                            type += "BOOLEAN";
-                        } else if(val.type == 3){
-                            Object[] tup = tabla.buscarTupla((String)val.content, 0);
-                            if(tup != null){
-                                type += ((Tupla)tup[0]).type;
+            String type = "(";
+            for(Object attr : args){
+    
+                if(attr instanceof AttrNode){
+                    /*
+                    final int STR = 1;
+                    final int CHAR = 2;
+                    final int VALUE = 3;
+                    final int MATHNODE = 4;
+                    final int MATHMULT = 5;
+                    final int MATHSUM = 6;
+                    final int BOOL = 7;
+                    final int BOOLMATH = 8;
+                    final int BOOLAND = 9;
+                    final int BOOLOR = 10;
+                    */
+    
+                    Object o = ((AttrNode)attr).attr;
+                    int tipo = ((AttrNode)attr).type;
+    
+                    switch(tipo){
+                        case 1:{
+                            type += "STR";
+                            break;
+                        }
+                        case 2:{
+                            type += "CHAR";
+                            break;
+                        }
+                        case 3:{
+                            Value val = (Value)o;
+                            if(val.type == 1){
+                                type += "INT";
+                            } else if(val.type == 2){
+                                type += "BOOLEAN";
+                            } else if(val.type == 3){
+                                Object[] tup = tabla.buscarTupla((String)val.content, 0);
+                                if(tup != null){
+                                    type += ((Tupla)tup[0]).type;
+                                }else{
+                                    printErrorId((String)val.content, val.fila, val.columna);
+                                    type += "ERROR";
+                                }
+                            } else if(val.type == 4){
+                                type += verifyFuncCall((FuncCallNode)val.content);
+                            } else if(val.type == 5){
+                                type += "CHAR";
+                            } else {
+                                printErrorInesperado(val.fila, val.columna);
+                                return "ERROR";
+                            }
+                            break;
+                        }
+                        case 4:{
+                            System.out.println("Se recibió un MathNode...que ondas");
+                            //ya no se usa MATHNODE
+                            break;
+                        }
+                        case 5:{
+                            if(verifyMultTypes((MathMult)o)){
+                                type += "INT";
                             }else{
-                                printErrorId((String)val.content, val.fila, val.columna);
                                 type += "ERROR";
                             }
-                        } else if(val.type == 4){
-                            type += verifyFuncCall((FuncCallNode)val.content);
-                        } else if(val.type == 5){
-                            type += "CHAR";
-                        } else {
-                            printErrorInesperado(val.fila, val.columna);
-                            return "ERROR";
+                            break;
                         }
-                        break;
-                    }
-                    case 4:{
-                        System.out.println("Se recibió un MathNode...que ondas");
-                        //ya no se usa MATHNODE
-                        break;
-                    }
-                    case 5:{
-                        if(verifyMultTypes((MathMult)o)){
-                            type += "INT";
-                        }else{
-                            type += "ERROR";
+                        case 6:{
+                            if(verifySumTypes((MathSum)o)){
+                                type += "INT";
+                            }else{
+                                type += "ERROR";
+                            }
+                            break;
                         }
-                        break;
-                    }
-                    case 6:{
-                        if(verifySumTypes((MathSum)o)){
-                            type += "INT";
-                        }else{
-                            type += "ERROR";
+                        case 7:{
+                            System.out.println("Se recibió un BoolNode...que ondas");
+                            //ya no se usa BOOL
+                            break;
                         }
-                        break;
-                    }
-                    case 7:{
-                        System.out.println("Se recibió un BoolNode...que ondas");
-                        //ya no se usa BOOL
-                        break;
-                    }
-                    case 8:{
-                        if(verifyBoolMathTypes((BoolMathNode)o)){
-                            type += "BOOLEAN";
-                        }else{
-                            type += "ERROR";
+                        case 8:{
+                            if(verifyBoolMathTypes((BoolMathNode)o)){
+                                type += "BOOLEAN";
+                            }else{
+                                type += "ERROR";
+                            }
+                            break;
                         }
-                        break;
-                    }
-                    case 9:{
-                        if(verifyBoolAndTypes((BoolAndNode)o)){
-                            type += "BOOLEAN";
-                        }else{
-                            type += "ERROR";
+                        case 9:{
+                            if(verifyBoolAndTypes((BoolAndNode)o)){
+                                type += "BOOLEAN";
+                            }else{
+                                type += "ERROR";
+                            }
+                            break;
                         }
-                        break;
-                    }
-                    case 10:{
-                        if(verifyBoolOrTypes((BoolOrNode)o)){
-                            type += "BOOLEAN";
-                        }else{
-                            type += "ERROR";
+                        case 10:{
+                            if(verifyBoolOrTypes((BoolOrNode)o)){
+                                type += "BOOLEAN";
+                            }else{
+                                type += "ERROR";
+                            }
+                            break;
                         }
-                        break;
                     }
+    
                 }
-
-            }
-
-            if(args.indexOf(attr) != args.size() - 1){
-                type += " x ";
-            }
-
-            /*
-            String tipo = params.type;
-            int size = tipos.get(tipo);
-
-            for(Value val : params.ids){
-                String idval = (String)val.content;
-                Tupla tuplita = new Tupla(idval, tipo, offset);
-                offset += size;
-
-                if(func.indexOf(params) != func.size() - 1 && params.ids.indexOf(val) != params.ids.size() - 1){
-                    type += tipo + " x ";
-                }else{
-                    type += tipo;
+    
+                if(args.indexOf(attr) != args.size() - 1){
+                    type += " x ";
                 }
-
+    
+                /*
+                String tipo = params.type;
+                int size = tipos.get(tipo);
+    
+                for(Value val : params.ids){
+                    String idval = (String)val.content;
+                    Tupla tuplita = new Tupla(idval, tipo, offset);
+                    offset += size;
+    
+                    if(func.indexOf(params) != func.size() - 1 && params.ids.indexOf(val) != params.ids.size() - 1){
+                        type += tipo + " x ";
+                    }else{
+                        type += tipo;
+                    }
+    
+                }
+                */
             }
-            */
+            type += ")";
+    
+            return type;
         }
-        type += ")";
-
-        return type;
-
+        return "ERROR TYPE";
     }
 
     public static String verifyFuncCall(FuncCallNode val){
@@ -636,7 +650,8 @@ public class Main {
 
     public static boolean verifyRepeat(RepeatNode repeatNode){
         boolean validCondition = verifyConditionBool(repeatNode.conditionType, repeatNode.condition);
-        return validCondition;
+        boolean tiposState = comprobacionTipos(repeatNode.statements);
+        return validCondition && tiposState;
     }
 
     public static boolean verifyRead(ReadNode readNode){
@@ -835,6 +850,7 @@ public class Main {
             final int MATHNODE = 2
             final int MATHMULT = 3;
             final int FUNCCALL = 4;
+            final int FUNCCALL = 5;
 
             VALUE CONSTANTS
             final int NUM = 1;
@@ -856,10 +872,13 @@ public class Main {
                     return false;
                 }else if(val.type == 3){
                     Object[] tup = tabla.buscarTupla((String)val.content, 0);
+                    //System.out.println("tipo tupla: \"" + ((Tupla)tup[0]).type + "\"");
                     if(tup != null){
                         if(((Tupla)tup[0]).type.equals("INT")){
+                            //System.out.println("ENTRO");
                             checkLeft = true;
                         }else{
+                            //System.out.println("NO ENTRO");
                             checkLeft = false;
                             printError("INT", ((Tupla)tup[0]).type, val.fila, val.columna);
                         }
@@ -900,6 +919,10 @@ public class Main {
                     if(!ret.equals("ERROR"))
                         printError("INT", ret, ((FuncCallNode)multNode.leftChild).fila, ((FuncCallNode)multNode.leftChild).columna);
                 }
+                break;
+            }case 5:{
+                checkLeft = verifySumTypes((MathSum)multNode.leftChild);
+                break;
             }default:{
                 return false;
             }
@@ -916,9 +939,13 @@ public class Main {
                 }else if(val.type == 3){
                     Object[] tup = tabla.buscarTupla((String)val.content, 0);
                     if(tup != null){
+                        //System.out.println("tipo tupla: \"" + ((Tupla)tup[0]).type + "\"");
+                        //System.out.print();
                         if(((Tupla)tup[0]).type.equals("INT")){
+                            //System.out.println("ENTRO");
                             checkRight = true;
                         }else{
+                            //System.out.println("NO ENTRO");
                             checkRight = false;
                             printError("INT", ((Tupla)tup[0]).type, val.fila, val.columna);
                         }
@@ -960,6 +987,9 @@ public class Main {
                         printError("INT", ret, ((FuncCallNode)multNode.rightChild).fila, ((FuncCallNode)multNode.rightChild).columna);
                 }
                 break;
+            }case 5:{
+                checkRight = verifySumTypes((MathSum)multNode.rightChild);
+                break;   
             }default:{
                 return false;
             }
@@ -1698,4 +1728,5 @@ public class Main {
 
         return checkLeft && checkRight;     
     }
+
 }

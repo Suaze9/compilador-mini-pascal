@@ -141,6 +141,7 @@ public class TablaSym{
             tup.printTupla();
             System.out.print("\n");
         }
+        System.out.println("");
         if(papi != null){
             papi.print(depth + 1);
         }else{

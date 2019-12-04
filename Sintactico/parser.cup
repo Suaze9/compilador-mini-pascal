@@ -629,14 +629,14 @@ Value
     Obj num, bool, funccal, Id
     boolean not
 
-num := Value | MathNode
+num := Value | MathNode | MathMult | MathSum
 
 MathMult
-    Obj Value, MathNode, MathMult
+    Obj Value, MathNode, MathMult, MathSum
     op
-    Obj Value, MathNode, MathMult
+    Obj Value, MathNode, MathMult, MathSum
 
-mult := Value | MathNode | MathMult
+mult := Value | MathNode | MathMult | MathSum
 
 MathSum
     Obj Value, MathNode, MathMult, MathSum

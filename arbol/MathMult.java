@@ -8,6 +8,7 @@ public class MathMult extends Node implements Serializable{
   final int MATHNODE = 2;
   final int MATHMULT = 3;
   final int FUNCCALL = 4;
+  final int MATHSUM = 5;
 
   public Object leftChild;
   public String operator;
@@ -36,6 +37,9 @@ public class MathMult extends Node implements Serializable{
     else if (leftChild instanceof FuncCallNode){
       this.typeLeft = FUNCCALL;
     }
+    else if (leftChild instanceof MathSum){
+      this.typeLeft = MATHSUM;
+    }
     else{
       //System.out.println("TIPO NO VALIDO ENTREGADO AL HIJO IZQ DE  NODO \"MathMult\"!!! ");
       this.typeLeft = 0;
@@ -52,6 +56,9 @@ public class MathMult extends Node implements Serializable{
     }
     else if (rightChild instanceof FuncCallNode){
       this.typeRight = FUNCCALL;
+    }
+    else if (rightChild instanceof MathSum){
+      this.typeRight = MATHSUM;
     }
     else{
       //System.out.println("TIPO NO VALIDO ENTREGADO AL HIJO DER DE  NODO \"MathMult\"!!! ");
@@ -83,9 +90,13 @@ public class MathMult extends Node implements Serializable{
         json += "\"MathMult L\": ";
         json += ((MathMult)this.leftChild).printNode(depth + 1);
         break;
-      case FUNCCALL:
+        case FUNCCALL:
         json += "\"FuncCallNode L\": ";
         json += ((FuncCallNode)this.leftChild).printNode(depth + 1);
+        break;
+      case MATHSUM:
+        json += "\"MathSum L\": ";
+        json += ((MathSum)this.leftChild).printNode(depth + 1);
         break;
       default:
         json += "\"Error L\" : \"0\"";
@@ -121,11 +132,15 @@ public class MathMult extends Node implements Serializable{
           json += "\"MathMult R\": ";
           json += ((MathMult)this.rightChild).printNode(depth + 1);
         break;
-      case FUNCCALL:
+        case FUNCCALL:
         json += "\"FuncCallNode L\": ";
         json += ((FuncCallNode)this.rightChild).printNode(depth + 1);
         break;
-      default:
+      case MATHSUM:
+          json += "\"MathMult R\": ";
+          json += ((MathSum)this.rightChild).printNode(depth + 1);
+        break;
+        default:
         json += "\"Error R\" : \"0\"";
         //System.out.println("ERROR NODO DER de \"MathMult\"");
         break;
