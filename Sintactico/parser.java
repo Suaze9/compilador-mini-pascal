@@ -2585,7 +2585,7 @@ class CUP$parser$actions {
 		int ccright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		String cc = (String)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
-    RESULT = new Value(new Character(((String)cc).charAt(0)), fila, columna);
+    RESULT = new Value(new Character(((String)cc).charAt(1)), fila, columna);
 
               CUP$parser$result = parser.getSymbolFactory().newSymbol("num",2, ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }
@@ -2797,11 +2797,11 @@ class CUP$parser$actions {
 		Object r = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.elementAt(CUP$parser$top-1)).value;
 		
     if(r instanceof Value){
-        ((Value)r).not = true;
+        ((Value)r).not = !((Value)r).not;
         RESULT = r;
     }else{
         BoolPap b = (BoolPap)r;
-        b.not = true;
+        b.not = !b.not;
         RESULT = b;
     }
 
@@ -2832,11 +2832,11 @@ class CUP$parser$actions {
 		Object r = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
     if(r instanceof Value){
-        ((Value)r).not = true;
+        ((Value)r).not = ((Value)r).not;
         RESULT = r;
     }else{
         BoolPap b = (BoolPap)r;
-        b.not = true;
+        b.not = !b.not;
         RESULT = b;
     }
 
@@ -2867,8 +2867,11 @@ class CUP$parser$actions {
 		int mright = ((java_cup.runtime.Symbol)CUP$parser$stack.peek()).right;
 		Object m = (Object)((java_cup.runtime.Symbol) CUP$parser$stack.peek()).value;
 		
-    RESULT = new BoolMathNode(b, (String)o, m, fila, columna);
-    //<>|=|>|<|>=|<=
+    if( ((String)o).equals("<>") ){
+        RESULT = new BoolMathNode(true, b, "=", m, fila, columna);
+    }else{
+        RESULT = new BoolMathNode(b, (String)o, m, fila, columna);
+    }
 
               CUP$parser$result = parser.getSymbolFactory().newSymbol("boolmath",6, ((java_cup.runtime.Symbol)CUP$parser$stack.elementAt(CUP$parser$top-2)), ((java_cup.runtime.Symbol)CUP$parser$stack.peek()), RESULT);
             }

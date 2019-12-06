@@ -1,4 +1,7 @@
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Collections;
 
 import arbol.*;
 
@@ -6,13 +9,19 @@ public class CodInt {
     
     private ProgramNode root;
     public ArrayList<Instruccion> codigo;
+    public static TablaSym tabla;
+
     private int contEtiq;
     private int contTemp;
 
-    CodInt(ProgramNode t){
+    public static Map<String, String> strings;
+
+    CodInt(ProgramNode t, TablaSym tab){
         this.root = t;
+        this.tabla = tab;
         this.codigo = new ArrayList();
         this.contEtiq = 0;
+        this.contTemp = 0;
     }
     
     public void crearCodigoInt(){
@@ -29,6 +38,20 @@ public class CodInt {
             System.out.print("\n");
         }
         System.out.print("\n");
+        System.out.print("\n");
+        System.out.print("\n");
+
+        codigo = optim(codigo);
+
+        for (Instruccion i : codigo) {
+            i.print();
+            System.out.print("\n");
+        }
+        System.out.print("\n");
+
+        String codFin = codigoFinal(codigo);
+
+        System.out.println(codFin);
 
     }
 
@@ -332,7 +355,11 @@ public class CodInt {
             }else if(val.type == 2){
                 String temp = "" + (boolean)val.content;
                 term = newTemp();
-                codigo.add(new OpBin(term, temp));
+                if(temp.equals("true")){
+                    codigo.add(new OpBin(term, "1"));
+                }else{
+                    codigo.add(new OpBin(term, "0"));
+                }
             }else if(val.type == 3){
                 String temp = (String)val.content;
                 term = newTemp();
@@ -350,7 +377,7 @@ public class CodInt {
                 //    return false;
                 //}
             }else if(val.type == 5){
-                String temp = "" + (Character)val.content;
+                String temp = "\'" + val.content + "\'";
                 term = newTemp();
                 codigo.add(new OpBin(term, temp));
             }else{
@@ -1133,4 +1160,591 @@ public class CodInt {
 
     }
 
+    private ArrayList<Instruccion> optim( ArrayList<Instruccion> codigo){
+        if(codigo != null){
+            for (int index = 0; index < codigo.size(); index++) {
+                if(index != codigo.size() - 1){
+                    Instruccion ins = codigo.get(index);
+                    if(ins instanceof GotoInt){
+                        
+                        Instruccion next = codigo.get(index + 1);
+                        if(next instanceof GotoInt){
+                            codigo.remove(index + 1);
+                            index--;
+                        }else if(next instanceof EtiqInt && ((GotoInt)ins).etiqueta.equals(((EtiqInt)next).etiq) ){
+                            codigo.remove(index);
+                            index--;
+                        }
+                    }
+                }
+            }
+        }
+        return codigo;
+    }
+
+    private String codigoFinal(ArrayList<Instruccion> codigo){
+        tabla.print(0);
+        String fin = "";
+        if(codigo != null){
+            fin += "\t.data\n";
+            strings = new HashMap<>();
+            int contMsg = 0;
+            for (int i = 0; i < codigo.size(); i++) {
+                Instruccion ins = codigo.get(i);
+                if(ins instanceof Decl){
+                    fin += "_" + ((Decl)ins).assig + ":";
+                    String type = ((Decl)ins).type;
+                    if(type.equals("INT") || type.equals("CHAR") || type.equals("BOOLEAN")){
+                        fin += "\t.word 0";
+                    }
+                    /*
+                    else if(condicion de funciones y records){
+
+                        ///////////////////////////////////////////////////////////////////////
+                        
+                    }
+                    */
+
+                    fin += "\n";
+                    codigo.remove(i);
+                    i--;
+                }else if(ins instanceof PrintInt && ((PrintInt)ins).type == 1){
+                    String content = ((PrintInt)ins).cont;
+                    if(!content.equals("")){
+                        if(!strings.containsKey(content)){
+                            String msgString = "__msg" + contMsg;
+                            contMsg++;
+                            fin += msgString + ":\t.asciiz \"" + content + "\"\n";
+                            strings.put(content, msgString);
+                            ((PrintInt)ins).cont = msgString;
+                        }else{
+                            ((PrintInt)ins).cont = strings.get(content);
+                        }
+                    }else{
+                        codigo.remove(i);
+                    }
+                }
+            }
+
+            fin += "\n\t.text\n\t.globl main\nmain:\n\tmove $fp, $sp\n";
+
+            //relaciona temporales
+            Map<String, String> relTemp = new HashMap<>();
+            Map<String, Integer> stackPos = new HashMap<>();
+            boolean[] activeTemp = new boolean[9];
+
+            for (boolean b : activeTemp)
+                b = false;
+
+            for (Instruccion ins : codigo) {
+
+                if(ins instanceof OpBin){
+                    OpBin insOp = (OpBin)ins;
+                    if(insOp.opp.equals("no")){
+                        String assig = insOp.assig;
+                        String term = insOp.term;
+                        //Termino de asignacion
+                        if(assig.length() > 1 && assig.charAt(1) == '.'){
+                            //es un temporal
+                            String opp = "";
+                            if(term.charAt(0) == '\'' || (term.charAt(0) - 48 >= 0 && term.charAt(0) - 48 <= 9)){
+                                opp = "li";
+                            }else{
+                                term = "_" + term;      
+                                opp = "lw";
+                            }
+                            int actT = getActiveTemp(activeTemp);
+                            if(actT != -1){
+                                //hay un temporal libre
+                                activeTemp[actT] = true;
+                                relTemp.put(assig, "$t" + actT);
+                                
+                                
+                                fin += "\t" + opp + " $t" + actT + ", " + term + "\n";
+
+                            }else{
+                                //hay que agregarlo a la pila
+                                int stackTemp = getNewStackPos(stackPos);
+                                stackPos.put(assig, stackTemp);
+                                assig = "-" + stackTemp + "($sp)";
+
+                                fin += "\t" + opp + " $t9, " + term + "\n"
+                                    +  "\tsw $t9 ," + assig + "\n";
+
+                            }
+
+                            //termino de la derecha tiene que ser una variable o un numero/caractér a fuerza
+
+                        }else{
+                            //es una variable
+                            assig = "_" + assig;
+                            if(term.length() > 1 && term.charAt(1) == '.'){
+                                
+                                if(relTemp.containsKey(term)){
+                                    //está en un temporal
+                                    String temp = relTemp.get(term);
+                                    relTemp.remove(term);
+                                    int tempNum = temp.charAt(temp.length() - 1) - 48;
+                                    activeTemp[tempNum] = false;
+                                    
+                                    fin += "\tsw " + temp + ", " + assig + "\n";
+    
+                                }else if(stackPos.containsKey(term)){
+                                    //está en la pila
+                                    
+                                    int stackTemp = stackPos.get(term);
+                                    stackPos.remove(term);
+                                    term = "-" + stackTemp + "($sp)";
+    
+                                    fin += "\tlw $t9, " + term + "\n"
+                                        +  "\tsw $t9 ," + assig + "\n";
+    
+                                }else{
+                                    fin += "\tERROR\n";
+                                }
+
+                            }else{
+                                fin += "\tsw " + "ERROR" + ", " + assig + "\n";
+                            }
+
+
+                            //termino de la derecha tiene que ser un temporal a fuerza
+                        }
+                    }
+                }else if(ins instanceof OpTer){
+                    OpTer insOp = (OpTer)ins;
+
+                    //estos se usan para saber cual es el valor de código intermedio, y para saber donde se restaurará cualquier valor de registro perdido en el proceso de abajo
+                    String assig = insOp.assig;
+                    String term = insOp.term1;
+                    String term2 = insOp.term2;
+
+                    //Estas son las variables que serán usadas en la opreacion de asignacion final... se modifican dentro de los casos
+                    String opp = insOp.opp;     //Operación final
+                    String first = "";          //Donde se asignará el valor resultante (primer valor)
+                    String second = "";         //primer operando (segundo valor)
+                    String third = "";          //segundo operando (tercer valor)
+
+                    //donde se asigna debe ser por fuerza un temporal, y como se está asignando, a fuerza tiene que ser uno nuevo
+                    int actT = getActiveTemp(activeTemp);
+                    if(actT != -1){
+                        //hay un temporal libre
+                        activeTemp[actT] = true;
+                        first = "$t" + actT;
+                        relTemp.put(assig, first);
+
+                    }else{
+                        //hay que agregarlo a la pila
+                        int stackTemp = getNewStackPos(stackPos);
+                        stackPos.put(assig, stackTemp);
+
+                        first = "-" + stackTemp + "($sp)";
+
+                        fin += "\tlw $t9, " + first + "\n";
+                        first = "$t9";
+                        //temporal 9 lo tengo reservado, por lo tanto no es necesario restaurar su valor original
+                    }
+                    
+                    //El primer operando (segundo valor)
+                    if(term.length() > 1 && term.charAt(1) == '.'){
+                        //es un temporal
+
+                        if(relTemp.containsKey(term)){
+                            //es un registro temporal
+                            second = relTemp.get(term);
+                            relTemp.remove(term);
+                            int tempNum = second.charAt(second.length() - 1) - 48;
+                            activeTemp[tempNum] = false;
+                            //Como está en el lado derecho de una asignación, ya no se seguirá utilizando y se puede liberar el registro
+
+                        }else if(stackPos.containsKey(term)){
+                            //está en la pila
+
+                            int tempS = getNewStackPos(stackPos);
+                            stackPos.put("$s0", tempS);
+                            
+                            int stackTemp = stackPos.get(term);
+                            stackPos.remove(term);
+
+                            second = "-" + stackTemp + "($sp)";
+                            term = "-" + tempS + "($sp)";
+
+                            //Se almacena el valor del registro $s0 en un nuevo espacio de pila
+                            //term tiene almacenado
+    
+                            fin +=  "\tsw $s0, " + term + "\n"
+                                +   "\tlw $s0, " + second + "\n";
+                            second = "$s0";
+                                
+                        }else{
+                            //...no existe??
+                        }
+
+                    }else if(term.charAt(0) == '\'' || (term.charAt(0) - 48 >= 0 && term.charAt(0) - 48 <= 9)){
+                        //el segundo termino es un caracter o entero
+                        int tempS = getNewStackPos(stackPos);
+                        stackPos.put("$s0", tempS);
+
+                        
+                        fin +=  "\tsw $s0, " + "-" + tempS + "($sp)\n"
+                            +   "\tli $s0, " + term + "\n";
+                        second = "$s0";
+
+                        term = "-" + tempS + "($sp)";
+                        //guarda el estado de s0 en la pila para recuperarlo despues de usar s0 para almacenar el segundo termino
+
+                    }else{
+                        //es una variable
+                        
+                        int tempS = getNewStackPos(stackPos);
+                        stackPos.put("$s0", tempS);
+
+                        
+                        fin +=  "\tsw $s0, " + "-" + tempS + "($sp)\n"
+                            +   "\tlw $s0, _" + term + "\n";
+                        second = "$s0";
+
+                        term = "-" + tempS + "($sp)";
+                        //guarda el estado de s0 en la pila para recuperarlo despues de usar s0 para almacenar el segundo termino
+
+                    }
+
+                    //El segundo operando (tercer valor)
+                    if(term2.length() > 1 && term2.charAt(1) == '.'){
+                        //es un temporal
+
+                        if(relTemp.containsKey(term2)){
+                            //es un registro temporal
+                            third = relTemp.get(term2);
+                            relTemp.remove(term2);
+                            int tempNum = third.charAt(third.length() - 1) - 48;
+                            activeTemp[tempNum] = false;
+                            //Como está en el lado derecho de una asignación, ya no se seguirá utilizando y se puede liberar el registro
+
+                        }else if(stackPos.containsKey(term2)){
+                            //está en la pila
+
+                            int tempS = getNewStackPos(stackPos);
+                            stackPos.put("$s1", tempS);
+                            
+                            int stackTemp = stackPos.get(term2);
+                            stackPos.remove(term2);
+
+                            third = "-" + stackTemp + "($sp)";
+                            term2 = "-" + tempS + "($sp)";
+
+                            //Se almacena el valor del registro $s1 en un nuevo espacio de pila
+                            //term2 tiene almacenado
+    
+                            fin +=  "\tsw $s1, " + term2 + "\n"
+                                +   "\tlw $s1, " + third + "\n";
+                            third = "$s1";
+                                
+                        }else{
+                            //...no existe??
+                        }
+
+                    }else if(term2.charAt(0) == '\'' || (term2.charAt(0) - 48 >= 0 && term2.charAt(0) - 48 <= 9)){
+                        //el segundo termino es un caracter o entero
+                        
+                        third = term2;
+
+                    }else{
+                        //es una variable
+                        
+                        int tempS = getNewStackPos(stackPos);
+                        stackPos.put("$s1", tempS);
+
+                        
+                        fin +=  "\tsw $s1, " + "-" + tempS + "($sp)\n"
+                            +   "\tlw $s1, _" + term2 + "\n";
+                        third = "$s1";
+
+                        term2 = "-" + tempS + "($sp)";
+                        //guarda el estado de s0 en la pila para recuperarlo despues de usar s0 para almacenar el segundo termino
+
+                    }
+
+                    System.out.println("OPP: " + opp);
+                    switch(opp){
+                        case "+":{
+                            fin += "\tadd ";
+                            break;
+                        }
+                        case "-":{
+                            fin += "\tsub ";
+                            break;
+                        }
+                        case "*":{
+                            fin += "\tmul ";
+                            break;
+                        }
+                        case "/":{
+                            fin += "\tdiv ";
+                            break;
+                        }
+                        default:{
+                            fin +="\tERROR ";
+                        }
+                    }
+
+                    fin += first + ", " + second + ", " + third + "\n";
+
+                    if(second.equals("$s0")){
+                        fin +=  "\tlw $s0, " + term + "\n";
+                        stackPos.remove("$s0");
+                    }
+
+                    if(third.equals("$s1")){
+                        fin +=  "\tlw $s1, " + term2 + "\n";
+                        stackPos.remove("$s1");
+                    }
+
+
+                }else if(ins instanceof Cond){
+                    Cond con = (Cond) ins;
+                    
+                    //estos se usan para saber cual es el valor de código intermedio, y para saber donde se restaurará cualquier valor de registro perdido en el proceso de abajo
+                    String term = con.term1;
+                    String term2 = con.term2;
+
+                    //Estas son las variables que serán usadas en la opreacion de asignacion final... se modifican dentro de los casos
+                    String opp = con.opp;     //Operación final
+                    String second = "";         //primer operando (primer valor)
+                    String third = "";          //segundo operando (segundo valor)
+
+                    //SE LLAMAN SECOND Y THIRD PORQUE LE DI COPY PASTE A LO DE ARRIBA
+                    
+                    //El primer operando (segundo valor)
+                    if(term.length() > 1 && term.charAt(1) == '.'){
+                        //es un temporal
+
+                        if(relTemp.containsKey(term)){
+                            //es un registro temporal
+                            second = relTemp.get(term);
+                            relTemp.remove(term);
+                            int tempNum = second.charAt(second.length() - 1) - 48;
+                            activeTemp[tempNum] = false;
+                            //Como está en el lado derecho de una asignación, ya no se seguirá utilizando y se puede liberar el registro
+
+                        }else if(stackPos.containsKey(term)){
+                            //está en la pila
+
+                            int tempS = getNewStackPos(stackPos);
+                            stackPos.put("$s0", tempS);
+                            
+                            int stackTemp = stackPos.get(term);
+                            stackPos.remove(term);
+
+                            second = "-" + stackTemp + "($sp)";
+                            term = "-" + tempS + "($sp)";
+
+                            //Se almacena el valor del registro $s0 en un nuevo espacio de pila
+                            //term tiene almacenado
+    
+                            fin +=  "\tsw $s0, " + term + "\n"
+                                +   "\tlw $s0, " + second + "\n";
+                            second = "$s0";
+                                
+                        }else{
+                            //...no existe??
+                        }
+
+                    }else if(term.charAt(0) == '\'' || (term.charAt(0) - 48 >= 0 && term.charAt(0) - 48 <= 9)){
+                        //el segundo termino es un caracter o entero
+                        int tempS = getNewStackPos(stackPos);
+                        stackPos.put("$s0", tempS);
+
+                        
+                        fin +=  "\tsw $s0, " + "-" + tempS + "($sp)\n"
+                            +   "\tli $s0, " + term + "\n";
+                        second = "$s0";
+
+                        term = "-" + tempS + "($sp)";
+                        //guarda el estado de s0 en la pila para recuperarlo despues de usar s0 para almacenar el segundo termino
+
+                    }else{
+                        //es una variable
+                        
+                        int tempS = getNewStackPos(stackPos);
+                        stackPos.put("$s0", tempS);
+
+                        
+                        fin +=  "\tsw $s0, " + "-" + tempS + "($sp)\n"
+                            +   "\tlw $s0, _" + term + "\n";
+                        second = "$s0";
+
+                        term = "-" + tempS + "($sp)";
+                        //guarda el estado de s0 en la pila para recuperarlo despues de usar s0 para almacenar el segundo termino
+
+
+                    }
+
+                    //El segundo operando (tercer valor)
+                    if(term2.length() > 1 && term2.charAt(1) == '.'){
+                        //es un temporal
+
+                        if(relTemp.containsKey(term2)){
+                            //es un registro temporal
+                            third = relTemp.get(term2);
+                            relTemp.remove(term2);
+                            int tempNum = third.charAt(third.length() - 1) - 48;
+                            activeTemp[tempNum] = false;
+                            //Como está en el lado derecho de una asignación, ya no se seguirá utilizando y se puede liberar el registro
+
+                        }else if(stackPos.containsKey(term2)){
+                            //está en la pila
+
+                            int tempS = getNewStackPos(stackPos);
+                            stackPos.put("$s1", tempS);
+                            
+                            int stackTemp = stackPos.get(term2);
+                            stackPos.remove(term2);
+
+                            third = "-" + stackTemp + "($sp)";
+                            term2 = "-" + tempS + "($sp)";
+
+                            //Se almacena el valor del registro $s1 en un nuevo espacio de pila
+                            //term2 tiene almacenado
+    
+                            fin +=  "\tsw $s1, " + term2 + "\n"
+                                +   "\tlw $s1, " + third + "\n";
+                            third = "$s1";
+                                
+                        }else{
+                            //...no existe??
+                        }
+
+                    }else if(term2.charAt(0) == '\'' || (term2.charAt(0) - 48 >= 0 && term2.charAt(0) - 48 <= 9)){
+                        //el segundo termino es un caracter o entero
+                        
+                        third = term2;
+
+                    }else{
+                        //es una variable
+                        
+                        int tempS = getNewStackPos(stackPos);
+                        stackPos.put("$s1", tempS);
+
+                        
+                        fin +=  "\tsw $s1, " + "-" + tempS + "($sp)\n"
+                            +   "\tlw $s1, _" + term2 + "\n";
+                        third = "$s1";
+
+                        term2 = "-" + tempS + "($sp)";
+                        //guarda el estado de s0 en la pila para recuperarlo despues de usar s0 para almacenar el segundo termino
+
+                    }
+
+
+                    //<>|=|>|<|>=|<=
+                    switch(con.opp){
+                        case "=":{
+                                fin += "\tbeq ";
+                                break;
+                            }
+                            case ">":{
+                                fin += "\tbgt ";
+                                break;
+                            }
+                            case "<":{
+                                fin += "\tblt ";
+                                break;
+                            }
+                            case ">=":{
+                                fin += "\tbge ";
+                                break;
+                            }
+                            case "<=":{
+                                fin += "\tble ";
+                                break;
+                            }
+                            default:{
+                                fin += "\tERROR ";
+                            break;
+                        }
+                    }
+
+                    fin += second + ", " + third + "," + con.gotoTrue + "\n"
+                        +  "\tb " + con.gotoFalse + "\n";
+
+                    if(second.equals("$s0")){
+                        fin +=  "\tlw $s0, " + term + "\n";
+                        stackPos.remove("$s0");
+                    }
+
+                    if(third.equals("$s1")){
+                        fin +=  "\tlw $s1, " + term2 + "\n";
+                        stackPos.remove("$s1");
+                    }
+
+                }else if(ins instanceof EtiqInt){
+                    fin += ((EtiqInt)ins).etiq + ":\n";
+                }else if(ins instanceof GotoInt){
+                    fin += "\tb " + ((GotoInt)ins).etiqueta + "\n";
+                }else if(ins instanceof ReadInt){
+                    String var = ((ReadInt)ins).id;
+                    System.out.println("READINT " + var);
+                    Object[] tup = tabla.buscarTuplaDown(var, 0);
+                    if(((Tupla)tup[0]).type.equals("INT")){
+                        fin += "\tli $v0, 5\n";
+                    }else if(((Tupla)tup[0]).type.equals("CHAR")){
+                        fin += "\tli $v0, 12\n";
+                    }
+                    fin += "\tsyscall\n"
+                        +  "\tsw $v0, _" + var + "\n";
+                }else if(ins instanceof PrintInt){
+                    //2 = id, 1 = string
+                    String var = ((PrintInt)ins).cont;
+                
+                    System.out.println("READINT " + var);
+                    if(((PrintInt)ins).type == 1){
+                        fin += "\tli $v0, 4\n"
+                        +  "\tla $a0, " + var + "\n"
+                        +  "\tsyscall\n";
+                    }else{
+                        Object[] tup = tabla.buscarTuplaDown(var, 0);
+                        if(tup != null){
+                            if(((Tupla)tup[0]).type.equals("INT")){
+                                fin += "\tli $v0, 1\n";
+                            }else if(((Tupla)tup[0]).type.equals("CHAR")){
+                                fin += "\tli $v0, 11\n";
+                            }
+                            fin += "\tlw $a0, _" + var + "\n"
+                                +  "\tsyscall\n";
+                        }
+                    }
+                }else{
+                    System.out.println("what?!");
+                }
+            }
+            fin += "\tli $v0, 10\n"
+	            + "\tsyscall";
+            return fin;
+        }else{
+            return "ERROR";
+        }
+    }
+
+    private int getNewStackPos(Map<String, Integer> stackPos){
+        int offset = 4;
+        while(((Map)stackPos).containsValue(offset)){
+            offset += 4;
+        }
+        return offset;
+    }
+    
+    private int getMaxOffset(Map<String, Integer> stackPos){
+        return Collections.max(stackPos.values());
+    }
+
+    private int getActiveTemp(boolean[] temp){
+        for (int i = 0; i < temp.length; i++) {
+            if(!temp[i]){
+                return i;
+            }
+        }
+        return -1;
+    }
+    
 }

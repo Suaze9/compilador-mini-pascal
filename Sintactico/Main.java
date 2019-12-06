@@ -88,7 +88,7 @@ public class Main {
         boolean b = comprobacionTipos(root.statements);
         
         if(b){
-            CodInt c = new CodInt(root);
+            CodInt c = new CodInt(root, tabla);
             c.crearCodigoInt();
         }
 
@@ -221,6 +221,7 @@ public class Main {
                 offset = 0;
                 
                 TablaSym ts = new TablaSym(tabla);
+                tabla.addHijo(ts);
                 tabla = ts;
     
                 for(ParamsNode param : params){
@@ -671,7 +672,10 @@ public class Main {
         Object[] tup = tabla.buscarTupla((String)readNode.id.content, 0);
         if(tup != null){
             validVariable = ((Tupla)tup[0]).type.equals("INT") || ((Tupla)tup[0]).type.equals("CHAR");
+            if(!validVariable)
+                printError("INT/CHAR", ((Tupla)tup[0]).type, readNode.fila, readNode.columna);
         }else{
+            printErrorId((String)readNode.id.content, readNode.fila, readNode.columna);
             validVariable = false;
         }
         return validVariable;
@@ -701,8 +705,8 @@ public class Main {
             }else if(val.type == 5){
                 validWrite = true;
             }else{
-                printErrorInesperado(val.fila, val.columna);
                 validWrite = false;
+                printErrorInesperado(val.fila, val.columna);
             }
         }
         return validWrite;

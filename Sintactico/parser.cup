@@ -667,7 +667,7 @@ num ::= NUMS:n {:
     RESULT = new Value(new Integer((String)n), fila, columna);
 :}  
 | CONSTCHAR:cc {:
-    RESULT = new Value(new Character(((String)cc).charAt(0)), fila, columna);
+    RESULT = new Value(new Character(((String)cc).charAt(1)), fila, columna);
 :}
 | PARIZQ sum:m PARDER {:
     //////////////// AQUI SE DEBE VER QUE RETORNA MATH, SI ES UN MathNode RETORNAR MISMO MATHNODE, SINO, CREAR UN NUEVO MathNode DANDO COMO PARAMETRO m ////////////////
@@ -758,11 +758,11 @@ bool ::= TRUE {:
 :}
 | NOT PARIZQ rel:r PARDER {:
     if(r instanceof Value){
-        ((Value)r).not = true;
+        ((Value)r).not = !((Value)r).not;
         RESULT = r;
     }else{
         BoolPap b = (BoolPap)r;
-        b.not = true;
+        b.not = !b.not;
         RESULT = b;
     }
 :}
@@ -771,19 +771,22 @@ bool ::= TRUE {:
 :}
 | NOT boolmath:r {:
     if(r instanceof Value){
-        ((Value)r).not = true;
+        ((Value)r).not = ((Value)r).not;
         RESULT = r;
     }else{
         BoolPap b = (BoolPap)r;
-        b.not = true;
+        b.not = !b.not;
         RESULT = b;
     }
 :}
 | error;
 
 boolmath ::= sum:b OPREL:o sum:m{:
-    RESULT = new BoolMathNode(b, (String)o, m, fila, columna);
-    //<>|=|>|<|>=|<=
+    if( ((String)o).equals("<>") ){
+        RESULT = new BoolMathNode(true, b, "=", m, fila, columna);
+    }else{
+        RESULT = new BoolMathNode(b, (String)o, m, fila, columna);
+    }
 :}
 | sum:m {:
     RESULT = m;
