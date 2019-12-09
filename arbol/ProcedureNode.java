@@ -12,6 +12,8 @@ public class ProcedureNode extends Node implements Serializable{
   public Object declarations; //   DeclNode | ArrayList<DeclNode>
   public ArrayList<Object> statements;
 
+  public String tipoTabla;
+
   public int type;
 
   public ProcedureNode(Value id,ArrayList<ParamsNode> params, Object declarations, ArrayList<Object> statements, int fila, int columna){
@@ -21,6 +23,9 @@ public class ProcedureNode extends Node implements Serializable{
     this.params = params;
     this.declarations = declarations;
     this.statements = statements;
+
+    this.tipoTabla = "";
+
     if(declarations instanceof DeclNode){
       this.type = DECLNODE;
     }else if(declarations instanceof ArrayList){

@@ -15,45 +15,64 @@ public class Main {
   public static int offset;
   public static boolean loaded;
 
-  static public void main(String argv[]) {    
-    /* Start the parser */
-    loaded = false;
-    try {
-      parser p = new parser(new lexer(new FileReader(argv[0])));
-      p.parse();
+  public static boolean errorCalled;
 
-      tipos = new HashMap<>();
-      tipos.put("INT", 4);
-      tipos.put("CHAR", 1);
-      tipos.put("BOOLEAN", 4);
-      tiposInv = new HashMap<>();
-      tiposInv.put(1, "INT");
-      tiposInv.put(2, "BOOL");
-      tiposInv.put(3, "ID");
-      offset = 0;
+  public static String ruta = "";
 
-      leerArbol();
-      if(loaded){
-          crearTabla();
-      }
+    static public void main(String argv[]) {    
+        /* Start the parser */
+        loaded = false;
+        errorCalled = false;
+        try {
+        parser p = new parser(new lexer(new FileReader(argv[0])));
+        p.parse();
+        ruta = argv[0];
 
-    } catch (Exception e) {
-      e.printStackTrace();
+        tipos = new HashMap<>();
+        tipos.put("INT", 4);
+        tipos.put("CHAR", 1);
+        tipos.put("BOOLEAN", 4);
+        tiposInv = new HashMap<>();
+        tiposInv.put(1, "INT");
+        tiposInv.put(2, "BOOL");
+        tiposInv.put(3, "ID");
+        offset = 0;
+
+        leerArbol();
+        if(loaded){
+            crearTabla();
+            eliminarArbol();
+        }
+
+        } catch (Exception e) {
+        e.printStackTrace();
+        }
+
     }
 
-  }
+    public static void printError(String esperado, String recibido, int fila, int columna){
+        System.out.println("\nError de tipos:\n\nSe esperaba el tipo: " + esperado + "\n\tPero se recibio el tipo: " + recibido + "\n\tLinea: " + fila + "\tColumna: " + columna);
+        errorCalled = true;
+    }
 
-  public static void printError(String esperado, String recibido, int fila, int columna){
-      System.out.println("\nError de tipos:\n\nSe esperaba el tipo: " + esperado + "\n\tPero se recibio el tipo: " + recibido + "\n\tLinea: " + fila + "\tColumna: " + columna);
-  }
+    public static void printErrorId(String id, int fila, int columna){
+        System.out.println("\nError de tipos:\n\nNo se declaro la variable/funcion: " + id + "\n\tLinea: " + fila + "\tColumna: " + columna);
+        errorCalled = true;
+    }
 
-  public static void printErrorId(String id, int fila, int columna){
-      System.out.println("\nError de tipos:\n\nNo se declaro la variable/funcion: " + id + "\n\tLinea: " + fila + "\tColumna: " + columna);
-  }
+    public static void printErrorTipoFunc(String id, int fila, int columna){
+        System.out.println("\nError de tipos de retorno:\n\nNo existe el tipo/record: " + id + "\n\tLinea: " + fila + "\tColumna: " + columna);
+        errorCalled = true;
+    }
+    public static void printErrorDupFunc(String id, int fila, int columna){
+        System.out.println("\nError de declaracion de funciones:\n\nLa funcion ya fue asignada: " + id + "\n\tLinea: " + fila + "\tColumna: " + columna);
+        errorCalled = true;
+    }
 
-  public static void printErrorInesperado(int fila, int columna){
-    System.out.println("\nError de tipos inesperado:\n\tLinea: " + fila + "\tColumna: " + columna);    
-  }
+    public static void printErrorInesperado(int fila, int columna){
+        System.out.println("\nError de tipos inesperado:\n\tLinea: " + fila + "\tColumna: " + columna);    
+        errorCalled = true;
+    }
 
     public static void leerArbol(){
         try(ObjectInputStream oi = new ObjectInputStream(new FileInputStream(new File("../Semantico/arbolito.bebe")))){
@@ -67,6 +86,15 @@ public class Main {
         }catch(Exception e){
             loaded = false;
             System.out.println("--");
+        }
+    }
+
+    public static void eliminarArbol(){
+        File f = new File("../Semantico/arbolito.bebe");
+        if(f.delete()){
+            System.out.println("--del");
+        }else{
+            System.out.println("--no del");
         }
     }
 
@@ -84,11 +112,11 @@ public class Main {
         tabla = new TablaSym();
         records(root.records);
         declaraciones((ArrayList<DeclNode>)root.declarations);
-        funciones(root.functions);
-        boolean b = comprobacionTipos(root.statements);
+        boolean b = funciones(root.functions);
+        b = b & comprobacionTipos(root.statements);
         
         if(b){
-            CodInt c = new CodInt(root, tabla);
+            CodInt c = new CodInt(root, tabla, ruta);
             c.crearCodigoInt();
         }
 
@@ -138,7 +166,8 @@ public class Main {
         }
     }
     
-    public static void funciones(ArrayList<Object> funcs){
+    public static boolean funciones(ArrayList<Object> funcs){
+        boolean valido = true;
         if(funcs != null){
             for(Object funcproc : funcs){
                 Value id;
@@ -146,6 +175,9 @@ public class Main {
                 Object declarations;
                 ArrayList<Object> statements;
                 String funcprocType = "";
+
+                int fila = 0;
+                int columna = 0;
     
                 if(funcproc instanceof FunctionNode){
                     FunctionNode func = (FunctionNode)funcproc;
@@ -153,7 +185,23 @@ public class Main {
                     params = func.params;
                     declarations = func.declarations;
                     statements = func.statements;
-                    funcprocType = func.type;
+                    funcprocType = func.type.toUpperCase();
+                    fila = ((FunctionNode)funcproc).fila;
+                    columna = ((FunctionNode)funcproc).columna;
+                    
+                    ///////////AGREGAR RECORDS AQUI DESPUES!!!
+                    if(funcprocType.equals("INT") || funcprocType.equals("BOOLEAN") || funcprocType.equals("CHAR") ){
+                        valido = true;
+                    }else{
+                        printErrorTipoFunc(funcprocType, func.fila, func.columna);
+                        valido = false; 
+                    }
+                    /*else{
+                        //////SI ES RECORD HAY QUE REGRESARLO COMO ESTABA SIN EL UPPERCASE
+                        funcprocType = func.type;
+                    }
+                    */
+
                 }else if (funcproc instanceof ProcedureNode){
                     ProcedureNode proc = (ProcedureNode)funcproc;
                     id = proc.id;
@@ -161,9 +209,11 @@ public class Main {
                     declarations = proc.declarations;
                     statements = proc.statements;
                     funcprocType = "NULL";
+                    fila = ((ProcedureNode)funcproc).fila;
+                    columna = ((ProcedureNode)funcproc).columna;
                 }else{
                     System.out.println("Error de tipo funcion");
-                    return;
+                    return false;
                 }
                 String type = "(";
                 for(ParamsNode param : params){
@@ -179,7 +229,6 @@ public class Main {
     
                     for(Value val : param.ids){
                         String idval = (String)val.content;
-                        Tupla tuplita = new Tupla(idval, tipo, offset);
                         offset += size;
     
                         if(!(params.indexOf(param) == params.size() - 1 && param.ids.indexOf(val) == param.ids.size() - 1)){
@@ -191,8 +240,21 @@ public class Main {
                     }
     
                 }
+                
+                Object[] tuplita = tabla.buscarTuplaFunc((String)id.content, type + ")", 0);
+
+                if(tuplita != null){
+                    printErrorDupFunc((String)id.content, fila, columna);
+                    return false;
+                }
+                
                 type += ") -> " + funcprocType;
                 
+                if(funcproc instanceof FunctionNode){
+                    ((FunctionNode)funcproc).tipoTabla = type;
+                }else if(funcproc instanceof ProcedureNode){
+                    ((ProcedureNode)funcproc).tipoTabla = type;
+                }
     
                 tabla.add((String)id.content, type, -1);
     
@@ -214,7 +276,7 @@ public class Main {
                     params = proc.params;
                     statements = proc.statements;
                 }else{
-                    return;
+                    return false;
                 }
                 
                 int tempOffset = offset;
@@ -245,12 +307,13 @@ public class Main {
     
                 declaraciones((ArrayList<DeclNode>)declarations);
     
-                comprobacionTipos(statements);
+                valido = valido & comprobacionTipos(statements);
     
                 if(stepBack())
                     offset = tempOffset;
             }
         }
+        return valido;
     }
 
     public static void declaraciones(ArrayList<DeclNode> decls){
@@ -470,11 +533,13 @@ public class Main {
         if(res != null){
             int index = (((Tupla)res[0]).type).indexOf(" -> ");
             String tipoRetorno = (((Tupla)res[0]).type).substring( index + 4 );
+            val.ret = tipoRetorno;
+            val.tip = (((Tupla)res[0]).type).substring( 0, index );
             return tipoRetorno;
         }
 
         printErrorId(name, val.fila, val.columna);
-
+        val.ret = "ERROR";
         return "ERROR";
     }
 
@@ -503,6 +568,7 @@ public class Main {
                 Value val = (Value)condition;
                 if(val.type == 1){
                     condicion =  false;
+                    printError("BOOELAN", "INT", val.fila, val.columna);
                 }else if(val.type == 2){
                     condicion = true;
                 }else if(val.type == 3){
@@ -520,15 +586,17 @@ public class Main {
                     }
                 }else if(val.type == 4){
                     String ret = verifyFuncCall((FuncCallNode)val.content);
-                    if(ret.equals("BOOELAN")){
+                    if(ret.equals("ERROR")){
+                        condicion = false;
+                    }if(ret.equals("BOOELAN")){
                         condicion = true;
                     }else{
                         condicion = false;
-                        if(!ret.equals("ERROR"))
-                            printError("BOOLEAN", ret, val.fila, val.columna);
+                        printError("BOOLEAN", ret, val.fila, val.columna);
                     }
                 }else if(val.type == 5){
                     condicion = false;
+                    printError("BOOLEAN", "CHAR", val.fila, val.columna);
                 }else{
                     //System.out.println("Buscando el tipo, algo salió mal en condicion IF");
                     printErrorInesperado(val.fila, val.columna);
@@ -625,18 +693,20 @@ public class Main {
                         }
                     }else if(val.type == 4){
                         String ret = verifyFuncCall((FuncCallNode)val.content);
-                        if(ret.equals("INT")){
+                        if(ret.equals("ERROR")){
+                            validCondition = false;
+                        }if(ret.equals("INT")){
                             validCondition = true;
                         }else{
                             validCondition = false;
-                            if(!ret.equals("ERROR"))
-                                printError("INT", ret, val.fila, val.columna);
+                            printError("INT", ret, val.fila, val.columna);
                         }
                     }else if(val.type == 5){
                         printError("CHAR", "BOOLEAN", val.fila, val.columna);
                         validCondition = false;
                     }else{
                         System.out.println("Buscando el tipo, algo salió mal en condicion IF");
+                        printErrorInesperado(val.fila, val.columna);
                         validCondition = false;
                     }
                     break;
@@ -651,6 +721,7 @@ public class Main {
                     validCondition = verifySumTypes((MathSum)forNode.condition);
                     break;
                 }default:{
+                    printErrorInesperado(forNode.fila, forNode.columna);
                     validCondition = false;
                 }
             }
@@ -738,6 +809,7 @@ public class Main {
                 if(val.type == 1){
                     checkLeft = true;
                 }else if(val.type == 2){
+                    printError("INT", "BOOLEAN", val.fila, val.columna);
                     return false;
                 }else if(val.type == 3){
                     Object[] tup = tabla.buscarTupla((String)val.content, 0);
@@ -754,12 +826,14 @@ public class Main {
                     }
                 }else if(val.type == 4){
                     String ret = verifyFuncCall((FuncCallNode)val.content);
+                    if(ret.equals("ERROR")){
+                        checkLeft = true;
+                    }
                     if(ret.equals("INT")){
                         checkLeft = true;
                     }else{
                         checkLeft = false;
-                        if(!ret.equals("ERROR"))
-                            printErrorId(ret, val.fila, val.columna);
+                        printErrorId(ret, val.fila, val.columna);
                     }
                 }else if(val.type == 5){
                     printError("INT", "CHAR", val.fila, val.columna);
@@ -781,15 +855,17 @@ public class Main {
                 break;
             }case 5:{
                 String ret = verifyFuncCall((FuncCallNode)sumNode.leftChild);
-                if(ret.equals("INT")){
+                if(ret.equals("ERROR")){
+                    checkLeft = false;
+                }else if(ret.equals("INT")){
                     checkLeft = true;
                 }else{
                     checkLeft = false;
-                    if(!ret.equals("ERROR"))
-                        printError("INT", ret, ((FuncCallNode)sumNode.leftChild).fila, ((FuncCallNode)sumNode.leftChild).columna);
+                    printError("INT", ret + "BBB", ((FuncCallNode)sumNode.leftChild).fila, ((FuncCallNode)sumNode.leftChild).columna);
                 }
                 break;
             }default:{
+                printErrorInesperado(sumNode.fila, sumNode.columna);
                 return false;
             }
         }
@@ -800,6 +876,7 @@ public class Main {
                 if(val.type == 1){
                     checkRight = true;
                 }else if(val.type == 2){
+                    printError("INT", "BOOLEAN", val.fila, val.columna);
                     return false;
                 }else if(val.type == 3){
                     Object[] tup = tabla.buscarTupla((String)val.content, 0);
@@ -816,12 +893,13 @@ public class Main {
                     }
                 }else if(val.type == 4){
                     String ret = verifyFuncCall((FuncCallNode)val.content);
-                    if(ret.equals("INT")){
+                    if(ret.equals("ERROR")){
+                        checkRight = false;
+                    }else if(ret.equals("INT")){
                         checkRight = true;
                     }else{
                         checkRight = false;
-                        if(!ret.equals("ERROR"))
-                            printErrorId(ret, val.fila, val.columna);
+                        printErrorId(ret, val.fila, val.columna);
                     }
                 }else if(val.type == 5){
                     printError("INT", "CHAR", val.fila, val.columna);
@@ -843,15 +921,17 @@ public class Main {
                 break;
             }case 5:{
                 String ret = verifyFuncCall((FuncCallNode)sumNode.rightChild);
-                if(ret.equals("INT")){
+                if(ret.equals("ERROR")){
+                    checkRight = false;
+                }else if(ret.equals("INT")){
                     checkRight = true;
                 }else{
                     checkRight = false; 
-                    if(!ret.equals("ERROR"))
-                        printError("INT", ret, ((FuncCallNode)sumNode.rightChild).fila, ((FuncCallNode)sumNode.rightChild).columna);
+                    printError("INT", ret + "AAA", ((FuncCallNode)sumNode.rightChild).fila, ((FuncCallNode)sumNode.rightChild).columna);
                 }
                 break;
             }default:{
+                printErrorInesperado(sumNode.fila, sumNode.columna);
                 return false;
             }
         }
@@ -884,6 +964,7 @@ public class Main {
                     checkLeft = true;
                 }else if(val.type == 2){
                     //Type mismatch, bool no se puede multiplicar con int
+                    printError("INT", "BOOLEAN", val.fila, val.columna);
                     return false;
                 }else if(val.type == 3){
                     Object[] tup = tabla.buscarTupla((String)val.content, 0);
@@ -903,12 +984,13 @@ public class Main {
                     }
                 }else if(val.type == 4){
                     String ret = verifyFuncCall((FuncCallNode)val.content);
-                    if(ret.equals("INT")){
+                    if(ret.equals("ERROR")){
+                        checkLeft = false;
+                    }else if(ret.equals("INT")){
                         checkLeft = true;
                     }else{
                         checkLeft = false;
-                        if(!ret.equals("ERROR"))
-                            printErrorId(ret, val.fila, val.columna);
+                        printErrorId(ret, val.fila, val.columna);
                     }
                 }else if(val.type == 5){
                     printError("INT", "CHAR", val.fila, val.columna);
@@ -927,18 +1009,20 @@ public class Main {
                 break;
             }case 4:{
                 String ret = verifyFuncCall((FuncCallNode)multNode.leftChild);
-                if(ret.equals("INT")){
+                if(ret.equals("ERROR")){
+                    checkLeft = false;
+                }else if(ret.equals("INT")){
                     checkLeft = true;
                 }else{
                     checkLeft = false;
-                    if(!ret.equals("ERROR"))
-                        printError("INT", ret, ((FuncCallNode)multNode.leftChild).fila, ((FuncCallNode)multNode.leftChild).columna);
+                    printError("INT", ret, ((FuncCallNode)multNode.leftChild).fila, ((FuncCallNode)multNode.leftChild).columna);
                 }
                 break;
             }case 5:{
                 checkLeft = verifySumTypes((MathSum)multNode.leftChild);
                 break;
             }default:{
+                printErrorInesperado(multNode.fila, multNode.columna);
                 return false;
             }
         }
@@ -950,6 +1034,7 @@ public class Main {
                 if(val.type == 1){
                     checkRight = true;
                 }else if(val.type == 2){
+                    printError("INT", "BOOLEAN", val.fila, val.columna);
                     return false;
                 }else if(val.type == 3){
                     Object[] tup = tabla.buscarTupla((String)val.content, 0);
@@ -970,12 +1055,13 @@ public class Main {
                     }
                 }else if(val.type == 4){
                     String ret = verifyFuncCall((FuncCallNode)val.content);
-                    if(ret.equals("INT")){
+                    if(ret.equals("ERROR")){
+                        checkRight = false;
+                    }else if(ret.equals("INT")){
                         checkRight = true;
                     }else{
                         checkRight = false;
-                        if(!ret.equals("ERROR"))
-                            printErrorId(ret, val.fila, val.columna);
+                        printErrorId(ret, val.fila, val.columna);
                     }
                 }else if(val.type == 5){
                     printError("INT", "CHAR", val.fila, val.columna);
@@ -994,18 +1080,20 @@ public class Main {
                 break;
             }case 4:{
                 String ret = verifyFuncCall((FuncCallNode)multNode.rightChild);
-                if(ret.equals("INT")){
+                if(ret.equals("ERROR")){
+                    checkRight = false;
+                }else if(ret.equals("INT")){
                     checkRight = true;
                 }else{
                     checkRight = false; 
-                    if(!ret.equals("ERROR"))
-                        printError("INT", ret, ((FuncCallNode)multNode.rightChild).fila, ((FuncCallNode)multNode.rightChild).columna);
+                    printError("INT", ret, ((FuncCallNode)multNode.rightChild).fila, ((FuncCallNode)multNode.rightChild).columna);
                 }
                 break;
             }case 5:{
                 checkRight = verifySumTypes((MathSum)multNode.rightChild);
                 break;   
             }default:{
+                printErrorInesperado(multNode.fila, multNode.columna);
                 return false;
             }
         }
@@ -1022,9 +1110,7 @@ public class Main {
         if(obj != null){
             tipo = ((Tupla)obj[0]).type;
             if(!tipo.equals("INT")){
-                if(!tipo.equals("ERROR")){
-                    printError("INT", tipo, assigNode.fila, assigNode.columna);
-                }
+                printError("INT", tipo, assigNode.fila, assigNode.columna);
                 return false;
             }
         }else{
@@ -1055,7 +1141,9 @@ public class Main {
                 }
             }else if(val.type == 4){
                 String ret = verifyFuncCall((FuncCallNode)val.content); 
-                if(ret.equals("INT")){
+                if(ret.equals("ERROR")){
+                    return false;
+                }else if(ret.equals("INT")){
                     return true;
                 }else{
                     printError("INT", ret, val.fila, val.columna);
@@ -1065,6 +1153,7 @@ public class Main {
                 printError("INT", "CHAR", val.fila, val.columna);
                 return false;
             }else{
+                printErrorInesperado(val.fila, val.columna);
                 return false;
             }
         } else if(assigNode.type == 5){
@@ -1094,6 +1183,7 @@ public class Main {
             printError("INT", "BOOLEAN", ((BoolOrNode)assigNode.expr).fila, ((BoolOrNode)assigNode.expr).columna);
             return false;
         } else {
+            printErrorInesperado(assigNode.fila, assigNode.columna);
             return false;
         }
     }
@@ -1174,6 +1264,7 @@ public class Main {
                     }
                     return true;
                 }else if(funcType.equals("ERROR")){
+                    //printErrorInesperado(assigNode.fila, assigNode.columna);
                     return false;
                 }else{
                     printError(tipo, funcType, assigNode.fila, assigNode.columna);
@@ -1191,7 +1282,7 @@ public class Main {
                     return false;
                 }
             }else{
-                printError(tipo, "-", assigNode.fila, assigNode.columna);
+                printError(tipo, "ERROR", assigNode.fila, assigNode.columna);
                 return false;
             }
         } else if(assigNode.type == 5){
@@ -1211,7 +1302,6 @@ public class Main {
                 if(verifySumTypes((MathSum)assigNode.expr)){
                     return true;
                 }else{
-                    printError(tipo, "INT", assigNode.fila, assigNode.columna);
                     return false;
                 }
             }else{
@@ -1223,7 +1313,6 @@ public class Main {
                 if(verifyBoolMathTypes((BoolMathNode)assigNode.expr)){
                     return true;
                 }else{
-                    printError(tipo, "BOOLEAN", assigNode.fila, assigNode.columna);
                     return false;
                 }
             }else{
@@ -1235,7 +1324,6 @@ public class Main {
                 if(verifyBoolAndTypes((BoolAndNode)assigNode.expr)){
                     return true;
                 }else{
-                    printError(tipo, "BOOLEAN", assigNode.fila, assigNode.columna);
                     return false;
                 }
             }else{
@@ -1247,7 +1335,6 @@ public class Main {
                 if(verifyBoolOrTypes((BoolOrNode)assigNode.expr)){
                     return true;
                 }else{
-                    printError(tipo, "BOOLEAN", assigNode.fila, assigNode.columna);
                     return false;
                 }
             }else{
@@ -1255,8 +1342,10 @@ public class Main {
                 return false;
             }
         } else {
+            printErrorInesperado(assigNode.fila, assigNode.columna);
             return false;
         }
+        printErrorInesperado(assigNode.fila, assigNode.columna);
         return false;
     }
 
@@ -1306,6 +1395,7 @@ public class Main {
                 }else if(val.type == 4){
                     String tipo = verifyFuncCall((FuncCallNode)val.content);
                     if(tipo.equals("ERROR")){
+                        //printErrorId("ERROR", boolNode.fila, boolNode.columna);
                         return false;
                     }else{
                         leftType = tipo;
@@ -1321,9 +1411,11 @@ public class Main {
                         return false;
                     }
                 }else{
+                    printErrorInesperado(boolNode.fila, boolNode.columna);
                     return false;
                 }
             }else if(boolNode.typeLeft == 2){
+                printErrorInesperado(boolNode.fila, boolNode.columna);
                 return false;
             }else if(boolNode.typeLeft == 3 && verifyMultTypes((MathMult)boolNode.leftChild)){
                 leftType = "INT";
@@ -1337,6 +1429,7 @@ public class Main {
                     leftType = tipo;
                 }
             }else{
+                printErrorInesperado(boolNode.fila, boolNode.columna);
                 return false;
             }
 
@@ -1366,6 +1459,7 @@ public class Main {
                 } else if (val.type == 4){
                     String tipo = verifyFuncCall((FuncCallNode)val.content);
                     if(tipo.equals("ERROR")){
+                        //printErrorId("ERROR", boolNode.fila, boolNode.columna);
                         return false;
                     }else{
                         rightType = tipo;
@@ -1381,9 +1475,11 @@ public class Main {
                         return false;
                     }
                 }else{
+                    printErrorInesperado(boolNode.fila, boolNode.columna);
                     return false;
                 }
             }else if(boolNode.typeRight == 2){
+                printErrorInesperado(boolNode.fila, boolNode.columna);
                 return false;
             }else if(boolNode.typeRight == 3 && verifyMultTypes((MathMult)boolNode.rightChild)){
                 rightType = "INT";
@@ -1392,6 +1488,7 @@ public class Main {
             }else if(boolNode.typeRight == 5){
                 String tipo = verifyFuncCall((FuncCallNode)boolNode.rightChild);
                 if(tipo.equals("ERROR")){
+                    printError("CHAR","ERROR", boolNode.fila, boolNode.columna);
                     return false;
                 }else{
                     rightType = tipo;
@@ -1435,7 +1532,7 @@ public class Main {
                 }else if(val.type == 4){
                     String tipo = verifyFuncCall((FuncCallNode)val.content);
                     if(!tipo.equals("INT")){
-                        printError("INT", tipo, boolNode.fila, boolNode.columna);
+                        //printError("INT", tipo, boolNode.fila, boolNode.columna);
                         return false;
                     }else{
                         leftType = tipo;
@@ -1444,10 +1541,11 @@ public class Main {
                     printError("INT", "CHAR", boolNode.fila, boolNode.columna);
                     return false;
                 }else{
-                    printError("INT", "-", boolNode.fila, boolNode.columna);
+                    printError("INT", "ERROR", boolNode.fila, boolNode.columna);
                     return false;
                 }
             }else if(boolNode.typeLeft == 2){
+                printErrorInesperado(boolNode.fila, boolNode.columna);
                 return false;
             }else if(boolNode.typeLeft == 3 && verifyMultTypes((MathMult)boolNode.leftChild)){
                 leftType = "INT";
@@ -1456,11 +1554,13 @@ public class Main {
             }else if(boolNode.typeLeft == 5){
                 String tipo = verifyFuncCall((FuncCallNode)boolNode.leftChild);
                 if(tipo.equals("ERROR")){
+                    //printError("INT", "ERROR", boolNode.fila, boolNode.columna);
                     return false;
                 }else if(!tipo.equals("INT")){
                     printError("INT", tipo, boolNode.fila, boolNode.columna);
                 }
             }else{
+                printErrorInesperado(boolNode.fila, boolNode.columna);
                 return false;
             }
 
@@ -1491,7 +1591,7 @@ public class Main {
                 }else if(val.type == 4){
                     String tipo = verifyFuncCall((FuncCallNode)val.content);
                     if(!tipo.equals("INT")){
-                        printError("INT", tipo, boolNode.fila, boolNode.columna);
+                        //printError("INT", tipo, boolNode.fila, boolNode.columna);
                         return false;
                     }else{
                         rightType = tipo;
@@ -1500,10 +1600,11 @@ public class Main {
                     printError("INT", "CHAR", boolNode.fila, boolNode.columna);
                     return false;
                 }else{
-                    printError("INT", "-", boolNode.fila, boolNode.columna);
+                    printError("INT", "ERROR", boolNode.fila, boolNode.columna);
                     return false;
                 }
             }else if(boolNode.typeRight == 2){
+                printErrorInesperado(boolNode.fila, boolNode.columna);
                 return false;
             }else if(boolNode.typeRight == 3 && verifyMultTypes((MathMult)boolNode.rightChild)){
                 rightType = "INT";
@@ -1512,6 +1613,7 @@ public class Main {
             }else if(boolNode.typeRight == 5){
                 String tipo = verifyFuncCall((FuncCallNode)boolNode.rightChild);
                 if(tipo.equals("ERROR")){
+                    //printError("INT", "ERROR", boolNode.fila, boolNode.columna);
                     return false;
                 }else if(!tipo.equals("INT")){
                     printError("INT", tipo, boolNode.fila, boolNode.columna);
@@ -1570,6 +1672,7 @@ public class Main {
             }else if(val.type == 4){
                 String tipo = verifyFuncCall((FuncCallNode)val.content);
                 if(tipo.equals("ERROR")){
+                    //printError("BOOLEAN", "ERROR", val.fila, val.columna);
                     checkLeft = false;
                 }else if(tipo.equals("BOOLEAN")){
                     checkLeft = true;
@@ -1581,7 +1684,7 @@ public class Main {
                 printError("BOOLEAN", "CHAR", boolNode.fila, boolNode.columna);
                 return false;
             }else{
-                printError("BOOLEAN", "-", boolNode.fila, boolNode.columna);
+                printError("BOOLEAN", "ERROR", boolNode.fila, boolNode.columna);
                 return false;
             }
         } else if(boolNode.typeLeft == 2 && verifyBoolMathTypes((BoolMathNode)boolNode.leftChild)){
@@ -1591,6 +1694,7 @@ public class Main {
         } else if(boolNode.typeLeft == 5){
             String tipo = verifyFuncCall((FuncCallNode)boolNode.leftChild);
                 if(tipo.equals("ERROR")){
+                    //printError("BOOLEAN", "ERROR", boolNode.fila, boolNode.columna);
                     checkLeft = false;
                 }else if(tipo.equals("BOOLEAN")){
                     checkLeft = true;
@@ -1599,7 +1703,7 @@ public class Main {
                     checkLeft = false;
                 }
         } else {
-            printError("BOOLEAN", "-", boolNode.fila, boolNode.columna);
+            printError("BOOLEAN", "ERROR", boolNode.fila, boolNode.columna);
             return false;
         }
 
@@ -1627,6 +1731,7 @@ public class Main {
             }else if(val.type == 4){
                 String tipo = verifyFuncCall((FuncCallNode)val.content);
                 if(tipo.equals("ERROR")){
+                    //printError("BOOLEAN", "ERROR", val.fila, val.columna);
                     checkRight = false;
                 }else if(tipo.equals("BOOLEAN")){
                     checkRight = true;
@@ -1638,7 +1743,7 @@ public class Main {
                 printError("BOOLEAN", "CHAR", boolNode.fila, boolNode.columna);
                 checkRight = false;
             }else{
-                printError("BOOLEAN", "-", boolNode.fila, boolNode.columna);
+                printError("BOOLEAN", "ERROR", boolNode.fila, boolNode.columna);
                 checkRight = false;
             }
         } else if(boolNode.typeRight == 2 && verifyBoolMathTypes((BoolMathNode)boolNode.rightChild)){
@@ -1648,6 +1753,7 @@ public class Main {
         } else if(boolNode.typeRight == 5){
             String tipo = verifyFuncCall((FuncCallNode)boolNode.rightChild);
                 if(tipo.equals("ERROR")){
+                    //printError("BOOLEAN", "ERROR", boolNode.fila, boolNode.columna);
                     checkRight = false;
                 }else if(tipo.equals("BOOLEAN")){
                     checkRight = true;
@@ -1656,7 +1762,7 @@ public class Main {
                     checkRight = false;
                 }
         } else {
-            printError("BOOLEAN", "-", boolNode.fila, boolNode.columna);
+            printError("BOOLEAN", "ERROR", boolNode.fila, boolNode.columna);
             return false;
         }
         return checkLeft && checkRight;
@@ -1703,6 +1809,7 @@ public class Main {
             } else if(val.type == 4){
                 String tipo = verifyFuncCall((FuncCallNode)val.content);
                 if(tipo.equals("ERROR")){
+                    //printError("BOOLEAN", "ERROR", val.fila, val.columna);
                     checkLeft = false;
                 }else if(tipo.equals("BOOLEAN")){
                     checkLeft = true;
@@ -1714,7 +1821,7 @@ public class Main {
                 printError("BOOLEAN", "CHAR", boolNode.fila, boolNode.columna);
                 checkLeft = false;
             }else{
-                printError("BOOLEAN", "-", boolNode.fila, boolNode.columna);
+                printError("BOOLEAN", "ERROR", boolNode.fila, boolNode.columna);
                 checkLeft = false;
             }
         } else if(boolNode.typeLeft == 2 && verifyBoolOrTypes((BoolOrNode)boolNode.leftChild)){
@@ -1726,6 +1833,7 @@ public class Main {
         } else if(boolNode.typeLeft ==6){
             String tipo = verifyFuncCall((FuncCallNode)boolNode.leftChild);
                 if(tipo.equals("ERROR")){
+                    //printError("BOOLEAN", "ERROR", boolNode.fila, boolNode.columna);
                     checkLeft = false;
                 }else if(tipo.equals("BOOLEAN")){
                     checkLeft = true;
@@ -1734,7 +1842,7 @@ public class Main {
                     checkLeft = false;
                 }
         }else{
-            printError("BOOLEAN", "-", boolNode.fila, boolNode.columna);
+            printError("BOOLEAN", "ERROR", boolNode.fila, boolNode.columna);
             return false;
         }
 
@@ -1762,6 +1870,7 @@ public class Main {
             } else if(val.type == 4){
                 String tipo = verifyFuncCall((FuncCallNode)val.content);
                 if(tipo.equals("ERROR")){
+                    //printError("BOOLEAN", "ERROR", val.fila, val.columna);
                     checkRight = false;
                 }else if(tipo.equals("BOOLEAN")){
                     checkRight = true;
@@ -1773,7 +1882,7 @@ public class Main {
                 printError("BOOLEAN", "CHAR", boolNode.fila, boolNode.columna);
                 checkRight = false;
             }else{
-                printError("BOOLEAN", "-", boolNode.fila, boolNode.columna);
+                printError("BOOLEAN", "ERROR", boolNode.fila, boolNode.columna);
                 checkRight = false;
             }
         } else if(boolNode.typeRight == 2 && verifyBoolOrTypes((BoolOrNode)boolNode.rightChild)){
@@ -1785,6 +1894,7 @@ public class Main {
         } else if(boolNode.typeRight == 6){
             String tipo = verifyFuncCall((FuncCallNode)boolNode.rightChild);
                 if(tipo.equals("ERROR")){
+                    //printError("BOOLEAN", "ERROR", boolNode.fila, boolNode.columna);
                     checkRight = false;
                 }else if(tipo.equals("BOOLEAN")){
                     checkRight = true;
@@ -1793,11 +1903,12 @@ public class Main {
                     checkRight = false;
                 }
         }else{
-            printError("BOOLEAN", "-", boolNode.fila, boolNode.columna);
+            printError("BOOLEAN", "ERROR", boolNode.fila, boolNode.columna);
             return false;
         }
 
         return checkLeft && checkRight;     
     }
+
 
 }

@@ -8,6 +8,8 @@ public class FuncCallNode extends Node implements Serializable{
 
   public Value id;
   public ArrayList<Object> args;
+  public String tip;
+  public String ret;
 
   //Puede recibir MathNode, BoolNode, conststr, constchar
 
@@ -16,6 +18,7 @@ public class FuncCallNode extends Node implements Serializable{
 
     this.id = id;
     this.args = args;
+    this.ret = "NULL";
   }
 
   public String printNode(int depth){

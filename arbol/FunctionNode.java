@@ -15,6 +15,8 @@ public class FunctionNode extends Node implements Serializable{
 
   public int declarationType;
 
+  public String tipoTabla;
+
   public FunctionNode(Value id, ArrayList<ParamsNode> params, Object declarations, ArrayList<Object> statements, String type, int fila, int columna){
       super(fila,columna);
 
@@ -23,6 +25,7 @@ public class FunctionNode extends Node implements Serializable{
     this.declarations = declarations;
     this.statements = statements;
     this.type = type;
+    this.tipoTabla = "";
     
     if(declarations instanceof DeclNode){
       this.declarationType = DECLNODE;

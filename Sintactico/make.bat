@@ -7,5 +7,5 @@ CALL javac AssigNode.java Node.java AttrNode.java BoolAndNode.java BoolMathNode.
 cd "..\Sintactico"
 pause
 rem AGREGAR CUALQUIER CLASE NUEVA EN LA LINEA DE ABAJO :V
-CALL javac -cp "..";"..\jars\*";. Main.java TablaSym.java Tupla.java CodInt.java ReadInt.java PrintInt.java EtiqInt.java Decl.java OpBin.java GotoInt.java OpTer.java Cond.java Instruccion.java parser.java lexer.java sym.java
+CALL javac -cp "..";"..\jars\*";. Main.java TablaSym.java Tupla.java CodInt.java ReadInt.java PrintInt.java EtiqInt.java Decl.java OpBin.java GotoInt.java OpTer.java Cond.java FuncInt.java Instruccion.java parser.java lexer.java sym.java
 pause

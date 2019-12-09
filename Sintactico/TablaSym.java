@@ -288,9 +288,7 @@ public class TablaSym{
             System.out.print("\n");
         }
         System.out.println("");
-        System.out.println("OLO");
         for (TablaSym hijo : hijitos) {
-            System.out.println("OLO2");
             hijo.print(depth + 1);
         } 
         System.out.println("");
