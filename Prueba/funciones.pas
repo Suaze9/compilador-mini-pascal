@@ -2,7 +2,7 @@ program test
 var 
     a, b, c, d: integer;
 
-procedure exponent(e, f: integer)
+function exponent(e, f: integer):integer
 
 var
     resp : integer;
@@ -16,7 +16,8 @@ begin
         end;
     write('El numero ', e);
     write('\nElevado a la potencia de ', f);
-    write('\nEs igual a :', resp);
+    write('\nEs igual a :', resp);  
+    exponent := resp;
 end;
 
 procedure numerosPares(e, f: integer)
@@ -33,12 +34,16 @@ begin
 end;
 
 begin
-    a:= 2;
-    b:= 3;
     c:= 4;
     d:= 5;
 
-    exponent(2, 2);
+    write('\nIngrese el numero base: ');
+    read(a);
+    write('\nIngrese el exponente: ');
+    read(b);
+    write('\n');
+    d := exponent(a, b);
+    write('\nA Ver Prroooo: ', d);
     write('\n');
     numerosPares(4, 20);
     {

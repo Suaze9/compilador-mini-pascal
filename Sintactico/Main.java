@@ -17,6 +17,10 @@ public class Main {
 
   public static boolean errorCalled;
 
+  public static String nom = "";
+  public static String tipNom = "";
+  public static boolean retorna = true;
+
   public static String ruta = "";
 
     static public void main(String argv[]) {    
@@ -62,6 +66,10 @@ public class Main {
 
     public static void printErrorTipoFunc(String id, int fila, int columna){
         System.out.println("\nError de tipos de retorno:\n\nNo existe el tipo/record: " + id + "\n\tLinea: " + fila + "\tColumna: " + columna);
+        errorCalled = true;
+    }
+    public static void printErrorRetorno(String id, int fila, int columna){
+        System.out.println("\nError de retorno:\n\nNo se retorna ningun valor en la funcion: " + id + "\n\tLinea: " + fila + "\tColumna: " + columna);
         errorCalled = true;
     }
     public static void printErrorDupFunc(String id, int fila, int columna){
@@ -172,9 +180,9 @@ public class Main {
             for(Object funcproc : funcs){
                 Value id;
                 ArrayList<ParamsNode> params;
+                String funcprocType = "";
                 Object declarations;
                 ArrayList<Object> statements;
-                String funcprocType = "";
 
                 int fila = 0;
                 int columna = 0;
@@ -263,18 +271,30 @@ public class Main {
                 Object declarations;
                 ArrayList<ParamsNode> params;
                 ArrayList<Object> statements;
-    
-    
+                
+                int fil = 0;
+                int col = 0;
+
                 if(funcproc instanceof FunctionNode){
                     FunctionNode func = (FunctionNode)funcproc;
                     declarations = func.declarations;
                     params = func.params;
                     statements = func.statements;
+                    nom = (String)func.id.content;
+                    tipNom = func.type.toUpperCase();
+                    fil = func.fila;
+                    col = func.columna;
+                    retorna = false;
                 }else if (funcproc instanceof ProcedureNode){
                     ProcedureNode proc = (ProcedureNode)funcproc;
                     declarations = proc.declarations;
                     params = proc.params;
                     statements = proc.statements;
+                    nom = "NULL";
+                    tipNom = "NULL";
+                    fil = proc.fila;
+                    col = proc.columna;
+                    retorna = true;
                 }else{
                     return false;
                 }
@@ -304,10 +324,18 @@ public class Main {
                     }
     
                 }
-    
+                
                 declaraciones((ArrayList<DeclNode>)declarations);
-    
+                
                 valido = valido & comprobacionTipos(statements);
+
+                if(!retorna){
+                    valido = false;
+                    printErrorRetorno(nom, fil, col);
+                }
+                
+                nom = "NULL";
+                tipNom = "NULL";
     
                 if(stepBack())
                     offset = tempOffset;
@@ -1204,12 +1232,17 @@ public class Main {
             final int BOOLOR = 10;
         */
         String tipo = "";
-        Object[] tuplita = tabla.buscarTupla((String)assigNode.Id.content, 0);
-        if(tuplita != null){
-          tipo = ((Tupla)tuplita[0]).type;
+        if(nom.equals((String)assigNode.Id.content)){
+            tipo = tipNom;
+            retorna = true;
         }else{
-            printErrorId((String)assigNode.Id.content, assigNode.fila, assigNode.columna);
-          return false;
+            Object[] tuplita = tabla.buscarTupla((String)assigNode.Id.content, 0);
+            if(tuplita != null){
+              tipo = ((Tupla)tuplita[0]).type;
+            }else{
+                printErrorId((String)assigNode.Id.content, assigNode.fila, assigNode.columna);
+              return false;
+            }
         }
         
         if(assigNode.type == 2){

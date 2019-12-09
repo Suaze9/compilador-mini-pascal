@@ -7,7 +7,10 @@ __msg0:	.asciiz "El numero "
 __msg1:	.asciiz "\nElevado a la potencia de "
 __msg2:	.asciiz "\nEs igual a :"
 __msg3:	.asciiz "\nEl numero par: "
-__msg4:	.asciiz "\n"
+__msg4:	.asciiz "\nIngrese el numero base: "
+__msg5:	.asciiz "\nIngrese el exponente: "
+__msg6:	.asciiz "\n"
+__msg7:	.asciiz "\nA Ver Prroooo: "
 
 	.text
 	.globl main
@@ -61,15 +64,12 @@ etiq1:
 	li $v0, 1
 	lw $a0, 0($sp)
 	syscall
+	lw $t0, 0($sp)
+	move $v0, $t0
+	b _exponent_INT_x_INT_END
 
 _exponent_INT_x_INT_END:
 	move $sp, $fp
-	lw $s7, -40($sp)
-	lw $s6, -36($sp)
-	lw $s5, -32($sp)
-	lw $s4, -28($sp)
-	lw $s3, -24($sp)
-	lw $s2, -20($sp)
 	lw $s1, -16($sp)
 	lw $s0, -12($sp)
 	lw $ra, -8($sp)
@@ -79,8 +79,6 @@ _exponent_INT_x_INT_END:
 _numerospares_INT_x_INT: 
 	sw $fp, -4($sp)
 	sw $ra, -8($sp)
-	sw $s0, -12($sp)
-	sw $s1, -16($sp)
 	move $s0, $a0
 	move $s1, $a1
 	move $fp, $sp
@@ -124,12 +122,6 @@ etiq5:
 
 _numerospares_INT_x_INT_END:
 	move $sp, $fp
-	lw $s7, -40($sp)
-	lw $s6, -36($sp)
-	lw $s5, -32($sp)
-	lw $s4, -28($sp)
-	lw $s3, -24($sp)
-	lw $s2, -20($sp)
 	lw $s1, -16($sp)
 	lw $s0, -12($sp)
 	lw $ra, -8($sp)
@@ -138,47 +130,62 @@ _numerospares_INT_x_INT_END:
 
 main:
 	move $fp, $sp
-	li $t0, 2
-	sw $t0, _a
-	li $t0, 3
-	sw $t0, _b
 	li $t0, 4
 	sw $t0, _c
 	li $t0, 5
 	sw $t0, _d
+	li $v0, 4
+	la $a0, __msg4
+	syscall
+	li $v0, 5
+	syscall
+	sw $v0, _a
+	li $v0, 4
+	la $a0, __msg5
+	syscall
+	li $v0, 5
+	syscall
+	sw $v0, _b
+	li $v0, 4
+	la $a0, __msg6
+	syscall
 	sw $t9, -4($sp)
 	sub $sp, $sp, -4
 	sw $s7, -8($sp)
-	li $s7, 2
+	lw $s7, _a
 	move $a0, $s7
 	lw $s7, -8($sp)
 	sw $s7, -8($sp)
-	li $s7, 2
+	lw $s7, _b
 	move $a1, $s7
 	lw $s7, -8($sp)
 	jal _exponent_INT_x_INT
 	add $sp, $sp, 4
 	lw $t9, -4($sp)
 	move $t0, $v0
+	sw $t0, _d
 	li $v0, 4
-	la $a0, __msg4
+	la $a0, __msg7
 	syscall
-	sw $t0, -4($sp)
-	sw $t9, -8($sp)
-	sub $sp, $sp, -8
-	sw $s7, -12($sp)
+	li $v0, 1
+	lw $a0, _d
+	syscall
+	li $v0, 4
+	la $a0, __msg6
+	syscall
+	sw $t9, -4($sp)
+	sub $sp, $sp, -4
+	sw $s7, -8($sp)
 	li $s7, 4
 	move $a0, $s7
-	lw $s7, -12($sp)
-	sw $s7, -12($sp)
+	lw $s7, -8($sp)
+	sw $s7, -8($sp)
 	li $s7, 20
 	move $a1, $s7
-	lw $s7, -12($sp)
+	lw $s7, -8($sp)
 	jal _numerospares_INT_x_INT
-	add $sp, $sp, 8
-	lw $t9, -8($sp)
-	lw $t0, -4($sp)
-	move $t1, $v0
+	add $sp, $sp, 4
+	lw $t9, -4($sp)
 etiq0:
 	li $v0, 10
 	syscall

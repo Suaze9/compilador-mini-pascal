@@ -212,7 +212,27 @@ public class CodInt {
 
                     ///////////AGREGAR RECORDS AQUI DESPUES!!!
                     if(funcprocType.equals("INT") || funcprocType.equals("BOOLEAN") || funcprocType.equals("CHAR") ){
-                        //valido = true;
+                        String type =  func.tipoTabla;
+                        type = type.substring(0, type.indexOf(" -> "));
+    
+                        ArrayList<String> par = new ArrayList<String>();
+    
+                        //String[] tipos = type.substring(1, type.length() - 1).split(" X ");
+                        for (ParamsNode v : params) {
+                            for (Value va : v.ids) {
+                                par.add((String)va.content);
+                            }
+                        }
+                        type = type.replace(" ", "_");
+                        type = type.replace("(", "");
+                        type = type.replace(")", "");
+                        //CUANDO SE ENCUENTRE UNA FUNCINT SE DEBE ALMACENAR LAS PAPADAS
+                        String et = "\n_" + ((String)id.content) + "_" + type;
+                        codigo.add(new FuncInt(et, declarations, par, funcprocType));
+                        String etiqFunc = et + "_END";
+                        statements(statements, etiqFunc);
+                        genEtiq(etiqFunc);
+                        //CUANDO SE ENCUENTRE UNA ETIQUETA QUE EMPIECE CON _ SE DEBE CARGAR LAS PAPADAS
                     }
                     /*else{
                         //////SI ES RECORD HAY QUE REGRESARLO COMO ESTABA SIN EL UPPERCASE
@@ -391,9 +411,8 @@ public class CodInt {
                 }
             }
         }
-
         String ret = "NULL";
-        if(fNode.ret.equals("NULL")){
+        if(!fNode.ret.equals("NULL")){
             ret = newTemp();
         }
         
@@ -1343,6 +1362,8 @@ public class CodInt {
     private String codigoFinal(ArrayList<Instruccion> codigo){
         tabla.print(0);
         String fin = "";
+        String funcActual = "NULL";
+        String tipActual = "NULL";
         if(codigo != null){
             fin += "\t.data\n";
             strings = new HashMap<>();
@@ -1460,7 +1481,10 @@ public class CodInt {
                             if(stackPos.containsKey(assig)){
                                 assig = -stackPos.get(assig) + "($sp)";
                             }else{
-                                if(!stackPos.containsKey(assig) && !relS.containsKey(assig)){
+                                if(assig.equals(funcActual)){
+                                    opp = "move";
+                                    assig = "$v0";
+                                }else if(!stackPos.containsKey(assig) && !relS.containsKey(assig)){
                                     assig = "_" + assig;
                                 }else if(relS.containsKey(assig)){
                                     opp = "move";
@@ -1506,7 +1530,10 @@ public class CodInt {
                             }else{
                                 fin += "\tsw " + "ERROR" + ", " + assig + "\n";
                             }
-
+                            
+                            if(assig.equals("$v0")){
+                                fin += "\tb " + tipActual.substring(1) + "_END\n";
+                            }
 
                             //termino de la derecha tiene que ser un temporal a fuerza
                         }
@@ -1930,12 +1957,36 @@ public class CodInt {
                         fin += "\tmove $sp, $fp\n";
                         
                         for(int i = 7; i >= 0 ; i--){
-                            fin += "\tlw $s" + i + ", " + -(((i + 1) * 4) + 8) + "($sp)\n";
+                            if(i < 6 && activeS[i]){
+                                fin += "\tlw $s" + i + ", " + -(((i + 1) * 4) + 8) + "($sp)\n";
+                            }
                         }
                         
                         fin += "\tlw $ra, -8($sp)\n"
                             +  "\tsw $fp, -4($sp)\n"
                             +  "\tjr $ra\n";
+
+                        relTemp = relTempOld.get(relTempOld.size() - 1);
+                        stackPos = stackPosOld.get(stackPosOld.size() - 1);
+                        activeTemp = activeTempOld.get(activeTempOld.size() - 1);
+
+                        relS = relSOld.get(relSOld.size() - 1);
+                        activeS = activeSOld.get(activeSOld.size() - 1);
+
+                        if(relTempOld.size() > 0)
+                            relTempOld.remove(relTempOld.size() - 1);
+                        if(stackPosOld.size() > 0)
+                            stackPosOld.remove(stackPosOld.size() - 1);
+                        if(relTempOld.size() > 0)
+                            relTempOld.remove(relTempOld.size() - 1);
+                        
+                        if(relSOld.size() > 0)
+                            relSOld.remove(relSOld.size() - 1);
+                        if(activeSOld.size() > 0)
+                            activeSOld.remove(activeSOld.size() - 1);
+
+                        funcActual = "NULL";
+                        tipActual = "NULL";
 
                     }else if(((EtiqInt)ins).etiq.equals("\nmain")){
                         fin += "\tmove $fp, $sp\n";
@@ -2003,6 +2054,9 @@ public class CodInt {
                     }
                 }else if(ins instanceof FuncInt){
                     FuncInt fun = ((FuncInt)ins);
+
+                    funcActual = fun.func.split("_")[1];
+                    tipActual = fun.func;
 
                     stackPosOld.add(stackPos);
                     relTempOld.add(relTemp);
@@ -2203,17 +2257,22 @@ public class CodInt {
                             fin += "\tlw $t" + i + ", " + -pos + "($sp)\n";
                         }
                     }
+
+                    System.out.println("RET: " + fc.ret);
                     
                     if(!fc.ret.equals("NULL")){
+                        System.out.println("OLA: " + fc.func);
                         int actT = getActiveTemp(activeTemp);
                         if(actT != -1){
                             //hay un temporal libre
                             activeTemp[actT] = true;
                             relTemp.put(fc.ret, "$t" + actT);
                             
+                            System.out.println("OLA1: " + "\tmove " + "$t" + actT + ", $v0\n");
                             fin += "\tmove " + "$t" + actT + ", $v0\n";
                             
                         }else{
+                            System.out.println("OLA2: " + fc.ret);
                             //hay que agregarlo a la pila
                             int stackTemp = getNewStackPos(stackPos);
                             stackPos.put(fc.ret, stackTemp);
