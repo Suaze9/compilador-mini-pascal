@@ -164,9 +164,9 @@ public class Main {
                 String nom = record.name;
                 ArrayList<DeclNode> decls = record.decls;
     
-                tabla.add(nom, "RECORD", -1);
-    
-                declaracionesRecord(decls, nom);
+                int off = declaracionesRecord(decls, nom);
+
+                tabla.add(nom, "RECORD", off);
                 
                 tabla.print(0);
     
@@ -201,14 +201,21 @@ public class Main {
                     if(funcprocType.equals("INT") || funcprocType.equals("BOOLEAN") || funcprocType.equals("CHAR") ){
                         valido = true;
                     }else{
-                        printErrorTipoFunc(funcprocType, func.fila, func.columna);
-                        valido = false; 
-                    }
-                    /*else{
-                        //////SI ES RECORD HAY QUE REGRESARLO COMO ESTABA SIN EL UPPERCASE
                         funcprocType = func.type;
+                        Object[] obj = tabla.buscarTupla(funcprocType, 0);
+                        if(obj != null){
+                            Tupla tu = (Tupla)(obj[0]);
+                            if(tu.type.equals("RECORD")){
+                                valido = true;
+                            }else{
+                                printErrorTipoFunc(funcprocType, func.fila, func.columna);
+                                valido = false;
+                            }
+                        }else{
+                            printErrorTipoFunc(funcprocType, func.fila, func.columna);
+                            valido = false;
+                        }
                     }
-                    */
 
                 }else if (funcproc instanceof ProcedureNode){
                     ProcedureNode proc = (ProcedureNode)funcproc;
@@ -233,7 +240,10 @@ public class Main {
                     */
     
                     String tipo = param.type;
-                    int size = tipos.get(tipo);
+                    Integer size = tipos.get(tipo);
+                    if(size == null){
+                        size = 4;
+                    }
     
                     for(Value val : param.ids){
                         String idval = (String)val.content;
@@ -281,7 +291,7 @@ public class Main {
                     params = func.params;
                     statements = func.statements;
                     nom = (String)func.id.content;
-                    tipNom = func.type.toUpperCase();
+                    tipNom = func.type;
                     fil = func.fila;
                     col = func.columna;
                     retorna = false;
@@ -315,7 +325,10 @@ public class Main {
                     */
     
                     String tipo = param.type;
-                    int size = tipos.get(tipo);
+                    Integer size = tipos.get(tipo);
+                    if(size == null){
+                        size = 4;
+                    }
     
                     for(Value val : param.ids){
                         String idval = (String)val.content;
@@ -376,19 +389,20 @@ public class Main {
         }
     }
 
-    public static void declaracionesRecord(ArrayList<DeclNode> decls, String nom){
+    public static int declaracionesRecord(ArrayList<DeclNode> decls, String nom){
+        int offsetRec = 0;
         if(decls != null){
 
             for(DeclNode decl : decls){
     
-                String type = nom + "." + decl.type;
+                String type = decl.type;
                 
                 int size = 0;
     
                 if(type.equals("INT")){
                   size = 4;
                 }else if(type.equals("BOOLEAN")){
-                  size = 1;
+                  size = 4;
                 }else if(type.equals("CHAR")){
                   size = 4;
                 }else{
@@ -400,13 +414,14 @@ public class Main {
                 for(Value val : decl.ids){
     
                     String id = (String)val.content;
-                    tabla.add(id, type, offset);
-                    offset += size;
+                    tabla.add(id, type, offsetRec);
+                    offsetRec += size;
     
                 }
             }
             //tabla.print(0);
         }
+        return offsetRec;
     }
 
     public static String getFuncType(ArrayList<Object> args){
@@ -448,6 +463,7 @@ public class Main {
                             } else if(val.type == 2){
                                 type += "BOOLEAN";
                             } else if(val.type == 3){
+                                //////////////////////////////////PODER PASAR UN RECORD COMO PARAMETRO/////////////////////////////////
                                 Object[] tup = tabla.buscarTupla((String)val.content, 0);
                                 if(tup != null){
                                     type += ((Tupla)tup[0]).type;
@@ -602,11 +618,15 @@ public class Main {
                 }else if(val.type == 3){
                     Object[] tup = tabla.buscarTupla((String)val.content, 0);
                     if(tup != null){
-                        if(((Tupla)tup[0]).type.equals("BOOLEAN")){
+                        String type = ((Tupla)tup[0]).type;
+                        if(type.contains(".")){
+                            type = type.substring( type.indexOf(".") + 1 );
+                        }
+                        if(type.equals("BOOLEAN")){
                             condicion = true;
                         }else{
                             condicion = false;
-                            printError("BOOELAN", ((Tupla)tup[0]).type, val.fila, val.columna);
+                            printError("BOOELAN", type, val.fila, val.columna);
                         }
                     }else{
                         printErrorId((String)val.content, val.fila, val.columna);
@@ -709,10 +729,14 @@ public class Main {
                     }else if(val.type == 3){
                         Object[] tup = tabla.buscarTupla((String)val.content, 0);
                         if(tup != null){
-                            if(((Tupla)tup[0]).type.equals("INT")){
+                            String type = ((Tupla)tup[0]).type;
+                            if(type.contains(".")){
+                                type = type.substring( type.indexOf(".") + 1 );
+                            }
+                            if(type.equals("INT")){
                               validCondition = true;
                             }else{
-                                printError("BOOLEAN", ((Tupla)tup[0]).type, val.fila, val.columna);
+                                printError("BOOLEAN", type, val.fila, val.columna);
                                 validCondition = false;
                             }
                         }else{
@@ -770,9 +794,13 @@ public class Main {
         
         Object[] tup = tabla.buscarTupla((String)readNode.id.content, 0);
         if(tup != null){
-            validVariable = ((Tupla)tup[0]).type.equals("INT") || ((Tupla)tup[0]).type.equals("CHAR");
+            String type = ((Tupla)tup[0]).type;
+            if(type.contains(".")){
+                type = type.substring( type.indexOf(".") + 1 );
+            }
+            validVariable = type.equals("INT") || type.equals("CHAR");
             if(!validVariable)
-                printError("INT/CHAR", ((Tupla)tup[0]).type, readNode.fila, readNode.columna);
+                printError("INT/CHAR", type, readNode.fila, readNode.columna);
         }else{
             printErrorId((String)readNode.id.content, readNode.fila, readNode.columna);
             validVariable = false;
@@ -791,11 +819,15 @@ public class Main {
             }else if(val.type == 3){
                 Object[] tup = tabla.buscarTupla((String)val.content, 0);
                 if(tup != null){
-                    if(((Tupla)tup[0]).type.equals("INT") || ((Tupla)tup[0]).type.equals("CHAR")){
+                    String type = ((Tupla)tup[0]).type;
+                    if(type.contains(".")){
+                        type = type.substring( type.indexOf(".") + 1 );
+                    }
+                    if(type.equals("INT") || type.equals("CHAR") || type.equals("BOOLEAN")){
                         validWrite = true;
                     }else{
                         validWrite = false;
-                        printError("INT/CHAR", ((Tupla)tup[0]).type, val.fila, val.columna);
+                        printError("INT/CHAR/BOOLEAN", type, val.fila, val.columna);
                     }
                 }else{
                     validWrite = false;
@@ -842,11 +874,15 @@ public class Main {
                 }else if(val.type == 3){
                     Object[] tup = tabla.buscarTupla((String)val.content, 0);
                     if(tup != null){
-                        if(((Tupla)tup[0]).type.equals("INT")){
+                        String type = ((Tupla)tup[0]).type;
+                        if(type.contains(".")){
+                            type = type.substring( type.indexOf(".") + 1 );
+                        }
+                        if(type.equals("INT")){
                             checkLeft = true;
                         }else{
                             checkLeft = false;
-                            printError("INT", ((Tupla)tup[0]).type, val.fila, val.columna);
+                            printError("INT", type, val.fila, val.columna);
                         }
                     }else{
                         checkLeft = false;
@@ -909,11 +945,15 @@ public class Main {
                 }else if(val.type == 3){
                     Object[] tup = tabla.buscarTupla((String)val.content, 0);
                     if(tup != null){
-                        if(((Tupla)tup[0]).type.equals("INT")){
+                        String type = ((Tupla)tup[0]).type;
+                        if(type.contains(".")){
+                            type = type.substring( type.indexOf(".") + 1 );
+                        }
+                        if(type.equals("INT")){
                             checkRight = true;
                         }else{
                             checkRight = false;
-                            printError("INT", ((Tupla)tup[0]).type, val.fila, val.columna);
+                            printError("INT", type, val.fila, val.columna);
                         }
                     }else{
                         checkRight = false;
@@ -998,13 +1038,17 @@ public class Main {
                     Object[] tup = tabla.buscarTupla((String)val.content, 0);
                     //System.out.println("tipo tupla: \"" + ((Tupla)tup[0]).type + "\"");
                     if(tup != null){
-                        if(((Tupla)tup[0]).type.equals("INT")){
+                        String type = ((Tupla)tup[0]).type;
+                        if(type.contains(".")){
+                            type = type.substring( type.indexOf(".") + 1 );
+                        }
+                        if(type.equals("INT")){
                             //System.out.println("ENTRO");
                             checkLeft = true;
                         }else{
                             //System.out.println("NO ENTRO");
                             checkLeft = false;
-                            printError("INT", ((Tupla)tup[0]).type, val.fila, val.columna);
+                            printError("INT", type, val.fila, val.columna);
                         }
                     }else{
                         checkLeft = false;
@@ -1067,15 +1111,17 @@ public class Main {
                 }else if(val.type == 3){
                     Object[] tup = tabla.buscarTupla((String)val.content, 0);
                     if(tup != null){
-                        //System.out.println("tipo tupla: \"" + ((Tupla)tup[0]).type + "\"");
-                        //System.out.print();
-                        if(((Tupla)tup[0]).type.equals("INT")){
+                        String type = ((Tupla)tup[0]).type;
+                        if(type.contains(".")){
+                            type = type.substring( type.indexOf(".") + 1 );
+                        }
+                        if(type.equals("INT")){
                             //System.out.println("ENTRO");
                             checkRight = true;
                         }else{
                             //System.out.println("NO ENTRO");
                             checkRight = false;
-                            printError("INT", ((Tupla)tup[0]).type, val.fila, val.columna);
+                            printError("INT", type, val.fila, val.columna);
                         }
                     }else{
                         checkRight = false;
@@ -1137,6 +1183,9 @@ public class Main {
         String tipo = ".";
         if(obj != null){
             tipo = ((Tupla)obj[0]).type;
+            if(tipo.contains(".")){
+                tipo = tipo.substring( tipo.indexOf(".") + 1 );
+            }
             if(!tipo.equals("INT")){
                 printError("INT", tipo, assigNode.fila, assigNode.columna);
                 return false;
@@ -1157,10 +1206,14 @@ public class Main {
             }else if(val.type == 3){
                 Object[] tup = tabla.buscarTupla((String)val.content, 0);
                 if(tup != null){
-                    if(((Tupla)tup[0]).type.equals("INT")){
+                    String type = ((Tupla)tup[0]).type;
+                    if(type.contains(".")){
+                        type = type.substring( type.indexOf(".") + 1 );
+                    }
+                    if(type.equals("INT")){
                         return true;
                     }else{
-                        printError("INT", ((Tupla)tup[0]).type, val.fila, val.columna);
+                        printError("INT", type, val.fila, val.columna);
                         return false;
                     }
                 }else{
@@ -1237,8 +1290,14 @@ public class Main {
             retorna = true;
         }else{
             Object[] tuplita = tabla.buscarTupla((String)assigNode.Id.content, 0);
+            //System.out.println("VAR: " + (String)assigNode.Id.content);
             if(tuplita != null){
-              tipo = ((Tupla)tuplita[0]).type;
+                if(((Tupla)tuplita[0]).type.contains(".")){
+                    tipo = ((Tupla)tuplita[0]).type.substring(((Tupla)tuplita[0]).type.indexOf(".") + 1);
+                }else{
+                    tipo = ((Tupla)tuplita[0]).type;
+                }
+                //System.out.println("TYPE: " + (String)assigNode.Id.content);
             }else{
                 printErrorId((String)assigNode.Id.content, assigNode.fila, assigNode.columna);
               return false;
@@ -1273,8 +1332,13 @@ public class Main {
                 }
             }else if(val.type == 3){
                 Object[] tup = tabla.buscarTupla((String)val.content, 0);
+                //System.out.println("VAR: " + (String)val.content);
                 if(tup != null){
-                    if(((Tupla)tup[0]).type.equals(tipo)){
+                    String type = ((Tupla)tup[0]).type;
+                    if(type.contains(".")){
+                        type = type.substring( type.indexOf(".") + 1 );
+                    }
+                    if(type.equals(tipo)){
                         if(!tipo.equals("BOOLEAN") && val.not){
                             printError(tipo,"BOOLEAN", assigNode.fila, assigNode.columna);
                             return false;
@@ -1417,6 +1481,9 @@ public class Main {
                     Object[] tuplita = tabla.buscarTupla((String)val.content, 0);
                     if(tuplita != null){
                         leftType = ((Tupla)tuplita[0]).type;
+                        if(leftType.contains(".")){
+                            leftType = leftType.substring( leftType.indexOf(".") + 1 );
+                        }
                         if(!leftType.equals("BOOLEAN") && val.not){
                             printError(leftType,"BOOLEAN", boolNode.fila, boolNode.columna);
                             return false;
@@ -1481,6 +1548,9 @@ public class Main {
                     Object[] tuplita = tabla.buscarTupla((String)val.content, 0);
                     if(tuplita != null){
                         rightType = ((Tupla)tuplita[0]).type;
+                        if(rightType.contains(".")){
+                            rightType = rightType.substring( rightType.indexOf(".") + 1 );
+                        }
                         if(!rightType.equals("BOOLEAN") && val.not){
                             printError(rightType,"BOOLEAN", boolNode.fila, boolNode.columna);
                             return false;
@@ -1554,6 +1624,9 @@ public class Main {
                     Object[] tuplita = tabla.buscarTupla((String)val.content, 0);
                     if(tuplita != null){
                         leftType = ((Tupla)tuplita[0]).type;
+                        if(leftType.contains(".")){
+                            leftType = leftType.substring( leftType.indexOf(".") + 1 );
+                        }
                         if(!leftType.equals("INT")){
                             printError("INT", leftType, boolNode.fila, boolNode.columna);
                             return false;
@@ -1613,6 +1686,9 @@ public class Main {
                     Object[] tuplita = tabla.buscarTupla((String)val.content, 0);
                     if(tuplita != null){
                         rightType = ((Tupla)tuplita[0]).type;
+                        if(rightType.contains(".")){
+                            rightType = rightType.substring( rightType.indexOf(".") + 1 );
+                        }
                         if(!rightType.equals("INT")){
                             printError("INT", rightType, boolNode.fila, boolNode.columna);
                             return false;
@@ -1692,10 +1768,14 @@ public class Main {
             }else if(val.type == 3){                
                 Object[] tuplita = tabla.buscarTupla((String)val.content, 0);
                 if(tuplita != null){
-                    if(((Tupla)tuplita[0]).type.equals("BOOLEAN")){
+                    String type = ((Tupla)tuplita[0]).type;
+                    if(type.contains(".")){
+                        type = type.substring( type.indexOf(".") + 1 );
+                    }
+                    if(type.equals("BOOLEAN")){
                         checkLeft = true;
                     }else{
-                        printError("BOOLEAN", ((Tupla)tuplita[0]).type, boolNode.fila, boolNode.columna);
+                        printError("BOOLEAN", type, boolNode.fila, boolNode.columna);
                         checkLeft = false; 
                     }
                 }else{
@@ -1751,10 +1831,14 @@ public class Main {
             }else if(val.type == 3){
                 Object[] tuplita = tabla.buscarTupla((String)val.content, 0);
                 if(tuplita != null){
-                    if(((Tupla)tuplita[0]).type.equals("BOOLEAN")){
+                    String type = ((Tupla)tuplita[0]).type;
+                    if(type.contains(".")){
+                        type = type.substring( type.indexOf(".") + 1 );
+                    }
+                    if(type.equals("BOOLEAN")){
                         checkRight = true;
                     }else{
-                        printError("BOOLEAN", ((Tupla)tuplita[0]).type, boolNode.fila, boolNode.columna);
+                        printError("BOOLEAN", type, boolNode.fila, boolNode.columna);
                         checkRight = false; 
                     }
                 }else{
@@ -1829,10 +1913,14 @@ public class Main {
             }else if(val.type == 3){
                 Object[] tuplita = tabla.buscarTupla((String)val.content, 0);
                 if(tuplita != null){
-                    if(((Tupla)tuplita[0]).type.equals("BOOLEAN")){
+                    String type = ((Tupla)tuplita[0]).type;
+                    if(type.contains(".")){
+                        type = type.substring( type.indexOf(".") + 1 );
+                    }
+                    if(type.equals("BOOLEAN")){
                         checkLeft = true;
                     }else{
-                        printError("BOOLEAN", ((Tupla)tuplita[0]).type, boolNode.fila, boolNode.columna);
+                        printError("BOOLEAN", type, boolNode.fila, boolNode.columna);
                         checkLeft = false; 
                     }
                 }else{
@@ -1890,10 +1978,14 @@ public class Main {
             }else if(val.type == 3){
                 Object[] tuplita = tabla.buscarTupla((String)val.content, 0);
                 if(tuplita != null){
-                    if(((Tupla)tuplita[0]).type.equals("BOOLEAN")){
+                    String type = ((Tupla)tuplita[0]).type;
+                    if(type.contains(".")){
+                        type = type.substring( type.indexOf(".") + 1 );
+                    }
+                    if(type.equals("BOOLEAN")){
                         checkRight = true;
                     }else{
-                        printError("BOOLEAN", ((Tupla)tuplita[0]).type, boolNode.fila, boolNode.columna);
+                        printError("BOOLEAN", type, boolNode.fila, boolNode.columna);
                         checkRight = false; 
                     }
                 }else{

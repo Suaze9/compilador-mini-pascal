@@ -1,9 +1,10 @@
 program test
 var 
     a, b, c, d: integer;
+    bool1, bool2: boolean;
+
 
 function exponent(e, f: integer):integer
-
 var
     resp : integer;
     i : integer;
@@ -14,10 +15,20 @@ begin
         begin
         resp := resp * e;
         end;
-    write('El numero ', e);
-    write('\nElevado a la potencia de ', f);
-    write('\nEs igual a :', resp);  
     exponent := resp;
+end;
+
+function exponentRec(e, f: integer):integer
+var
+    resp :integer;
+begin
+    if(f = 0) then begin
+        resp := 1;
+    end;
+    else begin
+        resp := e * exponentRec(e, f - 1);
+    end;
+    exponentRec := resp;
 end;
 
 procedure numerosPares(e, f: integer)
@@ -28,33 +39,26 @@ var
 begin
     for i := e to f do
         begin
-        if (not(i/2 = (i-1)/2)) then
+        if ( not( i/2 = (i-1)/2 ) ) then
             write('\nEl numero par: ', i);
         end;
 end;
 
 begin
-    c:= 4;
-    d:= 5;
 
     write('\nIngrese el numero base: ');
     read(a);
     write('\nIngrese el exponente: ');
     read(b);
-    write('\n');
+    write('\n\nExponente Recursivo');
+    d := exponentRec(a, b);
+    write('\n\nResp: ', d);
+    write('\n\nExponente Iterativo');
     d := exponent(a, b);
-    write('\nA Ver Prroooo: ', d);
+    write('\n\nResp: ', d);
     write('\n');
-    numerosPares(4, 20);
-    {
-    exponent(2, 6);
+    numerosPares(a, b);
     write('\n');
-    exponent(a, b);
-    write('\n');
-    exponent( c + 3, 5 / 2);
-    write('\n');
-    exponent(a, 2);
-    write('\n');
-    }
+
     
 end;

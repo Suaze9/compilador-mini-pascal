@@ -68,7 +68,24 @@ etiq1:
 	li $v0, 1
 	lw $a0, _z
 	syscall
+	b etiq4
+etiq6:
+	sw $s6, -4($sp)
+	lw $s6, _x
+	sw $s7, -8($sp)
+	lw $s7, _y
+	blt $s6, $s7,etiq4
+	b etiq5
+	lw $s6, -4($sp)
+	lw $s7, -8($sp)
+etiq4:
+	li $t0, 1
+	b etiq7
 etiq5:
+	li $t0, 0
+etiq7:
+	sw $t0, _boo
+etiq9:
 	li $v0, 4
 	la $a0, __msg3
 	syscall
@@ -97,21 +114,21 @@ etiq5:
 	syscall
 	sw $s6, -4($sp)
 	lw $s6, _i
-	beq $s6, 25,etiq7
-	b etiq8
+	beq $s6, 25,etiq11
+	b etiq12
 	lw $s6, -4($sp)
-etiq8:
+etiq12:
 	li $v0, 4
 	la $a0, __msg6
 	syscall
-etiq7:
-etiq6:
+etiq11:
+etiq10:
 	sw $s6, -4($sp)
 	lw $s6, _i
-	beq $s6, 25,etiq4
-	b etiq5
+	beq $s6, 25,etiq8
+	b etiq9
 	lw $s6, -4($sp)
-etiq4:
+etiq8:
 	li $v0, 4
 	la $a0, __msg7
 	syscall

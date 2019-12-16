@@ -1,4 +1,6 @@
-public class Tupla{
+import java.io.Serializable;
+
+public class Tupla implements Serializable{
 
     public String id;
     public String type;

@@ -34,6 +34,7 @@ public class TablaSym{
         String typeRec = "";
         if(id.indexOf(".") != -1 && prof == 0){
             pref = id.substring(0, id.indexOf("."));
+            //System.out.println("id: " + id);
             //System.out.println("pref: " + pref);
             Object[] record = buscarTupla(pref, 0);
             if (record != null){
@@ -43,7 +44,6 @@ public class TablaSym{
                     typeRec = t.type;
                     id = id.substring(id.indexOf(".")+1);
                     rec = true;
-                    //System.out.println("IIIID: " + id);
                 }else{
                     return null;
                 }
@@ -72,9 +72,9 @@ public class TablaSym{
                     //System.out.println("\nREC");
                     if(((Tupla)tup).type.indexOf(".") != -1){
                         String pref2 = ((Tupla)tup).type.substring(0, ((Tupla)tup).type.indexOf("."));
-                        System.out.println("TUP: " + pref2 + "TYPEREC: " + typeRec);
+                        //System.out.println("TUP: " + pref2 + " TYPEREC: " + typeRec);
                         if(typeRec.equals(pref2))
-                        return obj;
+                            return obj;
                     }
                 }else{
                     //System.out.println("\nNO-REC");
@@ -86,7 +86,7 @@ public class TablaSym{
         }
         if(papi != null){
             if(rec){
-                return papi.buscarTuplaRec( id, prof + 1 , pref, typeRec);
+                return this.buscarTuplaRec( id, prof + 1, typeRec);
             }else{
                 return papi.buscarTupla( id, prof + 1 );
             }
@@ -102,7 +102,7 @@ public class TablaSym{
         if(id.indexOf(".") != -1 && prof == 0){
             pref = id.substring(0, id.indexOf("."));
             //System.out.println("pref: " + pref);
-            Object[] record = buscarTupla(pref, 0);
+            Object[] record = buscarTuplaDown(pref, 0);
             if (record != null){
                 Tupla t = ((Tupla)record[0]);
                 //System.out.println("TIPO: " + t.type);
@@ -139,9 +139,9 @@ public class TablaSym{
                     //System.out.println("\nREC");
                     if(((Tupla)tup).type.indexOf(".") != -1){
                         String pref2 = ((Tupla)tup).type.substring(0, ((Tupla)tup).type.indexOf("."));
-                        System.out.println("TUP: " + pref2 + "TYPEREC: " + typeRec);
+                        //System.out.println("TUP: " + pref2 + "TYPEREC: " + typeRec);
                         if(typeRec.equals(pref2))
-                        return obj;
+                            return obj;
                     }
                 }else{
                     //System.out.println("\nNO-REC");
@@ -151,13 +151,12 @@ public class TablaSym{
                 }
             }
         }
+        if(rec)
+            return this.buscarTuplaRecDown( id, prof + 1 , typeRec);
+
         for (TablaSym hijo : hijitos) {
             Object[] ret;
-            if(rec){
-                ret = hijo.buscarTuplaRecDown( id, prof + 1 , pref, typeRec);
-            }else{
-                ret = hijo.buscarTuplaDown( id, prof + 1 );
-            }
+            ret = hijo.buscarTuplaDown( id, prof + 1 );
             if(ret != null){
                 return ret;
             }
@@ -166,7 +165,7 @@ public class TablaSym{
     }
 
     //Up
-    public Object[] buscarTuplaRec(String id, int prof, String pref, String typeRec){
+    public Object[] buscarTuplaRec(String id, int prof, String typeRec){
         boolean rec = true;
         for(Tupla tup: tuplas){
             Object[] obj = new Object[2];
@@ -176,37 +175,40 @@ public class TablaSym{
                 //System.out.println("\nREC");
                 if(((Tupla)tup).type.indexOf(".") != -1){
                     String pref2 = ((Tupla)tup).type.substring(0, ((Tupla)tup).type.indexOf("."));
-                    //System.out.println("TUP: " + pref2 + "TYPEREC: " + typeRec);
+                    ////System.out.println("TUP: " + pref2 + "TYPEREC: " + typeRec);
                     if(typeRec.equals(pref2))
-                    return obj;
+                        return obj;
                 }
             }
         }
         if(papi != null){
-            return papi.buscarTupla( id, prof + 1 );
+            return papi.buscarTuplaRec( id, prof + 1 , typeRec);
         }else{
             return null;
         }
     }
     
-    public Object[] buscarTuplaRecDown(String id, int prof, String pref, String typeRec){
+    public Object[] buscarTuplaRecDown(String id, int prof, String typeRec){
         boolean rec = true;
         for(Tupla tup: tuplas){
             Object[] obj = new Object[2];
             obj[0] = tup;
             obj[1] = prof;
+            System.out.println("ID: " + id);
+            //System.out.println("TUP: " + ((Tupla)tup).id);
             if(tup.id.equals(id)){
-                //System.out.println("\nREC");
+                System.out.println("\nREC");
                 if(((Tupla)tup).type.indexOf(".") != -1){
                     String pref2 = ((Tupla)tup).type.substring(0, ((Tupla)tup).type.indexOf("."));
                     //System.out.println("TUP: " + pref2 + "TYPEREC: " + typeRec);
+                    //((Tupla)obj[0]).type = ((Tupla)tup).type.substring(((Tupla)tup).type.indexOf(".") + 1);
                     if(typeRec.equals(pref2))
-                    return obj;
+                        return obj;
                 }
             }
         }
         for (TablaSym hijo : hijitos) {
-            Object[] ret = hijo.buscarTupla( id, prof + 1 );
+            Object[] ret = hijo.buscarTuplaRecDown( id, prof + 1 , typeRec);
             if(ret != null){
                 return ret;
             }

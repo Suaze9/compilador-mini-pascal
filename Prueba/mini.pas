@@ -19,6 +19,8 @@ begin
     write('\ny: ', y);
     write('\nz: ', z);
 
+    boo := true or x < y;
+
     repeat begin
         write('\nIngrese el valor de res (un numero cuyo cuadrado sea 25): ');
         read(res);

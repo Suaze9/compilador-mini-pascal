@@ -38,23 +38,12 @@ public class CodInt {
     
     public void crearCodigoInt(){
         String fin = newEtiq();
-        //records(root.records);
         declaraciones((ArrayList<DeclNode>)root.declarations);
         funciones(root.functions);
         genEtiq("\nmain");
         statements(root.statements, fin);
 
         genEtiq(fin);
-        
-        /*
-        for (Instruccion i : codigo) {
-            i.print();
-            System.out.print("\n");
-        }
-        System.out.print("\n");
-        System.out.print("\n");
-        System.out.print("\n");
-        */
 
         codigo = optim(codigo);
 
@@ -211,29 +200,31 @@ public class CodInt {
                     funcprocType = func.type.toUpperCase();
 
                     ///////////AGREGAR RECORDS AQUI DESPUES!!!
-                    if(funcprocType.equals("INT") || funcprocType.equals("BOOLEAN") || funcprocType.equals("CHAR") ){
-                        String type =  func.tipoTabla;
-                        type = type.substring(0, type.indexOf(" -> "));
-    
-                        ArrayList<String> par = new ArrayList<String>();
-    
-                        //String[] tipos = type.substring(1, type.length() - 1).split(" X ");
-                        for (ParamsNode v : params) {
-                            for (Value va : v.ids) {
-                                par.add((String)va.content);
-                            }
-                        }
-                        type = type.replace(" ", "_");
-                        type = type.replace("(", "");
-                        type = type.replace(")", "");
-                        //CUANDO SE ENCUENTRE UNA FUNCINT SE DEBE ALMACENAR LAS PAPADAS
-                        String et = "\n_" + ((String)id.content) + "_" + type;
-                        codigo.add(new FuncInt(et, declarations, par, funcprocType));
-                        String etiqFunc = et + "_END";
-                        statements(statements, etiqFunc);
-                        genEtiq(etiqFunc);
-                        //CUANDO SE ENCUENTRE UNA ETIQUETA QUE EMPIECE CON _ SE DEBE CARGAR LAS PAPADAS
+                    if( !(funcprocType.equals("INT") || funcprocType.equals("BOOLEAN") || funcprocType.equals("CHAR")) ){
+                        funcprocType = func.type;
                     }
+                    String type =  func.tipoTabla;
+                    type = type.substring(0, type.indexOf(" -> "));
+
+                    ArrayList<String> par = new ArrayList<String>();
+
+                    //String[] tipos = type.substring(1, type.length() - 1).split(" X ");
+                    for (ParamsNode v : params) {
+                        for (Value va : v.ids) {
+                            par.add((String)va.content);
+                        }
+                    }
+                    type = type.replace(" ", "_");
+                    type = type.replace("(", "");
+                    type = type.replace(")", "");
+                    //CUANDO SE ENCUENTRE UNA FUNCINT SE DEBE ALMACENAR LAS PAPADAS
+                    String et = "\n_" + ((String)id.content) + "_" + type;
+                    codigo.add(new FuncInt(et, declarations, par, funcprocType));
+                    new FuncInt(et, declarations, par, funcprocType).print();
+                    String etiqFunc = et + "_END";
+                    statements(statements, etiqFunc);
+                    genEtiq(etiqFunc);
+                    //CUANDO SE ENCUENTRE UNA ETIQUETA QUE EMPIECE CON _ SE DEBE CARGAR LAS PAPADAS
                     /*else{
                         //////SI ES RECORD HAY QUE REGRESARLO COMO ESTABA SIN EL UPPERCASE
                         funcprocType = func.type;
@@ -1364,6 +1355,15 @@ public class CodInt {
         String fin = "";
         String funcActual = "NULL";
         String tipActual = "NULL";
+
+        ArrayList<String> funList = new ArrayList<>();
+        ArrayList<String> tipList = new ArrayList<>();
+
+        ArrayList<String> allocMem = new ArrayList<>();
+
+        funList.add("NULL");
+        tipList.add("NULL");
+
         if(codigo != null){
             fin += "\t.data\n";
             strings = new HashMap<>();
@@ -1375,14 +1375,10 @@ public class CodInt {
                     String type = ((Decl)ins).type;
                     if(type.equals("INT") || type.equals("CHAR") || type.equals("BOOLEAN")){
                         fin += "\t.word 0";
+                    }else{
+                        fin += "\t.word 0";
+                        allocMem.add("_" + ((Decl)ins).assig);
                     }
-                    /*
-                    else if(condicion de funciones y records){
-
-                        ///////////////////////////////////////////////////////////////////////
-                        
-                    }
-                    */
 
                     fin += "\n";
                     codigo.remove(i);
@@ -1412,18 +1408,10 @@ public class CodInt {
             Map<String, Integer> stackPos = new HashMap<>();
             boolean[] activeTemp = new boolean[9];
 
-            //relaciona temporales
-            ArrayList<Map<String, String>> relTempOld = new ArrayList<Map<String, String>>();
-            ArrayList<Map<String, Integer>> stackPosOld = new ArrayList<Map<String, Integer>>();
-            ArrayList<boolean[]> activeTempOld = new ArrayList<boolean[]>();
 
             //relaciona Ss
             Map<String, String> relS = new HashMap<>();
             boolean[] activeS = new boolean[6];
-
-            //relaciona temporales
-            ArrayList<Map<String, String>> relSOld = new ArrayList<Map<String, String>>();
-            ArrayList<boolean[]> activeSOld = new ArrayList<boolean[]>();
 
             for (boolean b : activeTemp)
                 b = false;
@@ -1436,7 +1424,7 @@ public class CodInt {
                         String assig = insOp.assig;
                         String term = insOp.term;
                         //Termino de asignacion
-                        if(assig.length() > 1 && assig.charAt(1) == '.'){
+                        if(assig.length() > 1 && assig.charAt(1) == '.' && assig.charAt(2) >= 48 &&  assig.charAt(2) <= 57){
                             //es un temporal
                             String opp = "";
                             if(term.charAt(0) == '\'' || (term.charAt(0) - 48 >= 0 && term.charAt(0) - 48 <= 9)){
@@ -1444,7 +1432,27 @@ public class CodInt {
                             }else{
                                 opp = "lw";
                                 if(!stackPos.containsKey(term) && !relS.containsKey(term)){
-                                    term = "_" + term;      
+                                    if(term.contains(".")){
+                                        Object[] obj = tabla.buscarTuplaDown(term, 0);
+                                        int off = ((Tupla)obj[0]).offset;
+                                        String pref = term.substring(0, term.indexOf("."));
+                                        if(relS.containsKey(pref)){
+                                            term = relS.get(pref);
+                                            opp = "lw";
+                                            term = off + "(" + term + ")";
+                                            
+                                        }else if(stackPos.containsKey(pref)){
+                                            int varPila = stackPos.get(pref);
+                                            term = -varPila + "($sp)";
+                                            opp = off + "($s7)";
+                                        }else{
+                                            opp = off + "($s7)";
+                                            term = pref;
+                                            term = "_" + term;
+                                        }
+                                    }else{
+                                        term = "_" + term;
+                                    }
                                 }else if(relS.containsKey(term)){
                                     opp = "move";
                                     term = relS.get(term);
@@ -1453,24 +1461,58 @@ public class CodInt {
                                     term = -varPila + "($sp)";
                                 }
                             }
-                            int actT = getActiveTemp(activeTemp);
-                            if(actT != -1){
-                                //hay un temporal libre
-                                activeTemp[actT] = true;
-                                relTemp.put(assig, "$t" + actT);
-                                
-                                
-                                fin += "\t" + opp + " $t" + actT + ", " + term + "\n";
-
-                            }else{
-                                //hay que agregarlo a la pila
-                                int stackTemp = getNewStackPos(stackPos);
-                                stackPos.put(assig, stackTemp);
+                            if(stackPos.containsKey(assig)){
+                                int stackTemp = stackPos.get(assig);
                                 assig = -stackTemp + "($sp)";
+
+                                if(opp.contains("($s7)")){
+                                    fin += "\tlw $s7, " + term + "\n";
+                                    term = opp;
+                                    opp = "lw";
+                                }
 
                                 fin += "\t" + opp + " $t9, " + term + "\n"
                                     +  "\tsw $t9 ," + assig + "\n";
 
+                            }else if(relTemp.containsKey(assig)){
+                                String actT = relTemp.get(assig);
+
+                                if(opp.contains("($s7)")){
+                                    fin += "\tlw $s7, " + term + "\n";
+                                    term = opp;
+                                    opp = "lw";
+                                }
+                                fin += "\t" + opp + " " + actT + ", " + term + "\n";
+                            }else{
+                                int actT = getActiveTemp(activeTemp);
+                                if(actT != -1){
+                                    //hay un temporal libre
+                                    activeTemp[actT] = true;
+                                    relTemp.put(assig, "$t" + actT);
+                                    
+                                    if(opp.contains("($s7)")){
+                                        fin += "\tlw $s7, " + term + "\n";
+                                        term = opp;
+                                        opp = "lw";
+                                    }
+                                    fin += "\t" + opp + " $t" + actT + ", " + term + "\n";
+    
+                                }else{
+                                    //hay que agregarlo a la pila
+                                    int stackTemp = getNewStackPos(stackPos);
+                                    stackPos.put(assig, stackTemp);
+                                    assig = -stackTemp + "($sp)";
+    
+                                    if(opp.contains("($s7)")){
+                                        fin += "\tlw $s7, " + term + "\n";
+                                        term = opp;
+                                        opp = "lw";
+                                    }
+    
+                                    fin += "\t" + opp + " $t9, " + term + "\n"
+                                        +  "\tsw $t9 ," + assig + "\n";
+    
+                                }
                             }
 
                             //termino de la derecha tiene que ser una variable o un numero/caractér a fuerza
@@ -1479,22 +1521,56 @@ public class CodInt {
                             //es una variable
                             String opp = "sw";
                             if(stackPos.containsKey(assig)){
+                                if(assig.contains(".")){
+                                    Object[] obj = tabla.buscarTuplaDown(assig, 0);
+                                    int off = ((Tupla)obj[0]).offset;
+                                    //String pref = assig.substring(0, assig.indexOf("."));
+                                    if(opp.equals("move")){
+                                        opp = "sw";
+                                        assig = off + "(" + assig + ")";
+                                    }else{
+                                        opp = off + "($s7)";
+                                    }
+                                }
                                 assig = -stackPos.get(assig) + "($sp)";
                             }else{
                                 if(assig.equals(funcActual)){
                                     opp = "move";
                                     assig = "$v0";
                                 }else if(!stackPos.containsKey(assig) && !relS.containsKey(assig)){
-                                    assig = "_" + assig;
-                                }else if(relS.containsKey(assig)){
-                                    opp = "move";
-                                    assig = relS.get(assig);
+                                    if(assig.contains(".")){
+                                        Object[] obj = tabla.buscarTuplaDown(assig, 0);
+                                        int off = ((Tupla)obj[0]).offset;
+                                        String pref = assig.substring(0, assig.indexOf("."));
+                                        
+                                        if(relS.containsKey(pref)){
+                                            assig = relS.get(pref);
+                                            opp = "sw";
+                                            assig = off + "(" + assig + ")";
+                                            
+                                        }else if(stackPos.containsKey(pref)){
+                                            int varPila = stackPos.get(pref);
+                                            assig = -varPila + "($sp)";
+                                            opp = off + "($s7)";
+                                        }else{
+                                            opp = off + "($s7)";
+                                            assig = pref;
+                                            assig = "_" + assig;
+                                        }
+                                    }else{
+                                        assig = "_" + assig;
+                                    }
                                 }else{
-                                    int varPila = stackPos.get(assig);
-                                    assig = -varPila + "($sp)";
+                                    if(relS.containsKey(assig)){
+                                        opp = "move";
+                                        assig = relS.get(assig);
+                                    }else{
+                                        int varPila = stackPos.get(assig);
+                                        assig = -varPila + "($sp)";
+                                    }
                                 }
                             }
-                            if(term.length() > 1 && term.charAt(1) == '.'){
+                            if(term.length() > 1 && term.charAt(1) == '.' && term.charAt(0) == 't'){
                                 
                                 if(relTemp.containsKey(term)){
                                     //está en un temporal
@@ -1505,8 +1581,11 @@ public class CodInt {
                                     
                                     if(opp.equals("sw")){
                                         fin += "\tsw " + temp + ", " + assig + "\n";
-                                    }else{
+                                    }else if(opp.equals("move")){
                                         fin += "\tmove " + assig + ", " + temp + "\n";
+                                    }else{
+                                        fin += "\tlw $s7, " + assig + "\n"
+                                            +  "\tsw " + temp + ", " + opp + "\n";
                                     }
                                     
                                 }else if(stackPos.containsKey(term)){
@@ -1519,8 +1598,11 @@ public class CodInt {
                                     fin += "\tlw $t9, " + term + "\n";
                                     if(opp.equals("sw")){
                                         fin += "\tsw $t9, " + assig + "\n";
-                                    }else{
+                                    }else if(opp.equals("move")){
                                         fin += "\tmove " + assig + ", $t9\n";
+                                    }else{
+                                        fin += "\tlw $s7, " + assig + "\n"
+                                            +  "\tsw $t9, " + opp + "\n";
                                     }
                                     
                                 }else{
@@ -1573,7 +1655,7 @@ public class CodInt {
                     }
                     
                     //El primer operando (segundo valor)
-                    if(term.length() > 1 && term.charAt(1) == '.'){
+                    if(term.length() > 1 && term.charAt(1) == '.' && term.charAt(0) == 't'){
                         //es un temporal
 
                         if(relTemp.containsKey(term)){
@@ -1632,13 +1714,38 @@ public class CodInt {
                                 int varPila = stackPos.get(term);
                                 term = -varPila + "($sp)";
                             }
+
                             
                             int tempS = getNewStackPos(stackPos);
                             stackPos.put("$s6", tempS);
-    
                             
-                            fin +=  "\tsw $s6, " + -tempS + "($sp)\n"
-                                +   "\tlw $s6, " + term + "\n";
+                            
+                            fin +=  "\tsw $s6, " + -tempS + "($sp)\n";
+
+                            if(term.contains(".")){
+                                Object[] obj = tabla.buscarTuplaDown(term.substring(1), 0);
+                                int off = ((Tupla)obj[0]).offset;
+                                String pref = term.substring(1, term.indexOf("."));
+                                
+                                if(relS.containsKey(pref)){
+                                    term = relS.get(pref);
+                                    term = off + "(" + term + ")";
+                                    
+                                }else if(stackPos.containsKey(pref)){
+                                    int varPila = stackPos.get(pref);
+                                    term = -varPila + "($sp)";
+                                    fin += "\tlw $s6, " +  term + "\n";
+                                    term = off + "($s6)";
+                                }else{
+                                    term = "_" + pref;
+                                    fin += "\tlw $s6, " +  term + "\n";
+                                    term = off + "($s6)";
+                                }
+                                fin += "\tlw $s6, " + term + "\n";
+                            }else{
+                                fin +=  "\tlw $s6, " + term + "\n";
+                            }
+
                             second = "$s6";
     
                             term = -tempS + "($sp)";
@@ -1649,7 +1756,7 @@ public class CodInt {
                     }
 
                     //El segundo operando (tercer valor)
-                    if(term2.length() > 1 && term2.charAt(1) == '.'){
+                    if(term2.length() > 1 && term2.charAt(1) == '.' && term2.charAt(0) == 't'){
                         //es un temporal
 
                         if(relTemp.containsKey(term2)){
@@ -1705,8 +1812,33 @@ public class CodInt {
                             stackPos.put("$s7", tempS);
     
                             
-                            fin +=  "\tsw $s7, " + -tempS + "($sp)\n"
-                                +   "\tlw $s7, " + term2 + "\n";
+                            
+
+                            fin +=  "\tsw $s7, " + -tempS + "($sp)\n";
+
+                            if(term2.contains(".")){
+                                Object[] obj = tabla.buscarTuplaDown(term2.substring(1), 0);
+                                int off = ((Tupla)obj[0]).offset;
+                                String pref = term2.substring(1, term2.indexOf("."));
+                                if(relS.containsKey(pref)){
+                                    term2 = relS.get(pref);
+                                    term2 = off + "(" + term2 + ")";
+                                    
+                                }else if(stackPos.containsKey(pref)){
+                                    int varPila = stackPos.get(pref);
+                                    term2 = -varPila + "($sp)";
+                                    fin += "\tlw $s7, " +  term2 + "\n";
+                                    term2 = off + "($s7)";
+                                }else{
+                                    term2 = "_" + pref;
+                                    fin += "\tlw $s7, " +  term2 + "\n";
+                                    term2 = off + "($s7)";
+                                }
+                                fin += "\tlw $s7, " + term2 + "\n";
+                            }else{
+                                fin +=  "\tlw $s7, " + term2 + "\n";
+                            }
+                                
                             third = "$s7";
     
                             term2 = -tempS + "($sp)";
@@ -1716,7 +1848,7 @@ public class CodInt {
 
                     }
 
-                    System.out.println("OPP: " + opp);
+                    //System.out.println("OPP: " + opp);
                     switch(opp){
                         case "+":{
                             fin += "\tadd ";
@@ -1767,7 +1899,7 @@ public class CodInt {
                     //SE LLAMAN SECOND Y THIRD PORQUE LE DI COPY PASTE A LO DE ARRIBA
                     
                     //El primer operando (segundo valor)
-                    if(term.length() > 1 && term.charAt(1) == '.'){
+                    if(term.length() > 1 && term.charAt(1) == '.' && term.charAt(0) == 't'){
                         //es un temporal
 
                         if(relTemp.containsKey(term)){
@@ -1831,8 +1963,32 @@ public class CodInt {
                             stackPos.put("$s6", tempS);
     
                             
-                            fin +=  "\tsw $s6, " + -tempS + "($sp)\n"
-                                +   "\tlw $s6, " + term + "\n";
+                            fin +=  "\tsw $s6, " + -tempS + "($sp)\n";
+
+                            if(term.contains(".")){
+                                Object[] obj = tabla.buscarTuplaDown(term.substring(1), 0);
+                                int off = ((Tupla)obj[0]).offset;
+                                String pref = term.substring(1, term.indexOf("."));
+
+                                if(relS.containsKey(pref)){
+                                    term = relS.get(pref);
+                                    term = off + "(" + term + ")";
+                                    
+                                }else if(stackPos.containsKey(pref)){
+                                    int varPila = stackPos.get(pref);
+                                    term = -varPila + "($sp)";
+                                    fin += "\tlw $s6, " +  term + "\n";
+                                    term = off + "($s6)";
+                                }else{
+                                    term = "_" + pref;
+                                    fin += "\tlw $s6, " +  term + "\n";
+                                    term = off + "($s6)";
+                                }
+                                fin += "\tlw $s6, " + term + "\n";
+                            }else{
+                                fin +=  "\tlw $s6, " + term + "\n";
+                            }
+                            
                             second = "$s6";
     
                             term = -tempS + "($sp)";
@@ -1842,7 +1998,7 @@ public class CodInt {
                     }
 
                     //El segundo operando (tercer valor)
-                    if(term2.length() > 1 && term2.charAt(1) == '.'){
+                    if(term2.length() > 1 && term2.charAt(1) == '.' && term2.charAt(0) == 't'){
                         //es un temporal
 
                         if(relTemp.containsKey(term2)){
@@ -1898,8 +2054,32 @@ public class CodInt {
                             stackPos.put("$s7", tempS);
     
                             
-                            fin +=  "\tsw $s7, " + -tempS + "($sp)\n"
-                                +   "\tlw $s7, " + term2 + "\n";
+                            fin +=  "\tsw $s7, " + -tempS + "($sp)\n";
+
+                            if(term2.contains(".")){
+                                Object[] obj = tabla.buscarTuplaDown(term2.substring(1), 0);
+                                int off = ((Tupla)obj[0]).offset;
+                                String pref = term2.substring(1, term2.indexOf("."));
+                                
+                                if(relS.containsKey(pref)){
+                                    term2 = relS.get(pref);
+                                    term2 = off + "(" + term2 + ")";
+                                    
+                                }else if(stackPos.containsKey(pref)){
+                                    int varPila = stackPos.get(pref);
+                                    term2 = -varPila + "($sp)";
+                                    fin += "\tlw $s7, " +  term2 + "\n";
+                                    term2 = off + "($s7)";
+                                }else{
+                                    term2 = "_" + pref;
+                                    fin += "\tlw $s7, " +  term2 + "\n";
+                                    term2 = off + "($s7)";
+                                }
+                                fin += "\tlw $s7, " + term2 + "\n";
+                            }else{
+                                fin +=  "\tlw $s7, " + term2 + "\n";
+                            }
+
                             third = "$s7";
     
                             term2 = -tempS + "($sp)";
@@ -1954,42 +2134,32 @@ public class CodInt {
                     fin += ((EtiqInt)ins).etiq + ":\n";
                     if(((EtiqInt)ins).etiq.charAt(1) == '_'){
                         //AGREGAR LAS PAPADAS
-                        fin += "\tmove $sp, $fp\n";
-                        
-                        for(int i = 7; i >= 0 ; i--){
-                            if(i < 6 && activeS[i]){
-                                fin += "\tlw $s" + i + ", " + -(((i + 1) * 4) + 8) + "($sp)\n";
-                            }
-                        }
-                        
-                        fin += "\tlw $ra, -8($sp)\n"
-                            +  "\tsw $fp, -4($sp)\n"
+                        fin += "\tmove $sp, $fp\n"
+                            +  "\tlw $ra, -8($sp)\n"
+                            +  "\tlw $fp, -4($sp)\n"
                             +  "\tjr $ra\n";
 
-                        relTemp = relTempOld.get(relTempOld.size() - 1);
-                        stackPos = stackPosOld.get(stackPosOld.size() - 1);
-                        activeTemp = activeTempOld.get(activeTempOld.size() - 1);
+                        stackPos = new HashMap<>();
+                        relTemp = new HashMap<>();
+                        activeTemp = new boolean[9];
 
-                        relS = relSOld.get(relSOld.size() - 1);
-                        activeS = activeSOld.get(activeSOld.size() - 1);
+                        relS = new HashMap<>();
+                        activeS = new boolean[6];
 
-                        if(relTempOld.size() > 0)
-                            relTempOld.remove(relTempOld.size() - 1);
-                        if(stackPosOld.size() > 0)
-                            stackPosOld.remove(stackPosOld.size() - 1);
-                        if(relTempOld.size() > 0)
-                            relTempOld.remove(relTempOld.size() - 1);
-                        
-                        if(relSOld.size() > 0)
-                            relSOld.remove(relSOld.size() - 1);
-                        if(activeSOld.size() > 0)
-                            activeSOld.remove(activeSOld.size() - 1);
-
-                        funcActual = "NULL";
-                        tipActual = "NULL";
+                        funcActual = funList.get(funList.size() - 1);
+                        tipActual = tipList.get(tipList.size() - 1);
 
                     }else if(((EtiqInt)ins).etiq.equals("\nmain")){
                         fin += "\tmove $fp, $sp\n";
+                        for (String rec : allocMem) {
+                            Object[] obj = tabla.buscarTuplaDown(rec.substring(1), 0);
+                            obj = tabla.buscarTuplaDown(((Tupla)obj[0]).type, 0);
+                            int off = ((Tupla)obj[0]).offset;
+                            fin += "\tli $v0, 9\n"
+                                +  "\tli $a0, " + (off) + "\n"
+                                +  "\tsyscall\n"
+                                +  "\tsw $v0, " + rec + "\n";
+                        }
                     }
                 }else if(ins instanceof GotoInt){
                     fin += "\tb " + ((GotoInt)ins).etiqueta + "\n";
@@ -1997,8 +2167,33 @@ public class CodInt {
                     String var = ((ReadInt)ins).id;
                     String opp = "sw";
                     Object[] tup = tabla.buscarTuplaDown(var, 0);
+                    String type = ((Tupla)tup[0]).type;
                     if(!stackPos.containsKey(var) && !relS.containsKey(var)){
                         var = "_" + var;
+                        if(var.contains(".")){
+                            
+                            Object[] obj = tabla.buscarTuplaDown(var.substring(1), 0);
+                            int off = ((Tupla)obj[0]).offset;
+                            String pref = var.substring(1, var.indexOf("."));
+
+                            if(relS.containsKey(pref)){
+                                var = relS.get(pref);
+                                var = off + "(" + var + ")";
+                                
+                            }else if(stackPos.containsKey(pref)){
+                                int varPila = stackPos.get(pref);
+                                var = -varPila + "($sp)";
+                                fin += "\tlw $s6, " +  var + "\n";
+                                var = off + "($s6)";
+                            }else{
+                                var = "_" + pref;
+                                fin += "\tlw $s6, " +  var + "\n";
+                                var = off + "($s6)";
+                            }
+
+                            type = ((Tupla)obj[0]).type.substring( ((Tupla)obj[0]).type.indexOf(".") + 1 );
+                            
+                        }
                     }else if(relS.containsKey(var)){
                         var = relS.get(var);
                         opp = "move";
@@ -2006,9 +2201,9 @@ public class CodInt {
                         int varPila = stackPos.get(var);
                         var = -varPila + "($sp)";
                     }
-                    if(((Tupla)tup[0]).type.equals("INT")){
+                    if(type.equals("INT")){
                         fin += "\tli $v0, 5\n";
-                    }else if(((Tupla)tup[0]).type.equals("CHAR")){
+                    }else if(type.equals("CHAR")){
                         fin += "\tli $v0, 12\n";
                     }
                     fin += "\tsyscall\n";
@@ -2022,8 +2217,34 @@ public class CodInt {
                     String var = ((PrintInt)ins).cont;
                     String org = var;
                     String opp = "lw";
+                    String type = "empty";
                     if(!stackPos.containsKey(var) && !relS.containsKey(var)){
                         var = "_" + var;
+                        
+                        if(var.contains(".")){
+                            
+                            Object[] obj = tabla.buscarTuplaDown(var.substring(1), 0);
+                            int off = ((Tupla)obj[0]).offset;
+                            String pref = var.substring(1, var.indexOf("."));
+
+                            if(relS.containsKey(pref)){
+                                var = relS.get(pref);
+                                var = off + "(" + var + ")";
+                                
+                            }else if(stackPos.containsKey(pref)){
+                                int varPila = stackPos.get(pref);
+                                var = -varPila + "($sp)";
+                                fin += "\tlw $s6, " +  var + "\n";
+                                var = off + "($s6)";
+                            }else{
+                                var = "_" + pref;
+                                fin += "\tlw $s6, " +  var + "\n";
+                                var = off + "($s6)";
+                            }
+
+                            type = ((Tupla)obj[0]).type.substring( ((Tupla)obj[0]).type.indexOf(".") + 1 );
+                        }
+
                     }else if(relS.containsKey(var)){
                         opp = "move";
                         var = relS.get(var);
@@ -2037,43 +2258,34 @@ public class CodInt {
                         +  "\tla $a0, " + var + "\n"
                         +  "\tsyscall\n";
                     }else{
-                        Object[] tup = tabla.buscarTuplaDown(org, 0);
-                        if(tup != null){
-                            if(((Tupla)tup[0]).type.equals("INT")){
-                                fin += "\tli $v0, 1\n";
-                            }else if(((Tupla)tup[0]).type.equals("CHAR")){
-                                fin += "\tli $v0, 11\n";
-                            }
-                            if(opp == "lw"){
-                                fin += "\tlw $a0, " + var + "\n";
-                            }else{
-                                fin += "\tmove $a0, " + var + "\n";
-                            }
-                            fin += "\tsyscall\n";
+                        if(type.equals("empty")){
+                            Object[] tup = tabla.buscarTuplaDown(org, 0);
+                            type = ((Tupla)tup[0]).type;
                         }
+                        if(type.equals("INT") || type.equals("BOOLEAN")){
+                            fin += "\tli $v0, 1\n";
+                        }else if(type.equals("CHAR")){
+                            fin += "\tli $v0, 11\n";
+                        }
+                        if(opp == "lw"){
+                            fin += "\tlw $a0, " + var + "\n";
+                        }else{
+                            fin += "\tmove $a0, " + var + "\n";
+                        }
+                        fin += "\tsyscall\n";
                     }
                 }else if(ins instanceof FuncInt){
                     FuncInt fun = ((FuncInt)ins);
 
+                    funList.add(funcActual);
+                    tipList.add(tipActual);
+
                     funcActual = fun.func.split("_")[1];
                     tipActual = fun.func;
-
-                    stackPosOld.add(stackPos);
-                    relTempOld.add(relTemp);
-                    activeTempOld.add(activeTemp);
-
-                    relSOld.add(relS);
-                    activeSOld.add(activeS);
 
                     fin += fun.func + ": \n"
                     +  "\tsw $fp, -4($sp)\n"
                     +  "\tsw $ra, -8($sp)\n";
-
-                    for(int i = 0; i < 8 ; i++){
-                        if(i < 6 && activeS[i]){
-                            fin += "\tsw $s" + i + ", " + (-(((i + 1) * 4) + 8)) + "($sp)\n";
-                        }
-                    }
 
                     stackPos = new HashMap<>();
                     relTemp = new HashMap<>();
@@ -2081,15 +2293,21 @@ public class CodInt {
 
                     relS = new HashMap<>();
                     activeS = new boolean[6];
+
+                    ArrayList<String> recs = new ArrayList<>();
                     
                     ArrayList<DeclNode> decls = fun.decl;
                     int cont = 0;
                     if(decls != null){
                         for(DeclNode decl : decls){
                             String type = decl.type;
-            
                             for (Value val : decl.ids) {
                                 String id = (String)val.content;
+                                if ( !(type.equals("INT") || type.equals("BOOLEAN") || type.equals("CHAR")) ){
+                                    Object[] obj = tabla.buscarTuplaDown(type, 0);
+                                    int off = ((Tupla)obj[0]).offset;
+                                    recs.add(id + "&" + off); //& sirve como delimitador entre el id y el offset, tengo pereza de hacer algo ams elaborado :v
+                                }
                                 stackPos.put(id, -(cont * 4));
                                 cont++;
                             }
@@ -2097,39 +2315,52 @@ public class CodInt {
                         }
                     }
                     
-                    int contParam = 0;
-                    for (int i = 0; i < fun.params.size(); i++) {
+                    fin += "\tmove $fp, $sp\n"
+                    +  "\tsub $sp, $sp, " +  ((cont * 4) + 8) + "\n";
+
+
+                    for (int i = 0; i < fun.params.size() && i <= 3; i++) {
                         String funPar = fun.params.get(i);
-                        if(i <= 3){
-                            int actT = getActiveTemp(activeS);
-                            if(actT != -1){
-                                //hay un temporal libre
-                                activeS[actT] = true;
-                                relS.put(funPar, "$s" + actT);
-                                
-                                fin += "\tmove " + "$s" + actT + ", $a" + i + "\n";
-                                continue;
-                            }else{
-                                //hay que agregarlo a la pila
-                                int stackTemp = getNewStackPos(stackPos);
-                                stackPos.put(funPar, stackTemp);
-                                String ret = -stackTemp + "($sp)";
-                                
-                                
-                                fin += "\tsw $a" + i + ", " + ret + "\n";
-                            }
+                        int actT = getActiveTemp(activeS);
+                        if(actT != -1){
+                            //hay un temporal libre
+                            activeS[actT] = true;
+                            relS.put(funPar, "$s" + actT);
+                            
+                            fin += "\tmove " + "$s" + actT + ", $a" + i + "\n";
+                            continue;
                         }else{
+                            //hay que agregarlo a la pila
                             int stackTemp = getNewStackPos(stackPos);
                             stackPos.put(funPar, stackTemp);
                             String ret = -stackTemp + "($sp)";
                             
-                            fin += "\tlw $s7, " + contParam + "($sp)\n"
-                                +  "\tsw $s7, " + ret + "\n";
-                            contParam += 4;
+                            
+                            fin += "\tsw $a" + i + ", " + ret + "\n";
                         }
                     }
-                    fin += "\tmove $fp, $sp\n"
-                    +  "\tsub $sp, $sp, " +  ((cont * 4) + 40) + "\n";
+
+                    for (String recS : recs) {
+                        String id = recS.substring(0, recS.indexOf("&"));
+                        int off = Integer.parseInt(recS.substring(recS.indexOf("&") + 1));
+                        int pos = stackPos.get(id);
+                        fin += "\tli $v0, 9\n"
+                            +  "\tli $a0, " + off + "\n"
+                            +  "\tsyscall\n"
+                            +  "\tsw $v0, " + -pos + "($sp)\n";
+                    }
+                    
+                    int contParam = 0;
+                    for (int i = 4; i < fun.params.size(); i++) {
+                        String funPar = fun.params.get(i);
+                        int stackTemp = getNewStackPos(stackPos);
+                        stackPos.put(funPar, stackTemp);
+                        String ret = -stackTemp + "($sp)";
+                            
+                        fin += "\tlw $s7, " + contParam + "($fp)\n"
+                            +  "\tsw $s7, " + ret + "\n";
+                        contParam += 4;
+                    }
                     
                 }else if(ins instanceof FuncCallInt){
                     FuncCallInt fc = (FuncCallInt) ins;
@@ -2143,15 +2374,27 @@ public class CodInt {
                         }
                     }
 
+                    for(int i = 0; i < 8 ; i++){
+                        if((i < 6 && activeS[i])){
+                            int stackTemp = getNewStackPos(stackPos);
+                            stackPos.put("$s" + i, stackTemp);
+                            fin += "\tsw $s" + i + ", " + -stackTemp + "($sp)\n";
+                        }else if(i >= 6){
+                            int stackTemp = getNewStackPos(stackPos);
+                            stackPos.put("$sT" + i, stackTemp);
+                            fin += "\tsw $s" + i + ", " + -stackTemp + "($sp)\n"; 
+                        }
+                    }
+
                     int maxPos = getMaxOffset(stackPos);
-                    fin += "\tsub $sp, $sp, " + (-maxPos) + "\n";
+                    fin += "\tsub $sp, $sp, " + (maxPos) + "\n";
 
                     int overflow = (fc.params.size() - 4) * 4;
-                    int posParam = maxPos + overflow;
+                    int posParam = overflow;
                     for (int i = 0; i < fc.params.size(); i++) {
                         String term = fc.params.get(i);
                         String res = "";
-                        if(term.length() > 1 && term.charAt(1) == '.'){
+                        if(term.length() > 1 && term.charAt(1) == '.' && term.charAt(0) == 't'){
                             //es un temporal
     
                             if(relTemp.containsKey(term)){
@@ -2163,21 +2406,16 @@ public class CodInt {
     
                             }else if(stackPos.containsKey(term)){
                                 //está en la pila
-    
-                                int tempS = getNewStackPos(stackPos);
-                                stackPos.put("$s7", tempS);
                                 
                                 int stackTemp = stackPos.get(term);
                                 stackPos.remove(term);
     
                                 res = -stackTemp + "($sp)";
-                                term = -tempS + "($sp)";
     
                                 //Se almacena el valor del registro $s7 en un nuevo espacio de pila
                                 //term tiene almacenado
         
-                                fin +=  "\tsw $s7, " + term + "\n"
-                                    +   "\tlw $s7, " + res + "\n";
+                                fin += "\tlw $s7, " + res + "\n";
                                 res = "$s7";
                                     
                             }else{
@@ -2187,15 +2425,11 @@ public class CodInt {
                         }else if(term.charAt(0) == '\'' || (term.charAt(0) - 48 >= 0 && term.charAt(0) - 48 <= 9)){
                             //el segundo termino es un caracter o entero
 
-                            int tempS = getNewStackPos(stackPos);
-                            stackPos.put("$s7", tempS);
 
                             //Se almacena el valor del registro $s7 en un nuevo espacio de pila
                             //term tiene almacenado
     
-                            fin +=  "\tsw $s7, " + (-tempS) + "($sp)" + "\n"
-                                +   "\tli $s7, " + term + "\n";
-                            term = (-tempS) + "($sp)";
+                            fin += "\tli $s7, " + term + "\n";
                             res = "$s7";
     
                         }else{
@@ -2206,20 +2440,37 @@ public class CodInt {
                                 
                                 if(!stackPos.containsKey(term) && !relS.containsKey(term)){
                                     term = "_" + term;
+
+                                    if(term.contains(".")){
+                            
+                                        Object[] obj = tabla.buscarTuplaDown(term.substring(1), 0);
+                                        int off = ((Tupla)obj[0]).offset;
+                                        String pref = term.substring(1, term.indexOf("."));
+                                        
+                                        if(relS.containsKey(pref)){
+                                            term = relS.get(pref);
+                                            term = off + "(" + term + ")";
+                                            
+                                        }else if(stackPos.containsKey(pref)){
+                                            int termPila = stackPos.get(pref);
+                                            term = -termPila + "($sp)";
+                                            fin += "\tlw $s6, " +  term + "\n";
+                                            term = off + "($s6)";
+                                        }else{
+                                            term = "_" + pref;
+                                            fin += "\tlw $s6, " +  term + "\n";
+                                            term = off + "($s6)";
+                                        }
+            
+                                    }
+
                                 }else{
                                     int varPila = stackPos.get(term);
                                     term = -varPila + "($sp)";
                                 }
-                                
-                                int tempS = getNewStackPos(stackPos);
-                                stackPos.put("$s7", tempS);
-        
-                                
-                                fin +=  "\tsw $s7, " + -tempS + "($sp)\n"
-                                    +   "\tlw $s7, " + term + "\n";
+                    
+                                fin += "\tlw $s7, " + term + "\n";
                                 res = "$s7";
-        
-                                term = -tempS + "($sp)";
                                 //guarda el estado de s0 en la pila para recuperarlo despues de usar s0 para almacenar el segundo termino
                             }
     
@@ -2230,11 +2481,6 @@ public class CodInt {
                         }else{
                             fin += "\tsw " + res + ", " + (-posParam) + "($sp)\n";
                             posParam -= 4;
-                        }
-
-                        if(res.equals("$s7")){
-                            fin +=  "\tlw $s7, " + term + "\n";
-                            stackPos.remove("$s7");
                         }
 
                     }
@@ -2250,6 +2496,19 @@ public class CodInt {
                     
                     fin += "\tadd $sp, $sp, " + maxPos + "\n";
 
+                    
+                    for(int i = 7; i >= 0 ; i--){
+                        if((i < 6 && activeS[i])){
+                            int pos = stackPos.get("$s" + i);
+                            stackPos.remove("$s" + i);
+                            fin += "\tlw $s" + i + ", " + -pos + "($sp)\n";
+                        }else if(i >= 6){
+                            int pos = stackPos.get("$sT" + i);
+                            stackPos.remove("$sT" + i);
+                            fin += "\tlw $s" + i + ", " + -pos + "($sp)\n";
+                        }
+                    }
+                    
                     for(int i = 9; i >= 0 ; i--){
                         if((i < 9 && activeTemp[i]) || i == 9){
                             int pos = stackPos.get("$t" + i);
@@ -2258,7 +2517,7 @@ public class CodInt {
                         }
                     }
 
-                    System.out.println("RET: " + fc.ret);
+                    //System.out.println("RET: " + fc.ret);
                     
                     if(!fc.ret.equals("NULL")){
                         System.out.println("OLA: " + fc.func);
