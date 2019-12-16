@@ -30,6 +30,9 @@ public class Main {
         try {
         parser p = new parser(new lexer(new FileReader(argv[0])));
         p.parse();
+
+        System.out.println("\n");
+
         ruta = argv[0];
 
         tipos = new HashMap<>();
@@ -168,7 +171,7 @@ public class Main {
 
                 tabla.add(nom, "RECORD", off);
                 
-                tabla.print(0);
+                //tabla.print(0);
     
             }
         }
@@ -379,13 +382,13 @@ public class Main {
                 for(Value val : decl.ids){
 
                     String id = (String)val.content;
-                    System.out.println("Id: " + id);
+                    //System.out.println("Id: " + id);
                     tabla.add(id, type, offset);
                     offset += size;
 
                 }
             }
-            tabla.print(0);
+            //tabla.print(0);
         }
     }
 

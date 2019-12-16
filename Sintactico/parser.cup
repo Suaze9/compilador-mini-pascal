@@ -665,6 +665,13 @@ mult ::= mult:m OPMULT:o num:n {:
 
 num ::= NUMS:n {:
     RESULT = new Value(new Integer((String)n), fila, columna);
+:}
+| OPSUM:o NUMS:n {:
+    if(((String)o).equals("-")){
+        RESULT = new Value(-(new Integer((String)n)), fila, columna);
+    }else{
+        RESULT = new Value(new Integer((String)n), fila, columna);
+    }
 :}  
 | CONSTCHAR:cc {:
     RESULT = new Value(new Character(((String)cc).charAt(1)), fila, columna);

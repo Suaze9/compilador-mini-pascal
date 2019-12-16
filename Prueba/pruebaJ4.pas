@@ -18,7 +18,7 @@ var
 begin
     write('\n antes: ', m.puntos);
     write('\n antes: ', m.inicial);
-    ret.puntos := 0-100;
+    ret.puntos := -100;
     ret.inicial := 'j';
     retPro := ret;
 end;

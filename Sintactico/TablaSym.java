@@ -194,7 +194,7 @@ public class TablaSym{
             Object[] obj = new Object[2];
             obj[0] = tup;
             obj[1] = prof;
-            System.out.println("ID: " + id);
+            //System.out.println("ID: " + id);
             //System.out.println("TUP: " + ((Tupla)tup).id);
             if(tup.id.equals(id)){
                 System.out.println("\nREC");

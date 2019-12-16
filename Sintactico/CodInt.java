@@ -26,9 +26,9 @@ public class CodInt {
         this.root = t;
         this.tabla = tab;
 
-        System.out.println(ruta);
+        //System.out.println(ruta);
         ruta = ruta.replace(".pas", ".asm");
-        System.out.println(ruta);
+        //System.out.println(ruta);
 
         this.ruta = ruta;
         this.codigo = new ArrayList();
@@ -44,7 +44,8 @@ public class CodInt {
         statements(root.statements, fin);
 
         genEtiq(fin);
-
+        
+        System.out.println("\nCodigo Intermedio: \n");
         codigo = optim(codigo);
 
         for (Instruccion i : codigo) {
@@ -52,10 +53,14 @@ public class CodInt {
             System.out.print("\n");
         }
         System.out.print("\n");
-        System.out.print("\n");
+
+        System.out.print("Tabla de simbolos: \n");
+
+        tabla.print(0);
 
         String codFin = codigoFinal(codigo);
 
+        System.out.println("Codigo Final: \n");
         System.out.println(codFin);
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(ruta))) {
@@ -220,7 +225,6 @@ public class CodInt {
                     //CUANDO SE ENCUENTRE UNA FUNCINT SE DEBE ALMACENAR LAS PAPADAS
                     String et = "\n_" + ((String)id.content) + "_" + type;
                     codigo.add(new FuncInt(et, declarations, par, funcprocType));
-                    new FuncInt(et, declarations, par, funcprocType).print();
                     String etiqFunc = et + "_END";
                     statements(statements, etiqFunc);
                     genEtiq(etiqFunc);
@@ -1351,7 +1355,6 @@ public class CodInt {
     }
 
     private String codigoFinal(ArrayList<Instruccion> codigo){
-        tabla.print(0);
         String fin = "";
         String funcActual = "NULL";
         String tipActual = "NULL";
@@ -2520,14 +2523,14 @@ public class CodInt {
                     //System.out.println("RET: " + fc.ret);
                     
                     if(!fc.ret.equals("NULL")){
-                        System.out.println("OLA: " + fc.func);
+                        
                         int actT = getActiveTemp(activeTemp);
                         if(actT != -1){
                             //hay un temporal libre
                             activeTemp[actT] = true;
                             relTemp.put(fc.ret, "$t" + actT);
                             
-                            System.out.println("OLA1: " + "\tmove " + "$t" + actT + ", $v0\n");
+                            
                             fin += "\tmove " + "$t" + actT + ", $v0\n";
                             
                         }else{

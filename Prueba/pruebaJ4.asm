@@ -6,7 +6,6 @@ __msg0:	.asciiz "\n antes: "
 __msg1:	.asciiz "ingrese puntos: "
 __msg2:	.asciiz "ingrese inicial: "
 __msg3:	.asciiz "\n desps: "
-__msg4:	.asciiz "\ desps: "
 
 	.text
 	.globl main
@@ -32,10 +31,7 @@ _retpro_pro:
 	li $v0, 11
 	lw $a0, 4($s0)
 	syscall
-	sw $s6, -4($sp)
-	li $s6, 0
-	sub $t0, $s6, 100
-	lw $s6, -4($sp)
+	lw $t0, _-100
 	lw $s7, 0($sp)
 	sw $t0, 0($s7)
 	li $t0, 'j'
@@ -92,7 +88,7 @@ main:
 	lw $a0, 0($s6)
 	syscall
 	li $v0, 4
-	la $a0, __msg4
+	la $a0, __msg3
 	syscall
 	lw $s6, _p
 	li $v0, 11
