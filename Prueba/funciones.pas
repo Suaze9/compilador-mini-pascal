@@ -1,7 +1,6 @@
 program test
 var 
-    a, b, c, d: integer;
-    bool1, bool2: boolean;
+    a, b: integer;
 
 
 function exponent(e, f: integer):integer
